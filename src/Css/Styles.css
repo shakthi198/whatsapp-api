@@ -1,0 +1,134 @@
+/* General styles for the flow chart container */
+.react-flow {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+ /* Remove border from nodes */
+.react-flow__node {
+  border: none !important; /* Remove any border */
+  outline: none !important; /* Remove outline */
+}
+
+/* Remove border on hover */
+.react-flow__node:hover {
+  border: none !important; /* Remove border on hover */
+  outline: none !important; /* Remove outline on hover */
+}
+  
+  /* Styles for edges */
+  .react-flow__edge-path {
+    stroke: #6b7280; /* Dark gray stroke for edges */
+    stroke-width: 2;
+  }
+  
+  .react-flow__edge-path:hover {
+    stroke: #1e40af; /* Blue stroke on hover */
+  }
+  
+  /* Styles for the background grid */
+  .react-flow__background {
+    background-color: #f3f4f6; /* Light gray background for the grid */
+  }
+  
+
+  
+  
+  .react-flow__controls-button svg {
+    fill: #374151; /* Dark gray icon color */
+  }
+  
+  /* Styles for the toolbar */
+  .toolbar {
+    margin-bottom: 16px;
+  }
+  
+  .toolbar button {
+    background-color: #3b82f6; /* Blue background for buttons */
+    color: #ffffff; /* White text */
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    margin-right: 8px;
+    cursor: pointer;
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    transition: background-color 0.2s ease;
+  }
+  
+  .toolbar button:hover {
+    background-color: #2563eb; /* Darker blue on hover */
+  }
+  
+  /* Styles for the flow chart container */
+  .flow-container {
+    width: 100%;
+    height: 600px;
+    background-color: #ffffff; /* White background */
+  }
+
+  .react-flow__edges {
+    z-index: 1;
+  }
+  
+  .react-flow__edge-path {
+    stroke: #000;
+    stroke-width: 2;
+  }
+
+  .custom-node {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 25px; /* Increased padding */
+    background-color: #16a34a; /* Green color for all nodes */
+    color: white;
+    border-radius: 12px;
+    min-width: 200px; /* Increased width */
+    min-height: 80px; /* Increased height */
+    font-weight: bold;
+    position: relative;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .node-label {
+    font-weight: 500;
+    font-size: 16px; /* Increased font size */
+  }
+  
+  .delete-button {
+    position: absolute;
+    right: 40px; /* Adjusted position */
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10; /* Ensure the delete button is above other elements */
+  }
+  
+  .trash-icon {
+    color: #ffffff;
+    font-size: 22px; /* Increased icon size */
+  }
+  
+  
+  /* ReactFlow handles */
+  .react-flow__handle {
+    width: 12px; /* Increased handle size */
+    height: 12px; /* Increased handle size */
+    background: #555;
+  }
+  
+  .react-flow__handle-top {
+    top: -6px; /* Adjusted position */
+  }
+  
+  .react-flow__handle-bottom {
+    bottom: -6px; /* Adjusted position */
+  }
+  
