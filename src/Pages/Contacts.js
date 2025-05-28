@@ -125,15 +125,15 @@ const Contacts = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gray-100">
+    <div className="min-h-screen p-6 bg-gray-100" style={{ fontFamily: "'Montserrat', sans-serif" }}>
       {/* Page Header */}
       <div className="flex items-center mb-6">
-        <h2 className="text-3xl font-medium text-gray-700">Contacts</h2>
+        <h2 className="text-2xl font-medium">Contacts</h2>
         <div className="h-5 w-[2px] bg-gray-300 mx-2"></div>
-        <div className="text-[#DDA853] text-md flex items-center">
+        <div className="text-yellow-600 text-md flex items-center">
           <span>Home</span>
           <HiChevronRight className="mx-1 text-black text-md" />
-          <span className="text-[#DDA853]">contacts</span>
+          <span className="text-yellow-600">contacts</span>
         </div>
       </div>
 
@@ -143,7 +143,8 @@ const Contacts = () => {
           <select
             value={selectedFilter}
             onChange={(e) => setSelectedFilter(e.target.value)}
-            className="border border-gray-300 p-2 rounded text-gray-500 w-32 focus:outline-none focus:border-[#DDA853]"
+            className="border border-gray-300 p-2 rounded text-gray-500 w-32 focus:outline-none focus:border-yellow-600"
+            style={{ fontFamily: "'Montserrat', sans-serif" }}
           >
             <option value="All">All</option>
           </select>
@@ -152,7 +153,8 @@ const Contacts = () => {
             value={searchTag}
             onChange={(e) => setSearchTag(e.target.value)}
             placeholder="Search tag"
-            className="border border-gray-300 p-2 rounded text-gray-600 w-72 text-sm focus:outline-none focus:border-[#DDA853]"
+            className="border border-gray-300 p-2 rounded text-gray-600 w-72 text-sm focus:outline-none focus:border-yellow-600"
+            style={{ fontFamily: "'Montserrat', sans-serif" }}
           />
         </div>
       </div>
@@ -185,13 +187,13 @@ const Contacts = () => {
           <TbDownload />
         </button>
         <button 
-          className="bg-[#DDA853] text-white px-4 py-2 rounded flex items-center hover:cursor-pointer" 
+          className="bg-yellow-600 text-white px-4 py-2 rounded flex items-center hover:cursor-pointer" 
           onClick={() => navigate("/manage-groups")}
         >
           <LuUsers className="mr-2" /> Manage Groups
         </button>
         <button 
-          className="bg-[#DDA853] text-white px-4 py-2 rounded flex items-center hover:cursor-pointer"
+          className="bg-yellow-600 text-white px-4 py-2 rounded flex items-center hover:cursor-pointer"
           onClick={handleSampleCSV}
         >
           <TbDownload className="mr-2" /> Sample CSV File
@@ -201,7 +203,7 @@ const Contacts = () => {
       {/* Table Section */}
       <div className="bg-white p-4 rounded-b-md">
         <div className="overflow-x-auto bg-white rounded-lg shadow">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
+          <table className="min-w-full divide-y divide-gray-200 text-sm" style={{ fontFamily: "'Montserrat', sans-serif" }}>
             <thead className="bg-gray-100 text-left font-semibold text-gray-800">
               <tr>
                 <th className="px-4 py-2">
@@ -247,7 +249,7 @@ const Contacts = () => {
                     <td className="px-4 py-2 text-gray-700">{contact.mobile_number}</td>
                     <td className="px-4 py-2 flex space-x-2">
                       <button
-                        className="bg-[#DDA853] hover:bg-[#c79b45] text-white rounded-full p-2 transition duration-150"
+                        className="bg-yellow-600 hover:bg-[#c79b45] text-white rounded-full p-2 transition duration-150"
                         onClick={() => {
                           // Edit functionality would go here
                         }}

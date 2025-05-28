@@ -20,19 +20,19 @@ const Response = ({ goBack, selectedFlowName }) => {
       <div className="flex items-center mb-6">
         <h2 className="text-3xl font-semibold text-gray-700">Whatsapp Flows</h2>
         <div className="h-5 w-[2px] bg-gray-300 mx-2"></div>
-        <div className="text-[#DDA853] text-md flex items-center">
+        <div className="text-yellow-600 text-md flex items-center">
           <span>Home</span>
           <HiChevronRight className="mx-1 text-black text-md" />
-          <span className="text-[#DDA853]">Whatsapp Flows</span>
+          <span className="text-yellow-600">Whatsapp Flows</span>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b mb-4">
+      <div className="flex border-b  border-gray-300 mb-4">
         <button className="py-2 px-4 text-gray-500 cursor-pointer" onClick={goBack}>
           Flows
         </button>
-        <button className="py-2 px-4 border-b-2 border-[#DDA853] text-[#DDA853] font-medium">
+        <button className="py-2 px-4 border-b-2 border-yellow-600 text-yellow-600 font-medium">
           Responses
         </button>
       </div>

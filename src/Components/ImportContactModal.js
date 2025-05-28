@@ -34,7 +34,7 @@ const ImportContactModal = ({onClose}) => {
           {/* Group Dropdown */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Group</label>
-            <select className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-[#DDA853] focus:border-[#DDA853]">
+            <select className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-yellow-600 focus:border-yellow-600">
               <option>Select</option>
             </select>
           </div>
@@ -44,7 +44,7 @@ const ImportContactModal = ({onClose}) => {
       <label className="block text-sm font-medium text-gray-700">Choose CSV File</label>
       <div className="relative mt-1">
         <div
-          className="flex items-center justify-center w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-[#DDA853] focus:border-[#DDA853] cursor-pointer"
+          className="flex items-center justify-center w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-yellow-600 focus:border-yellow-600 cursor-pointer"
           onClick={handleFileClick}
         >
           <AiOutlineUpload className="text-gray-500 text-lg mr-2" />
@@ -67,7 +67,7 @@ const ImportContactModal = ({onClose}) => {
             </label>
             <input
               type="text"
-              className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-[#DDA853] focus:border-[#DDA853]"
+              className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-yellow-600 focus:border-yellow-600"
             />
           </div>
 
@@ -76,7 +76,7 @@ const ImportContactModal = ({onClose}) => {
             <label className="block text-sm font-medium text-gray-700">
               Country Code <span className="text-red-500">*</span>
             </label>
-            <select className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-[#DDA853] focus:border-[#DDA853]">
+            <select className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-yellow-600 focus:border-yellow-600">
               <option>Select</option>
             </select>
           </div>
@@ -86,7 +86,7 @@ const ImportContactModal = ({onClose}) => {
             <label className="block text-sm font-medium text-gray-700">
               Mobile Number <span className="text-red-500">*</span>
             </label>
-            <select className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-[#DDA853] focus:border-[#DDA853]">
+            <select className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-yellow-600 focus:border-yellow-600">
               <option>Select</option>
             </select>
           </div>
@@ -95,8 +95,8 @@ const ImportContactModal = ({onClose}) => {
         {/* Button Section */}
         <div className="flex items-center justify-end mt-6 mr-9 space-x-2 bg-white p-6 rounded-md shadow-lg">
           <div className="flex items-center gap-2 text-md">
-            <button className="bg-[#DDA853] text-white px-5 py-2 rounded-md">View Preview</button>
-            <CiCircleQuestion className="text-[#DDA853] text-md" />
+            <button className="bg-yellow-600 text-white px-5 py-2 rounded-md">View Preview</button>
+            <CiCircleQuestion className="text-yellow-600 text-md" />
           </div>
           <button className="bg-red-500 text-white px-5 py-2 rounded-md">Reset File</button>
         </div>
@@ -129,7 +129,7 @@ const ImportContactModal = ({onClose}) => {
 
         {/* Import to Contacts Button */}
         <div className="flex justify-end mt-6">
-          <button className="bg-[#DDA853] text-white px-6 py-2 rounded-md">Import to Contacts</button>
+          <button className="bg-yellow-600 text-white px-6 py-2 rounded-md">Import to Contacts</button>
         </div>
       </div>
     </div>

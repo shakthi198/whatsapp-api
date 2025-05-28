@@ -43,7 +43,7 @@ const EditDropdown = ({ flowId, onDelete }) => {
       {/* Edit Icon Button */}
       <button
         onClick={toggleDropdown}
-        className="bg-[#DDA853] text-white p-3 rounded-full shadow-md cursor-pointer"
+        className="bg-yellow-600 text-white p-3 rounded-full shadow-md cursor-pointer"
       >
         <FaEdit className="text-xl" />
       </button>

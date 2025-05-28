@@ -91,12 +91,12 @@ const FlowPage = () => {
     <div className="min-h-screen p-6">
       {/* Page Header with Line */}
       <div className="flex items-center mb-4">
-        <h2 className="text-3xl font-semibold text-gray-700">Flow</h2>
+        <h2 className="text-2xl font-medium ">Flow</h2>
         <div className="h-5 w-[2px] bg-gray-300 mx-2"></div>
-        <div className="text-[#DDA853] text-md flex items-center">
+        <div className="text-yellow-600 text-md flex items-center">
           <span>Home</span>
           <HiChevronRight className="mx-1 text-black text-md" />
-          <span className="text-[#DDA853]">Flow</span>
+          <span className="text-yellow-600">Flow</span>
         </div>
       </div>
 
@@ -113,7 +113,7 @@ const FlowPage = () => {
           </select>
 
           <button
-            className="bg-[#DDA853] text-white px-5 py-2 rounded-md font-medium shadow-md cursor-pointer"
+            className="bg-yellow-600 text-white px-5 py-2 rounded-md font-medium shadow-md cursor-pointer"
             onClick={() => setIsCreateFlowOpen(true)}
           >
             + Create Flow
@@ -126,7 +126,7 @@ const FlowPage = () => {
           />
 
           <button
-            className="bg-[#DDA853] text-white px-5 py-2 rounded-md font-medium shadow-md cursor-pointer"
+            className="bg-yellow-600 text-white px-5 py-2 rounded-md font-medium shadow-md cursor-pointer"
             onClick={() => setIsUnsubscribeOpen(true)}
           >
             Unsubscribe Keys
@@ -214,7 +214,7 @@ const FlowPage = () => {
         <button className="p-2 rounded-md text-gray-600 hover:bg-gray-300">
           <HiChevronLeft className="text-2xl" />
         </button>
-        <button className="border border-[#DDA853] px-4 py-2 rounded-md text-black font-medium">
+        <button className="border border-yellow-600 px-4 py-2 rounded-md text-black font-medium">
           1
         </button>
         <button className="p-2 rounded-md text-gray-600 hover:bg-gray-300">

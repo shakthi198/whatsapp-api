@@ -7,7 +7,7 @@ import Pagination from "../Dynamic Components/Pagination";
 
 const ScheduleLogsUI = () => {
   const [activeTab, setActiveTab] = useState("Schedule Report");
-  const [tableData, setTableData] = useState([ // Default data
+  const [tableData, setTableData] = useState([
     {
       "S.No": 1,
       "Campaign Name": "Summer Sale",
@@ -54,47 +54,59 @@ const ScheduleLogsUI = () => {
     Status: (
       <span
         className={`px-2 py-1 text-white text-gray-600 font-medium rounded ${
-          item.Status === "Completed" ? "bg-green-500" : "bg-orange-400"
+          item.Status === "Completed" ? "bg-green-500" : "bg-yellow-600"
         }`}
+        style={{ fontFamily: "'Montserrat', sans-serif" }}
       >
         {item.Status}
       </span>
     ),
   }));
 
-  // Handle tab click to reset data
   const handleTabClick = (tab) => {
     setActiveTab(tab);
-    if (tab === "Schedule Logs") setTableData([]); // Reset data when switching to Schedule Logs
+    if (tab === "Schedule Logs") setTableData([]);
   };
 
-  // const handlePrevClick = () => navigate("");
-  // const handleNextClick = () => {};
-
   return (
-    <div className="w-full min-h-screen p-3">
+    <div 
+      className="w-full min-h-screen p-3"
+      style={{ fontFamily: "'Montserrat', sans-serif" }}
+    >
       {/* Breadcrumb */}
       <div className="flex mb-10">
-        <h1 className="text-gray-700 font-semibold text-lg mr-2">Schedule Logs</h1>
+        <h1 
+          className="font-medium text-2xl mr-2"
+          style={{ fontFamily: "'Montserrat', sans-serif" }}
+        >
+          Schedule Logs
+        </h1>
         <span className="text-gray-300 mx-1">|</span>
-        <div className="flex items-center text-sm text-gray-400">
-          <span className="hover:text-gray-600 cursor-pointer">Home</span>
-          <FaChevronRight className="mx-1 text-gray-300 text-xs" />
-          <span className="text-orange-400 cursor-pointer">Schedule Logs</span>
+        <div 
+          className="flex items-center text-md"
+          style={{ fontFamily: "'Montserrat', sans-serif" }}
+        >
+          <span className="text-yellow-600">Home</span>
+          <FaChevronRight className="mx-1 text-gray-300 text-md" />
+          <span className="text-yellow-600 cursor-pointer">Schedule Logs</span>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 border-b-2 border-gray-200 mb-4">
+      <div 
+        className="flex gap-4 border-b-2 border-gray-200 mb-4"
+        style={{ fontFamily: "'Montserrat', sans-serif" }}
+      >
         {["Schedule Report", "Schedule Logs"].map((tab) => (
           <span
             key={tab}
             onClick={() => handleTabClick(tab)}
-            className={`cursor-pointer pb-2 px-4 font-semibold ${
+            className={`cursor-pointer pb-2 px-4 font-medium ${
               activeTab === tab
-                ? "text-[#CBAE7D] border-b-2 border-[#CBAE7D]"
-                : "text-gray-400 hover:text-gray-600"
+                ? "text-yellow-600 border-b-2 border-yellow-600"
+                : "text-gray-400 hover:text-yellow-600"
             }`}
+            style={{ fontFamily: "'Montserrat', sans-serif" }}
           >
             {tab}
           </span>
@@ -102,21 +114,23 @@ const ScheduleLogsUI = () => {
       </div>
 
       {/* Content Section */}
-      <div className="text-gray-700">
+      <div className="text-yellow-600" style={{ fontFamily: "'Montserrat', sans-serif" }}>
         {activeTab === "Schedule Report" && (
           <div className="mb-4">
             <Apilogoschartui />
           </div>
         )}
         <div>
-          <ReusableTable columns={columns} data={modifiedData} />
+          <ReusableTable 
+            columns={columns} 
+            data={modifiedData}
+            fontFamily="'Montserrat', sans-serif"
+          />
         </div>
         {/* <Pagination
           currentPage={1}
           totalPages={1}
           setCurrentPage={() => {}}
-          onPrevClick={handlePrevClick}
-          onNextClick={handleNextClick}
         /> */}
       </div>
     </div>

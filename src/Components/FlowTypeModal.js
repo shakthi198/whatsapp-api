@@ -27,7 +27,7 @@ const FlowTypeModal = ({ isOpen, onClose, onSave }) => {
         </div>
         <input
           type="text"
-          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#DDA853] cursor-pointer"
+          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-yellow-600 cursor-pointer"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           placeholder="Flow Type"

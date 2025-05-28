@@ -42,13 +42,13 @@ const Login = () => {
                                 className="w-full bg-transparent border border-white/30 rounded-4xl px-3 py-2 outline-none text-white placeholder-white"
                             />
                         </div>
-                        <button onClick={handleForgotPassword} className="w-full bg-[#DDA853] text-white font-semibold py-2 rounded-4xl shadow-md hover:bg-gray-200 transition">
+                        <button onClick={handleForgotPassword} className="w-full bg-yellow-600 text-white font-semibold py-2 rounded-4xl shadow-md hover:bg-gray-200 transition">
                             Send Reset Link
                         </button>
                         <p className="text-center text-sm mt-4">
                             Remembered your password? {" "}
                             <span
-                                className="text-[#DDA853] hover:text-white cursor-pointer"
+                                className="text-yellow-600 hover:text-white cursor-pointer"
                                 onClick={() => setIsForgotPassword(false)}
                             >
                                 Back to Login
@@ -85,13 +85,13 @@ const Login = () => {
                                 className="w-full bg-transparent border border-white/30 rounded-4xl px-3 py-2 outline-none text-white placeholder-white"
                             />
                         </div>
-                        <button onClick={handleRegister} className="w-full bg-[#DDA853] text-white font-semibold py-2 rounded-4xl shadow-md hover:bg-gray-200 transition">
+                        <button onClick={handleRegister} className="w-full bg-yellow-600 text-white font-semibold py-2 rounded-4xl shadow-md hover:bg-gray-200 transition">
                             Register
                         </button>
                         <p className="text-center text-sm mt-4">
                             Already have an account? {" "}
                             <span
-                                className="text-[#DDA853] hover:text-white cursor-pointer"
+                                className="text-yellow-600 hover:text-white cursor-pointer"
                                 onClick={() => setIsRegister(false)}
                             >
                                 Login
@@ -126,19 +126,19 @@ const Login = () => {
                                 Remember me
                             </label>
                             <span
-                                className="text-[#DDA853] hover:text-white cursor-pointer"
+                                className="text-yellow-600 hover:text-white cursor-pointer"
                                 onClick={() => setIsForgotPassword(true)}
                             >
                                 Forgot password?
                             </span>
                         </div>
-                        <button onClick={handleLogin} className="w-full bg-[#DDA853] text-white font-semibold py-2 rounded-4xl shadow-md hover:bg-gray-200 transition">
+                        <button onClick={handleLogin} className="w-full bg-yellow-600 text-white font-semibold py-2 rounded-4xl shadow-md hover:bg-gray-200 transition">
                             Login
                         </button>
                         <p className="text-center text-sm mt-4">
                             Don't have an account? {" "}
                             <span
-                                className="text-[#DDA853] hover:text-white cursor-pointer"
+                                className="text-yellow-600 hover:text-white cursor-pointer"
                                 onClick={() => setIsRegister(true)}
                             >
                                 Register

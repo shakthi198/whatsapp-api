@@ -372,7 +372,7 @@ const CreateTemplate = () => {
                   <button className="p-2 rounded-md text-gray-600 hover:bg-gray-300">
                     <HiChevronLeft className="text-2xl" />
                   </button>
-                  <button className="border border-[#DDA853] px-4 py-2 rounded-md text-black font-medium">
+                  <button className="border border-yellow-600 px-4 py-2 rounded-md text-black font-medium">
                     1
                   </button>
                   <button className="p-2 rounded-md text-gray-600 hover:bg-gray-300">

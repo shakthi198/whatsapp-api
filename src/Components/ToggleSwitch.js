@@ -5,7 +5,7 @@ const ToggleSwitch = ({ isOn, onToggle }) => {
     <button
       onClick={onToggle}
       className={`w-12 h-6 flex items-center rounded-full p-1 transition duration-300 ${
-        isOn ? "bg-[#DDA853]" : "bg-gray-300"
+        isOn ? "bg-yellow-600" : "bg-gray-300"
       }`}
     >
       <div

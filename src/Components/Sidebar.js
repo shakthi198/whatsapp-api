@@ -107,7 +107,7 @@ const Sidebar = ({ darkMode }) => {
             isOpen={dropdowns.chat}
             toggleDropdown={() => toggleDropdown("chat")}
             subItems={[
-              { label: "Live Chat", path: "/livechat" },
+              { label: "Live Chat", path: "/LiveChatUI" },
               { label: "History", path: "/history" },
               { label: "Chat Agent", path: "/chatagent" },
             ]}

@@ -1,37 +1,37 @@
 import { HiChevronRight } from "react-icons/hi";
-import { MdOutlineInbox } from "react-icons/md"; // For No Data Icon
+import { MdOutlineInbox } from "react-icons/md";
 import { useState } from "react";
 
 const UISubscribe = () => {
-  // Dummy contacts array - empty for testing "No data" UI
   const [contacts, setContacts] = useState([]);
 
   return (
-    <div className="min-h-screen p-6 bg-gray-100">
+    <div className="min-h-screen p-6 bg-gray-100" style={{ fontFamily: "'Montserrat', sans-serif" }}>
       {/* Page Header */}
       <div className="flex items-center mb-6">
-        <h2 className="text-3xl text-gray-700 font-medium">UnSubscribe</h2>
+        <h2 className="text-2xl font-medium" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+          UnSubscribe
+        </h2>
         <div className="h-5 w-[2px] bg-gray-300 mx-2"></div>
-        <div className="text-[#DDA853] text-md flex items-center">
+        <div className="text-yellow-600 text-md flex items-center" style={{ fontFamily: "'Montserrat', sans-serif" }}>
           <span>Home</span>
           <HiChevronRight className="mx-1 text-black text-md" />
-          <span className="text-[#DDA853]">Unsubscribe</span>
+          <span className="text-yellow-600">Unsubscribe</span>
         </div>
       </div>
 
       {/* Table Section */}
-      <div className="bg-white  rounded-b-md">
-  <table className="w-full rounded-b-md mt-2">
-              <thead className="font-medium">
-                <tr className="bg-gray-200 text-gray-700 text-left">
-                  <th className="p-2 border-r border-gray-300">S.No.</th>
-                  <th className="p-2 border-r border-gray-300">Name</th>
-                  <th className="p-2  border-gray-300">Mobile Number</th>
-                
-                </tr>
-              </thead>
-              <tbody>
-              {contacts.length > 0 ? (
+      <div className="bg-white rounded-b-md">
+        <table className="w-full rounded-b-md mt-2" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+          <thead className="font-medium">
+            <tr className="bg-gray-200 text-gray-700 text-left">
+              <th className="p-2 border-r border-gray-300">S.No.</th>
+              <th className="p-2 border-r border-gray-300">Name</th>
+              <th className="p-2 border-gray-300">Mobile Number</th>
+            </tr>
+          </thead>
+          <tbody>
+            {contacts.length > 0 ? (
               contacts.map((contact, index) => (
                 <tr
                   key={contact.id}
@@ -55,8 +55,8 @@ const UISubscribe = () => {
               </tr>
             )}
           </tbody>
-            </table>
-          </div>
+        </table>
+      </div>
     </div>
   );
 };
