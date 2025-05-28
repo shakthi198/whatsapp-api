@@ -120,7 +120,7 @@ const Sidebar = ({ darkMode }) => {
             isOpen={dropdowns.contacts}
             toggleDropdown={() => toggleDropdown("contacts")}
             subItems={[
-              { label: "Contacts", path: "/contacts/all" },
+              { label: "Contacts", path: "/allcontacts" },
               { label: "UI Contacts", path: "/contacts/uicontact" },
               { label: "Un Subscribe", path: "/contacts/unsubscribe" },
             ]}

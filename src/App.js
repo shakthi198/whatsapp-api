@@ -24,6 +24,11 @@ import FlowChart from "./Components/FlowChart";
 import UserAttribute from './Pages/UserAttribute';
 import Billing from './Components/Billing';
 import ApiKeyManager from "./Pages/ApiKeyManager";
+import ContactsUI from "./Pages/ContactsUI";
+import ManageGroups from './Components/ManageGroups';
+import Contacts from "./Pages/Contacts";
+import UISubscribe from "./Pages/UISubscribe";
+
 
 function App() {
     const [darkMode, setDarkMode] = useState(() => localStorage.getItem("theme") === "dark");
@@ -65,6 +70,15 @@ function MainContent({ darkMode, setDarkMode }) {
                     <Route path="/compose" element={<SingleMsg />} />
                     <Route path="/group" element={<Group />} />
                     <Route path="/csv" element={<CSV />} />
+
+
+                    {/* contacts */}
+                    <Route path="/contacts/uicontact" element={<ContactsUI />} />
+                    <Route path="/allcontacts" element={<Contacts />} />
+                    <Route path="/manage-groups" element={<ManageGroups />} />
+                    <Route path="/contacts/unsubscribe" element={<UISubscribe  />} />
+
+
 
                     <Route path="/create-template" element={<CreateTemplate />} />
                     <Route path="/qrcode" element={<QRCodeGenerator />} />
