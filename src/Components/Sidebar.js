@@ -47,7 +47,6 @@ const Sidebar = ({ darkMode }) => {
 
   return (
     <>
-      {/* Mobile Toggle Button */}
       <style>
       {`
         /* Custom Scrollbar */
@@ -75,16 +74,16 @@ const Sidebar = ({ darkMode }) => {
           scrollbar-color: #888 #f1f1f1;
         }
       `}
-    </style>
-    
-      <button
-        onClick={toggleSidebar}
-        className="md:hidden fixed top-4 left-4 z-50 bg-blue-500 text-white p-2 rounded-md"
-      >
-        {isOpen ? <X size={24} /> : <Menu size={24} />}
-      </button>
+      </style>
 
-      {/* Sidebar Container */}
+      {!isOpen && (
+        <button
+          onClick={toggleSidebar}
+          className="md:hidden fixed top-9 left-6 z-50 bg-blue-500 text-white p-2 rounded-md"
+        >
+          <Menu size={24} />
+        </button>
+      )}
       <div
       className={`fixed top-0 left-0 h-screen w-64 shadow-lg flex flex-col p-4 transform transition-transform duration-300 ease-in-out z-40 overflow-y-auto custom-scrollbar ${
         darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-700"
@@ -210,7 +209,7 @@ const DropdownItem = ({ icon, label, isOpen, toggleDropdown, subItems }) => {
         onClick={toggleDropdown}
         className="flex justify-between items-center p-3 rounded-lg w-full text-left transition duration-300 transform hover:scale-105 hover:shadow-lg hover:bg-gray-200"
       >
-        <div className="flex items-center">
+        <div className="flex items-center" >
           {icon}
           <span className="ml-3">{label}</span>
         </div>
