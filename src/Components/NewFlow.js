@@ -63,7 +63,7 @@ const NewFlow = ({ isOpen, onClose, onCreateFlow }) => {
           <AiOutlineClose className="w-6 h-6" />
         </button>
 
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">New Flow</h2>
+        <h2 className="text-lg font-medium text-gray-700 mb-4">New Flow</h2>
 
         {/* Input Field */}
         <label className="text-gray-600 text-sm">Name</label>

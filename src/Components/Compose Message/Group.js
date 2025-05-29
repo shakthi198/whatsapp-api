@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronDown } from "lucide-react";
-import MessagePopup from "./MessagePopup";
+import { ChevronDown, X } from "lucide-react";
+import MessagePopup from "../MessagePopup";
 
 export default function GroupMsg() {
   const [campaignName, setCampaignName] = useState("CAMP-75206");
@@ -9,11 +9,21 @@ export default function GroupMsg() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [messageContent, setMessageContent] = useState("");
   const [selectedGroup, setSelectedGroup] = useState("");
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const location = useLocation();
   const navigate = useNavigate();
   const tabs = ["Single MSG", "Group", "CSV"];
   
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const currentPath = location.pathname;
   const activeTab = currentPath.includes("compose")
     ? "Single MSG"
@@ -38,27 +48,33 @@ export default function GroupMsg() {
     setIsPopupOpen(false);
   };
 
+  const handleClear = () => {
+    setMessageContent("");
+    setSelectedGroup("");
+    setCampaignName("CAMP-" + Math.floor(Math.random() * 100000));
+  };
+
   return (
-    <div className="max-w-9xl mx-auto p-6" style={{ fontFamily: "'Montserrat', sans-serif" }}>
-      {/* Breadcrumb Header */}
-      <div className="flex items-center mb-4">
-        <h1 className="text-2xl font-medium mr-4">Compose Message</h1>
-        <div className="flex items-center text-gray-500 text-sm">
-          <span className="mr-2">|</span>
-          <span className="text-yellow-600">Home</span>
-          <span className="mx-1">›</span>
-          <span className="text-yellow-600 font-medium">Compose Message</span>
+    <div className="max-w-7xl mx-auto p-4 md:p-6" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 md:mb-6">
+        <div className="flex flex-col md:flex-row md:items-center mb-3 md:mb-0">
+          <h1 className="text-xl md:text-2xl font-medium mb-2 md:mb-0 md:mr-4">Compose Message</h1>
+          <div className="flex items-center text-xs md:text-sm text-gray-600">
+            <span className="mr-2 hidden md:inline">|</span>
+            <span className="text-yellow-600">Home</span>
+            <span className="mx-1 md:mx-2">›</span>
+            <span className="text-yellow-600">Compose Message</span>
+          </div>
         </div>
       </div>
-
-      {/* Navigation Tabs - Moved above the white container */}
-      <nav className=" ">
-      
+      {/* Navigation Tabs */}
+      <nav className="flex overflow-x-auto mb-4 border-b border-gray-200">
         {tabs.map((tab) => (
           <button
             key={tab}
             onClick={() => handleTabClick(tab)}
-            className={`px-6 py-3 text-sm font-medium border-b-2 focus:outline-none ${
+            className={`px-4 md:px-6 py-2 md:py-3 text-xs md:text-sm font-medium border-b-2 whitespace-nowrap focus:outline-none ${
               activeTab === tab
                 ? "border-yellow-600 text-yellow-600"
                 : "border-transparent text-gray-500 hover:text-gray-700"
@@ -70,16 +86,16 @@ export default function GroupMsg() {
       </nav>
 
       {/* White Container */}
-      <div className="bg-white rounded-b-lg shadow-md border border-gray-200 border-t-0 p-6">
+      <div className="bg-white rounded-lg md:rounded-b-lg shadow-md border border-gray-200 p-4 md:p-6">
         {/* Form Content */}
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
           {/* Contact Groups Dropdown */}
           <div>
-            <label className="block text-sm font-medium mb-2 text-gray-700">
+            <label className="block text-sm font-medium mb-1 md:mb-2 text-gray-700">
               Select from Contact Groups
             </label>
             <select 
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+              className="w-full p-2 md:p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm md:text-base"
               value={selectedGroup}
               onChange={(e) => setSelectedGroup(e.target.value)}
             >
@@ -87,16 +103,28 @@ export default function GroupMsg() {
               <option value="group1">Group 1</option>
               <option value="group2">Group 2</option>
               <option value="group3">Group 3</option>
+              <option value="group4">Group 4</option>
+              <option value="group5">Group 5</option>
             </select>
           </div>
 
           {/* Message Content */}
           <div>
-            <label className="block text-sm font-medium mb-2 text-gray-700">
-              Message Content
-            </label>
+            <div className="flex justify-between items-center mb-1 md:mb-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Message Content
+              </label>
+              {messageContent && (
+                <button 
+                  onClick={() => setMessageContent("")}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
             <textarea
-              className="w-full p-3 border border-yellow-600 bg-gray-50 rounded-md h-40 cursor-pointer focus:ring-2 focus:ring-yellow-500"
+              className="w-full p-3 border border-yellow-600 bg-gray-50 rounded-md h-40 cursor-pointer focus:ring-2 focus:ring-yellow-500 text-sm md:text-base"
               readOnly
               onClick={() => setIsPopupOpen(true)}
               value={messageContent}
@@ -106,40 +134,43 @@ export default function GroupMsg() {
 
           {/* Campaign Name */}
           <div>
-            <label className="block text-sm font-medium mb-2 text-gray-700">
+            <label className="block text-sm font-medium mb-1 md:mb-2 text-gray-700">
               Campaign Name
             </label>
             <input
               type="text"
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+              className="w-full p-2 md:p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm md:text-base"
               value={campaignName}
               onChange={(e) => setCampaignName(e.target.value)}
             />
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-end space-x-4 pt-4">
-            <button className="px-6 py-2 bg-white text-gray-700 rounded-md border border-gray-300 hover:bg-gray-50">
+          <div className="flex flex-col-reverse md:flex-row justify-end gap-2 md:gap-4 md:space-x-4 pt-3 md:pt-4">
+            <button 
+              onClick={handleClear}
+              className="px-4 md:px-6 py-2 bg-white text-gray-700 rounded-md border border-gray-300 hover:bg-gray-50 text-sm md:text-base"
+            >
               Clear
             </button>
 
             <div className="relative">
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="px-6 py-2 flex items-center bg-yellow-600 text-white rounded-md hover:bg-yellow-700"
+                className="w-full md:w-auto px-4 md:px-6 py-2 flex items-center justify-center bg-yellow-600 text-white rounded-md hover:bg-yellow-700 text-sm md:text-base"
               >
                 Send Now
                 <ChevronDown className="w-4 h-4 ml-2" />
               </button>
 
               {isDropdownOpen && (
-                <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                <div className="absolute right-0 mt-1 w-full md:w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                   <button
                     onClick={() => {
                       alert("Send Now Selected");
                       setIsDropdownOpen(false);
                     }}
-                    className="block w-full text-left px-4 py-3 text-gray-700 hover:bg-yellow-50"
+                    className="block w-full text-left px-4 py-2 md:py-3 text-gray-700 hover:bg-yellow-50 text-sm md:text-base"
                   >
                     Send Now
                   </button>
@@ -148,7 +179,7 @@ export default function GroupMsg() {
                       alert("Schedule Selected");
                       setIsDropdownOpen(false);
                     }}
-                    className="block w-full text-left px-4 py-3 text-gray-700 hover:bg-yellow-50"
+                    className="block w-full text-left px-4 py-2 md:py-3 text-gray-700 hover:bg-yellow-50 text-sm md:text-base"
                   >
                     Schedule
                   </button>

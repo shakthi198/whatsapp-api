@@ -1,19 +1,19 @@
-import React, { useState,useEffect } from "react";
-import ToggleSwitch from '../Components/ToggleSwitch';
-import CreateFlowModal from '../Components/CreateFlowModal';
-import UnsubscribeModal from '../Components/UnsubscribeModal';
-import EditDropdown from "../Components/EditDropdown";
-import FlowTypeModal from "../Components/FlowTypeModal"; // Import the FlowTypeModal
+import React, { useState, useEffect } from "react";
+import ToggleSwitch from '../ToggleSwitch';
+import CreateFlowModal from './CreateFlowModal';
+import UnsubscribeModal from './UnsubscribeModal';
+import EditDropdown from "../EditDropdown";
+import FlowTypeModal from "../FlowTypeModal";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
 
 const FlowPage = () => {
   const [isCreateFlowOpen, setIsCreateFlowOpen] = useState(false);
   const [isUnsubscribeOpen, setIsUnsubscribeOpen] = useState(false);
-  const [isFlowTypeModalOpen, setIsFlowTypeModalOpen] = useState(false); // State for FlowTypeModal
-  const [selectedNodeId, setSelectedNodeId] = useState(null); // Track the selected node ID
+  const [isFlowTypeModalOpen, setIsFlowTypeModalOpen] = useState(false);
+  const [selectedNodeId, setSelectedNodeId] = useState(null);
 
-   // Initialize state from localStorage
-   const [flowData, setFlowData] = useState(() => {
+  // Initialize state from localStorage
+  const [flowData, setFlowData] = useState(() => {
     const savedData = localStorage.getItem("flowData");
     return savedData ? JSON.parse(savedData) : [
       {
@@ -28,13 +28,10 @@ const FlowPage = () => {
     ];
   });
 
-  // Save data to localStorage whenever flowData changes
   useEffect(() => {
     localStorage.setItem("flowData", JSON.stringify(flowData));
   }, [flowData]);
 
-
-  // Toggle flow status
   const toggleStatus = (id) => {
     setFlowData((prevData) =>
       prevData.map((flow) =>
@@ -43,7 +40,6 @@ const FlowPage = () => {
     );
   };
 
-  // Toggle default status
   const toggleDefault = (id) => {
     setFlowData((prevData) =>
       prevData.map((flow) =>
@@ -52,12 +48,10 @@ const FlowPage = () => {
     );
   };
 
-  // Add new flow to the table
   const addFlow = (newFlow) => {
     setFlowData((prevData) => [...prevData, newFlow]);
   };
 
-  // Handle editing of keywords and explanation
   const handleEditField = (id, field, value) => {
     setFlowData((prevData) =>
       prevData.map((flow) =>
@@ -66,50 +60,45 @@ const FlowPage = () => {
     );
   };
 
-   // Handle deleting a flow
-   const deleteFlow = (flowId) => {
+  const deleteFlow = (flowId) => {
     setFlowData((prevData) => prevData.filter((flow) => flow.id !== flowId));
   };
 
-  // Handle opening the FlowTypeModal
   const handleOpenFlowTypeModal = (id) => {
-    setSelectedNodeId(id); // Set the selected node ID
-    setIsFlowTypeModalOpen(true); // Open the modal
+    setSelectedNodeId(id);
+    setIsFlowTypeModalOpen(true);
   };
 
-  // Handle saving the keywords from the modal
   const handleSaveKeywords = (value) => {
     if (selectedNodeId) {
-      handleEditField(selectedNodeId, "keywords", value); // Update the keywords for the selected node
+      handleEditField(selectedNodeId, "keywords", value);
     }
-    setIsFlowTypeModalOpen(false); // Close the modal
+    setIsFlowTypeModalOpen(false);
   };
 
-  
-
   return (
-    <div className="min-h-screen p-6">
-      {/* Page Header with Line */}
-      <div className="flex items-center mb-4">
-        <h2 className="text-2xl font-medium ">Flow</h2>
-        <div className="h-5 w-[2px] bg-gray-300 mx-2"></div>
-        <div className="text-yellow-600 text-md flex items-center">
-          <span>Home</span>
-          <HiChevronRight className="mx-1 text-black text-md" />
-          <span className="text-yellow-600">Flow</span>
+    <div className="max-w-7xl mx-auto p-4 md:p-6" style={{ fontFamily: "'Montserrat'" }}>
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 md:mb-6">
+        <div className="flex flex-col md:flex-row md:items-center mb-3 md:mb-0">
+          <h2 className="text-xl md:text-2xl font-medium mb-2 md:mb-0 md:mr-4">Flow</h2>
+          <div className="flex items-center text-xs md:text-sm text-gray-600">
+            <span className="mr-2 hidden md:inline">|</span>
+            <span className="text-yellow-600">Home</span>
+            <span className="mx-1 md:mx-2">›</span>
+            <span className="text-yellow-600">Flow</span>
+          </div>
         </div>
       </div>
 
+
       {/* Controls Section */}
       <div className="bg-white p-4 shadow-md rounded-t-md flex justify-between items-center">
-        {/* Left Empty Space for Alignment */}
         <div></div>
-
-        {/* Action Buttons with Matching Type */}
         <div className="flex items-center gap-3">
           <label className="text-gray-600 font-medium">Matching Type:</label>
-          <select className="border border-gray-300 rounded-md px-3 py-1 text-gray-700 w-130">
-            <option>Fuzzy Matching</option>
+          <select className="border border-gray-300 rounded-md px-3 py-1 text-gray-700 w-130 font-medium">
+            <option className="font-medium">Fuzzy Matching</option>
           </select>
 
           <button
@@ -118,7 +107,6 @@ const FlowPage = () => {
           >
             + Create Flow
           </button>
-          {/* Create Flow Modal */}
           <CreateFlowModal
             isOpen={isCreateFlowOpen}
             onClose={() => setIsCreateFlowOpen(false)}
@@ -131,7 +119,6 @@ const FlowPage = () => {
           >
             Unsubscribe Keys
           </button>
-          {/* Unsubscribe Modal */}
           <UnsubscribeModal
             isOpen={isUnsubscribeOpen}
             onClose={() => setIsUnsubscribeOpen(false)}
@@ -151,15 +138,15 @@ const FlowPage = () => {
               <th className="p-2 border-r border-gray-300 text-gray-600 font-medium">Default</th>
               <th className="p-2 border-r border-gray-300 text-gray-600 font-medium">Key Words</th>
               <th className="p-2 border-r border-gray-300 text-gray-600 font-medium">Flow Explanation</th>
-              <th className="p-2">Actions</th>
+              <th className="p-2 font-medium">Actions</th>
             </tr>
           </thead>
           <tbody>
             {flowData.map((flow, index) => (
               <tr key={flow.id} className="border border-gray-300">
-                <td className="p-2">{index + 1}</td>
-                <td className="p-2">{flow.name}</td>
-                <td className="p-2">{flow.type}</td>
+                <td className="p-2 font-medium">{index + 1}</td>
+                <td className="p-2 font-medium">{flow.name}</td>
+                <td className="p-2 font-medium">{flow.type}</td>
                 <td className="p-2 text-center">
                   <ToggleSwitch
                     isOn={flow.status}
@@ -172,29 +159,27 @@ const FlowPage = () => {
                     onToggle={() => toggleDefault(flow.id)}
                   />
                 </td>
-                {/* Editable Keywords Field */}
                 <td className="p-2 text-center">
                   <input
                     type="text"
                     value={flow.keywords}
-                    onClick={() => handleOpenFlowTypeModal(flow.id)} // Open modal on click
-                    className="border rounded p-1 w-42 h-42 bg-white cursor-pointer"
-                    readOnly // Make the input read-only
+                    onClick={() => handleOpenFlowTypeModal(flow.id)}
+                    className="border rounded p-1 w-42 h-42 bg-white cursor-pointer font-medium"
+                    readOnly
                   />
                 </td>
-               {/* Editable Explanation Field */}
-               <td className="p-2 text-center">
+                <td className="p-2 text-center">
                   <input
                     type="text"
                     value={flow.explanation}
                     onChange={(e) =>
                       handleEditField(flow.id, "explanation", e.target.value)
                     }
-                    className="border rounded p-1 w-42 h-42 bg-white"
+                    className="border rounded p-1 w-42 h-42 bg-white font-medium"
                   />
                 </td>
                 <td className="p-2 text-center">
-                <EditDropdown flowId={flow.id} onDelete={deleteFlow} />
+                  <EditDropdown flowId={flow.id} onDelete={deleteFlow} />
                 </td>
               </tr>
             ))}
@@ -202,11 +187,10 @@ const FlowPage = () => {
         </table>
       </div>
 
-       {/* FlowTypeModal */}
-       <FlowTypeModal
+      <FlowTypeModal
         isOpen={isFlowTypeModalOpen}
         onClose={() => setIsFlowTypeModalOpen(false)}
-        onSave={handleSaveKeywords} // Pass the save handler
+        onSave={handleSaveKeywords}
       />
 
       {/* Pagination */}

@@ -17,7 +17,6 @@ import {
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import el from "../assets/el2.png";
-
 const Sidebar = ({ darkMode }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdowns, setDropdowns] = useState({
@@ -27,10 +26,8 @@ const Sidebar = ({ darkMode }) => {
     catalog: false,
     settings: false,
   });
-
   const toggleSidebar = () => setIsOpen(!isOpen);
   const closeSidebar = () => setIsOpen(false);
-
   const toggleDropdown = (key) => {
     setDropdowns((prev) => {
       // Close all dropdowns first
@@ -38,53 +35,45 @@ const Sidebar = ({ darkMode }) => {
         acc[dropdownKey] = false;
         return acc;
       }, {});
-  
       // Toggle the selected dropdown
       updatedDropdowns[key] = !prev[key];
       return updatedDropdowns;
     });
   };
-
   return (
     <>
-      {/* Mobile Toggle Button */}
       <style>
       {`
         /* Custom Scrollbar */
         .custom-scrollbar::-webkit-scrollbar {
           width: 8px; /* Scrollbar width */
         }
-
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f1f1f1; /* Track color */
+          background: #F1F1F1; /* Track color */
           border-radius: 10px;
         }
-
         .custom-scrollbar::-webkit-scrollbar-thumb {
           background: #888; /* Thumb color */
           border-radius: 10px;
         }
-
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background: #555; /* Hover effect */
         }
-
         /* For Firefox */
         .custom-scrollbar {
           scrollbar-width: thin;
-          scrollbar-color: #888 #f1f1f1;
+          scrollbar-color: #888 #F1F1F1;
         }
       `}
-    </style>
-    
-      <button
-        onClick={toggleSidebar}
-        className="md:hidden fixed top-4 left-4 z-50 bg-blue-500 text-white p-2 rounded-md"
-      >
-        {isOpen ? <X size={24} /> : <Menu size={24} />}
-      </button>
-
-      {/* Sidebar Container */}
+      </style>
+      {!isOpen && (
+        <button
+          onClick={toggleSidebar}
+          className="md:hidden fixed top-9 left-6 z-50 bg-blue-500 text-white p-2 rounded-md"
+        >
+          <Menu size={24} />
+        </button>
+      )}
       <div
       className={`fixed top-0 left-0 h-screen w-64 shadow-lg flex flex-col p-4 transform transition-transform duration-300 ease-in-out z-40 overflow-y-auto custom-scrollbar ${
         darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-700"
@@ -94,12 +83,10 @@ const Sidebar = ({ darkMode }) => {
         <div className="flex justify-center items-center mb-6 ">
           <img src={el} alt="Codamics" className="h-8" />
         </div>
-
         {/* Navigation Links */}
         <nav className="flex flex-col space-y-2 mb-15">
           <NavItem icon={<Home size={20} />} label="Dashboard" path="/" closeSidebar={closeSidebar} />
           <NavItem icon={<Send size={20} />} label="Compose Message" path="/compose" closeSidebar={closeSidebar} />
-
           {/* Chat with Dropdown */}
           <DropdownItem
             icon={<MessageSquare size={20} />}
@@ -107,12 +94,11 @@ const Sidebar = ({ darkMode }) => {
             isOpen={dropdowns.chat}
             toggleDropdown={() => toggleDropdown("chat")}
             subItems={[
-              { label: "Live Chat", path: "/LiveChatUI" },
+              { label: "Live Chat", path: "LiveChatUI" },
               { label: "History", path: "/history" },
               { label: "Chat Agent", path: "/chatagent" },
             ]}
           />
-
           {/* Contacts with Dropdown */}
           <DropdownItem
             icon={<Users size={20} />}
@@ -125,9 +111,7 @@ const Sidebar = ({ darkMode }) => {
               { label: "Un Subscribe", path: "/contacts/unsubscribe" },
             ]}
           />
-
           <NavItem icon={<FileText size={20} />} label="Manage Template" path="/templates" closeSidebar={closeSidebar} />
-
           {/* Reports with Dropdown */}
           <DropdownItem
             icon={<BarChart size={20} />}
@@ -140,15 +124,12 @@ const Sidebar = ({ darkMode }) => {
               { label: "Schedule Logs", path: "/schedule-logs" },
             ]}
           />
-
           <NavItem icon={<CreditCard size={20} />} label="Billing" path="/billing" closeSidebar={closeSidebar} />
           <NavItem icon={<Zap size={20} />} label="Flow" path="/flow" closeSidebar={closeSidebar} />
           <NavItem icon={<MessageSquare size={20} />} label="Chatbot Builder" path="/chatbot" closeSidebar={closeSidebar} />
           <NavItem icon={<Zap size={20} />} label="Whatsapp Flows" path="/whatsappflow" closeSidebar={closeSidebar} />
           <NavItem icon={<Zap size={20} />} label="Integration" path="/integration" closeSidebar={closeSidebar} />
           <NavItem icon={<Zap size={20} />} label="Payments" path="/payments" closeSidebar={closeSidebar} />
-
-
           {/* Catalog with Dropdown */}
           <DropdownItem
             icon={<BookOpen size={20} />}
@@ -160,7 +141,6 @@ const Sidebar = ({ darkMode }) => {
               { label: "Orders", path: "/orders" },
             ]}
           />
-
           {/* Settings with Dropdown */}
           <DropdownItem
             icon={<Settings size={20} />}
@@ -176,18 +156,15 @@ const Sidebar = ({ darkMode }) => {
           />
         </nav>
       </div>
-
       {/* Overlay for mobile when sidebar is open */}
       {isOpen && <div className="fixed inset-0 bg-black opacity-50 md:hidden" onClick={toggleSidebar}></div>}
     </>
   );
 };
-
 // Regular Nav Item
 const NavItem = ({ icon, label, path, closeSidebar }) => {
   const location = useLocation();
   const isActive = location.pathname === path;
-
   return (
     <Link
       to={path}
@@ -201,7 +178,6 @@ const NavItem = ({ icon, label, path, closeSidebar }) => {
     </Link>
   );
 };
-
 // Dropdown Nav Item
 const DropdownItem = ({ icon, label, isOpen, toggleDropdown, subItems }) => {
   return (
@@ -210,13 +186,12 @@ const DropdownItem = ({ icon, label, isOpen, toggleDropdown, subItems }) => {
         onClick={toggleDropdown}
         className="flex justify-between items-center p-3 rounded-lg w-full text-left transition duration-300 transform hover:scale-105 hover:shadow-lg hover:bg-gray-200"
       >
-        <div className="flex items-center">
+        <div className="flex items-center" >
           {icon}
           <span className="ml-3">{label}</span>
         </div>
         {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
       </button>
-
       {isOpen && (
         <div className="ml-6">
           {subItems.map((item) => (
@@ -233,5 +208,4 @@ const DropdownItem = ({ icon, label, isOpen, toggleDropdown, subItems }) => {
     </div>
   );
 };
-
 export default Sidebar;

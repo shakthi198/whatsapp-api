@@ -1,8 +1,8 @@
 import React from "react";
 import { FaChevronRight } from "react-icons/fa";
-import DeliveryChartUI from "../Dynamic Components/DeliveryChartUI";
-import ReusableTable from "../Dynamic Components/ReusableTable";
-import Pagination from "../Dynamic Components/Pagination";
+import DeliveryChartUI from "../../Dynamic Components/DeliveryChartUI";
+import ReusableTable from "../../Dynamic Components/ReusableTable";
+import Pagination from "../../Dynamic Components/Pagination";
 import { useNavigate } from "react-router-dom";
 
 const Broadcastlogo = () => {
@@ -28,28 +28,20 @@ const Broadcastlogo = () => {
   };
 
   return (
-    <div 
-      className="w-full min-h-screen p-3 items-start"
-      style={{ fontFamily: "'Montserrat', sans-serif" }}
-    >
+     <div className="max-w-7xl mx-auto p-4 md:p-6" style={{ fontFamily: "'Montserrat'" }}>
       {/* Header Section */}
-      <div className="flex mb-10">
-        <h1 
-          className="font-medium text-2xl mr-2"
-          style={{ fontFamily: "'Montserrat', sans-serif" }}
-        >
-          Broadcast-Logs
-        </h1>
-        <span className="text-gray-300 mx-1">|</span>
-        <div 
-          className="flex items-center text-md"
-          style={{ fontFamily: "'Montserrat', sans-serif" }}
-        >
-          <span className="text-yellow-600">Home</span>
-          <FaChevronRight className="mx-1 text-gray-300 text-md" />
-          <span className="text-yellow-600 cursor-pointer">Broadcast-logs</span>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 md:mb-6">
+        <div className="flex flex-col md:flex-row md:items-center mb-3 md:mb-0">
+          <h2 className="text-xl md:text-2xl font-medium mb-2 md:mb-0 md:mr-4">Broadcast-logs</h2>
+          <div className="flex items-center text-xs md:text-sm text-gray-600">
+            <span className="mr-2 hidden md:inline">|</span>
+            <span className="text-yellow-600">Home</span>
+            <span className="mx-1 md:mx-2">›</span>
+            <span className="text-yellow-600">Broadcast-logs</span>
+          </div>
         </div>
       </div>
+
 
       {/* Chart Component */}
       <div className="mb-4">

@@ -15,17 +15,17 @@ const Response = ({ goBack, selectedFlowName }) => {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gray-100">
-      {/* Page Header */}
-      <div className="flex items-center mb-6">
-        <h2 className="text-3xl font-semibold text-gray-700">Whatsapp Flows</h2>
-        <div className="h-5 w-[2px] bg-gray-300 mx-2"></div>
-        <div className="text-yellow-600 text-md flex items-center">
-          <span>Home</span>
-          <HiChevronRight className="mx-1 text-black text-md" />
-          <span className="text-yellow-600">Whatsapp Flows</span>
-        </div>
-      </div>
+     <div className="min-h-screen p-6" style={{ fontFamily: "Montserrat" }}>
+                {/* Page Header */}
+                <div className="flex items-center mb-6">
+                  <h2 className="text-2xl font-medium">Whatsapp Flows</h2>
+                  <div className="h-5 w-[2px] bg-gray-300 mx-2"></div>
+                  <div className="text-yellow-600 text-md flex items-center">
+                    <span>Home</span>
+                    <HiChevronRight className="mx-1 text-black text-md" />
+                    <span className="text-yellow-600">Whatsapp Flows</span>
+                  </div>
+                </div>
 
       {/* Tabs */}
       <div className="flex border-b  border-gray-300 mb-4">

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import CatalogPage from "../Components/CatalogPage";
-import AddCatalogPopup from "../Components/AddCatalogPopup";
-import AddShippingPricePopup from "../Components/AddShippingPricePopup";
+import CatalogPage from "./CatalogPage";
+import AddCatalogPopup from "../AddCatalogPopup";
+import AddShippingPricePopup from "../AddShippingPricePopup";
 
 const App = () => {
   const [isOpen, setIsOpen] = useState(false);

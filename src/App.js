@@ -3,34 +3,34 @@ import { useState, useEffect } from "react";
 import Sidebar from "./Components/Sidebar";
 import Header from "./Components/Header";
 import Dashboard from "./Pages/Dashboard";
-import Catalog from "./Pages/Catalog"
+import Catalog from "./Components/Catalog/Catalog"
 
 import Login from "./Components/Login";
-import SingleMsg from "./Components/SingleMsg";
-import Group from "./Components/Group";
-import CSV from "./Components/CSV";
+import SingleMsg from "./Components/Compose Message/SingleMsg";
+import Group from "./Components/Compose Message/Group";
+import CSV from "./Components/Compose Message/CSV";
 import ManageTemplates from "./Components/ManageTemplates";
 import CreateTemplate from "./Components/CreateTemplate";
-import QRCodeGenerator from "./Components/QRCodeGenerator";
-import Broadcastlogo from "./Components/Broadcastlogo";
-import ApiLogoui from "./Components/ApiLogoui";
-import ScheduleLogoui from "./Components/ScheduleLogsUI";
+import QRCodeGenerator from "./Components/Setttings/QRCodeGenerator";
+import Broadcastlogo from "./Components/Reports/Broadcastlogo";
+import ApiLogoui from "./Components/Reports/ApiLogoui";
+import ScheduleLogoui from "./Components/Reports/ScheduleLogsUI";
 import WhatsAppCampaignTable from "./Components/WhatsAppCampaignTable";
-import WhatsappFlow from "./Pages/WhatsappFlow";
+import WhatsappFlow from "./Components/Whatsapp Flows/WhatsappFlow";
 import ModalReplica from "./Components/ModalReplica";
 
-import FlowPage from "./Pages/FlowPage";
+import FlowPage from "./Components/Flow/FlowPage";
 import FlowChart from "./Components/FlowChart";
-import UserAttribute from './Pages/UserAttribute';
-import Billing from './Components/Billing';
-import ApiKeyManager from "./Pages/ApiKeyManager";
-import ContactsUI from "./Pages/ContactsUI";
+import UserAttribute from './Components/Setttings/UserAttribute';
+import Billing from './Components/Billing/Billing';
+import ApiKeyManager from "./Components/Setttings/ApiKeyManager";
+import ContactsUI from "./Components/Contacts/ContactsUI";
 import ManageGroups from './Components/ManageGroups';
-import Contacts from "./Pages/Contacts";
-import UISubscribe from "./Pages/UISubscribe";
-import LiveChatUI from "./Components/livechat";
-import Historylive from "./Components/Historylive";
-import ChatAgentpage from "./Components/ChatAgentPage";
+import Contacts from "./Components/Contacts/Contacts";
+import UISubscribe from "./Components/Contacts/UISubscribe";
+import LiveChatUI from "./Components/Chat/livechat";
+import Historylive from "./Components/Chat/Historylive";
+import ChatAgentpage from "./Components/Chat/ChatAgentPage";
 
 
 

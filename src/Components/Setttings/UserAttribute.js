@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
 import { FaEdit } from "react-icons/fa";
 import { MdOutlineDelete } from "react-icons/md";
-import CreateAttributeModal from "../Components/CreateAttributeModal";
-import EditAttributeModal from "../Components/EditAttributeModal"; // Import the EditAttributeModal
+import CreateAttributeModal from "../CreateAttributeModal";
+import EditAttributeModal from "../EditAttributeModal"; // Import the EditAttributeModal
 
 const UserAttribute = () => {
   const [isCreateFlowOpen, setIsCreateFlowOpen] = useState(false);
@@ -49,17 +49,20 @@ const UserAttribute = () => {
   };
 
   return (
-    <div className=" p-6">
-      {/* Page Header with Line */}
-      <div className="flex items-center mb-4">
-        <h2 className="text-3xl font-semibold text-gray-700">Manage User Attributes</h2>
-        <div className="h-5 w-[2px] bg-gray-300 mx-2"></div>
-        <div className="text-yellow-600 text-md flex items-center">
-          <span>Home</span>
-          <HiChevronRight className="mx-1 text-black text-md" />
-          <span className="text-yellow-600">Manage User Attributes</span>
+     <div className="max-w-7xl mx-auto p-4 md:p-6" style={{ fontFamily: "'Montserrat'" }}>
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 md:mb-6">
+        <div className="flex flex-col md:flex-row md:items-center mb-3 md:mb-0">
+          <h2 className="text-xl md:text-2xl font-medium mb-2 md:mb-0 md:mr-4">Manage User Attributes </h2>
+          <div className="flex items-center text-xs md:text-sm text-gray-600">
+            <span className="mr-2 hidden md:inline">|</span>
+            <span className="text-yellow-600">Home</span>
+            <span className="mx-1 md:mx-2">›</span>
+            <span className="text-yellow-600">Manage User Attributes</span>
+          </div>
         </div>
       </div>
+
 
       {/* Controls Section */}
       <div className="bg-white p-4 shadow-md rounded-t-md flex justify-between items-center">
