@@ -15,11 +15,13 @@ import { IoMoon, IoSunny } from "react-icons/io5";
 import { MdAccountCircle, MdLogout } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
+
 const Header = ({ darkMode, toggleDarkMode }) => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
+
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const handleProfileClick = (event) => {
@@ -28,6 +30,7 @@ const Header = ({ darkMode, toggleDarkMode }) => {
   const handleClose = () => {
     setAnchorEl(null);
   };
+
   const [user, setUser] = useState({
     name: "Elcodamics",
     profileImage: "https://via.placeholder.com/40",
@@ -38,6 +41,7 @@ const Header = ({ darkMode, toggleDarkMode }) => {
     quality: "GREEN",
     tier: "MSG_1000 LIMIT",
   });
+
   useEffect(() => {
     setTimeout(() => {
       setWabaData({
@@ -100,6 +104,7 @@ const Header = ({ darkMode, toggleDarkMode }) => {
                 </Typography>
               </Typography>
             </Box>
+
             {/* Status */}
             <Box sx={{ display: "flex", flexDirection: "column" }}>
               <Typography
@@ -125,6 +130,7 @@ const Header = ({ darkMode, toggleDarkMode }) => {
                 </Typography>
               </Typography>
             </Box>
+
             {/* Quality */}
             <Box sx={{ display: "flex", flexDirection: "column" }}>
               <Typography
@@ -144,6 +150,7 @@ const Header = ({ darkMode, toggleDarkMode }) => {
                 </Typography>
               </Typography>
             </Box>
+
             {/* Tier */}
             <Box sx={{ display: "flex", flexDirection: "column" }}>
               <Typography
@@ -164,6 +171,7 @@ const Header = ({ darkMode, toggleDarkMode }) => {
           </Box>
         )}
       </Box>
+
       <Box sx={{ display: "flex", alignItems: "center", gap: "16px" }}>
         {/* Dark Mode Toggle */}
         <IconButton onClick={toggleDarkMode} sx={{ color: darkMode ? "#FFD700" : "#333" }}>
@@ -199,7 +207,9 @@ const Header = ({ darkMode, toggleDarkMode }) => {
                 <Typography variant="subtitle1" sx={{ fontWeight: "bold", fontFamily: "montserrat" }}>
                   WABA Details
                 </Typography>
+
                 <Box sx={{padding: "4px 16px"}}>
+
                   <Box sx={{ display: "flex", mb: 1 }}>
                     <Typography variant="body2" sx={{ fontFamily: "montserrat", fontWeight: "bold", minWidth: "60px" }}>
                       WABA
@@ -209,6 +219,7 @@ const Header = ({ darkMode, toggleDarkMode }) => {
                       {wabaData.number}
                     </Typography>
                   </Box>
+
                   <Box sx={{ display: "flex", mb: 1 }}>
                     <Typography variant="body2" sx={{ fontFamily: "montserrat", fontWeight: "bold", minWidth: "60px" }}>
                       Status
@@ -218,6 +229,7 @@ const Header = ({ darkMode, toggleDarkMode }) => {
                       {wabaData.status}
                     </Typography>
                   </Box>
+
                   <Box sx={{ display: "flex", mb: 1 }}>
                     <Typography variant="body2" sx={{ fontFamily: "montserrat", fontWeight: "bold", minWidth: "60px" }}>
                       Quality
@@ -227,6 +239,7 @@ const Header = ({ darkMode, toggleDarkMode }) => {
                       {wabaData.quality}
                     </Typography>
                   </Box>
+
                   <Box sx={{ display: "flex" }}>
                     <Typography variant="body2" sx={{ fontFamily: "montserrat", fontWeight: "bold", minWidth: "60px" }}>
                       Tier
@@ -241,6 +254,7 @@ const Header = ({ darkMode, toggleDarkMode }) => {
               <Divider sx={{ my: 1 }} />
             </>
           )}
+
           <MenuItem onClick={() => navigate("/profile")} sx={{ fontSize: "16px", fontFamily: "montserrat" }}>
             <MdAccountCircle size={20} style={{ marginRight: "10px" }} />
             Profile

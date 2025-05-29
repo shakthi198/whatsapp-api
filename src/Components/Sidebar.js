@@ -66,6 +66,7 @@ const Sidebar = ({ darkMode }) => {
         }
       `}
       </style>
+
       {!isOpen && (
         <button
           onClick={toggleSidebar}
