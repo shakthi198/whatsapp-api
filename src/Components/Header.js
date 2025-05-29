@@ -24,11 +24,9 @@ const Header = ({ darkMode, toggleDarkMode }) => {
 
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
-
   const handleProfileClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
-
   const handleClose = () => {
     setAnchorEl(null);
   };
@@ -37,7 +35,6 @@ const Header = ({ darkMode, toggleDarkMode }) => {
     name: "Elcodamics",
     profileImage: "https://via.placeholder.com/40",
   });
-
   const [wabaData, setWabaData] = useState({
     number: "919876543210",
     status: "Live",
@@ -55,7 +52,6 @@ const Header = ({ darkMode, toggleDarkMode }) => {
       });
     }, 2000);
   }, []);
-
   return (
     <Box
       sx={{
@@ -181,19 +177,16 @@ const Header = ({ darkMode, toggleDarkMode }) => {
         <IconButton onClick={toggleDarkMode} sx={{ color: darkMode ? "#FFD700" : "#333" }}>
           {darkMode ? <IoSunny size={24} /> : <IoMoon size={24} />}
         </IconButton>
-
         {/* User Name (Hidden on Mobile) */}
         {!isMobile && (
           <Typography sx={{ fontWeight: "bold", fontSize: { xs: "14px", sm: "15px", md: "16px" }, fontFamily: "montserrat" }}>
             {user.name}
           </Typography>
         )}
-
         {/* Profile Image */}
         <IconButton onClick={handleProfileClick}>
           <Avatar src={user.profileImage} sx={{ width: 40, height: 40 }} />
         </IconButton>
-
         {/* Profile Dropdown */}
         <Menu
           anchorEl={anchorEl}
@@ -275,5 +268,4 @@ const Header = ({ darkMode, toggleDarkMode }) => {
     </Box>
   );
 };
-
 export default Header;

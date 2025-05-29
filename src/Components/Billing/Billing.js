@@ -3,21 +3,23 @@ import { HiChevronRight } from "react-icons/hi";
 import { LuDownload } from "react-icons/lu";
 import { CiCalendar } from "react-icons/ci";
 import { MdOutlineInbox } from "react-icons/md";
-import TransactionsUI from "../Components/TransactionsUI";
+import TransactionsUI from "./TransactionsUI";
 
 const Billing = () => {
   const [activeTab, setActiveTab] = useState("billings"); // Default tab
 
   return (
-    <div className="min-h-screen p-6" style={{ fontFamily: "'Montserrat', sans-serif" }}>
-      {/* Page Header */}
-      <div className="flex items-center mb-6">
-        <h2 className="text-2xl font-medium">Billing</h2>
-        <div className="h-5 w-[2px] bg-gray-300 mx-2"></div>
-        <div className="text-yellow-600 text-md flex items-center">
-          <span>Home</span>
-          <HiChevronRight className="mx-1 text-black text-md" />
-          <span className="text-yellow-600">Billing</span>
+    <div className="max-w-7xl mx-auto p-4 md:p-6" style={{ fontFamily: "'Montserrat'" }}>
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 md:mb-6">
+        <div className="flex flex-col md:flex-row md:items-center mb-3 md:mb-0">
+          <h1 className="text-xl md:text-2xl font-medium mb-2 md:mb-0 md:mr-4">Billing</h1>
+          <div className="flex items-center text-xs md:text-sm text-gray-600">
+            <span className="mr-2 hidden md:inline">|</span>
+            <span className="text-yellow-600">Home</span>
+            <span className="mx-1 md:mx-2">›</span>
+            <span className="text-yellow-600">Billing</span>
+          </div>
         </div>
       </div>
 

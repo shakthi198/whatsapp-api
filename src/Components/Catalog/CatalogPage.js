@@ -5,26 +5,31 @@ import { HiChevronRight } from "react-icons/hi";
 const CatalogPage = ({ catalogs, onAddClick, onAddShippingClick }) => {
 
     return (
-        <div className=" bg-gray-100 p-6" style={{ fontFamily: "Montserrat"}}>
-            <div className="flex items-center mb-4">
-                <h2 className="text-3xl font-semibold text-gray-700">Catalog</h2>
-                <div className="h-5 w-[2px] bg-gray-300 mx-2"></div>
-                <div className="text-yellow-600 text-md flex items-center">
-                    <span>Home</span>
-                    <HiChevronRight className="mx-1 text-black text-md" />
-                    <span className="text-yellow-600">Catalog</span>
-                </div>
-            </div>
-            <div className=" mx-auto bg-white shadow-md p-6 rounded-lg">
+       <div className="max-w-7xl mx-auto p-4 md:p-6" style={{ fontFamily: "'Montserrat'" }}>
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 md:mb-6">
+        <div className="flex flex-col md:flex-row md:items-center mb-3 md:mb-0">
+          <h2 className="text-xl md:text-2xl font-medium mb-2 md:mb-0 md:mr-4">Catalog</h2>
+          <div className="flex items-center text-xs md:text-sm text-gray-600">
+            <span className="mr-2 hidden md:inline">|</span>
+            <span className="text-yellow-600">Home</span>
+            <span className="mx-1 md:mx-2">›</span>
+            <span className="text-yellow-600">Catalog</span>
+          </div>
+        </div>
+      </div>
+
+
+            <div className=" mx-auto bg-white shadow-md p-4 rounded-lg">
 
                 {/* Top Section */}
                 <div className="flex justify-end space-x-2">
                     <button
-                        className="bg-[#C5A76E] text-white px-4 py-2 rounded-md shadow-sm"
+                        className="bg-yellow-600 text-white px-4 py-2 rounded-md shadow-sm"
                         onClick={onAddClick}> + Add Catalog
                     </button>
                     <button
-                        className="bg-[#C5A76E] text-white px-4 py-2 rounded-md shadow-sm flex items-center"
+                        className="bg-yellow-600 text-white px-4 py-2 rounded-md shadow-sm flex items-center"
                         onClick={onAddShippingClick}
                     >
                         <Truck size={18} className="mr-2" /> Add Shipping Price

@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
 import { IoMdSearch } from "react-icons/io";
-import NewFlow from "../Components/NewFlow";
+import NewFlow from "../NewFlow";
 import { BsThreeDotsVertical } from "react-icons/bs";
-import Response from "../Components/Response";
-import ModalReplica from "../Components/ModalReplica"; // Import the ModalReplica component
-import Popover from "../Components/Popover"
+import Response from "./Response";
+import ModalReplica from "../ModalReplica";
+import Popover from "../Popover"
 
 const flowsData = [
   { id: 1, name: "asd", flowId: "680349591016296", status: "DEPRECATED" },
@@ -22,7 +22,7 @@ const WhatsappFlow = () => {
   const [popover, setPopover] = useState({ show: false, message: "" });
   const [selectedFlowName, setSelectedFlowName] = useState("");
   const [selectedFlowStatus, setSelectedFlowStatus] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false); // State to manage modal visibility
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const toggleDropdown = (id) => {
     setOpenDropdownId(openDropdownId === id ? null : id);
@@ -65,12 +65,9 @@ const WhatsappFlow = () => {
   };
 
   const handleRowClick = (flow, e) => {
-    // Check if the click target is a button or link
     if (e.target.tagName === "BUTTON" || e.target.tagName === "A") {
-      return; // Ignore the click
+      return;
     }
-  
-    // Otherwise, open the modal
     setSelectedFlowName(flow.name);
     setSelectedFlowStatus(flow.status);
     setIsModalOpen(true);
@@ -81,29 +78,32 @@ const WhatsappFlow = () => {
   );
 
   return (
-    <>
+    <div className="font-montserrat">
       {/* Popover */}
       {popover.show && <Popover message={popover.message} onClose={() => setPopover({ show: false, message: "" })} />}
 
       {activePage === "flows" ? (
-        <div className="p-6 bg-gray-100">
-          {/* Page Header */}
-          <div className="flex items-center mb-6">
-            <h2 className="text-2xl font-medium text-gray-700">Whatsapp Flows</h2>
-            <div className="h-5 w-[2px] bg-gray-300 mx-2"></div>
-            <div className="text-yellow-600 text-md flex items-center">
-              <span>Home</span>
-              <HiChevronRight className="mx-1 text-black text-md" />
-              <span className="text-yellow-600">Whatsapp Flows</span>
-            </div>
+      <div className="max-w-7xl mx-auto p-4 md:p-6" style={{ fontFamily: "'Montserrat'" }}>
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 md:mb-6">
+        <div className="flex flex-col md:flex-row md:items-center mb-3 md:mb-0">
+          <h2 className="text-xl md:text-2xl font-medium mb-2 md:mb-0 md:mr-4">Whatsapp Flows</h2>
+          <div className="flex items-center text-xs md:text-sm text-gray-600">
+            <span className="mr-2 hidden md:inline">|</span>
+            <span className="text-yellow-600">Home</span>
+            <span className="mx-1 md:mx-2">›</span>
+            <span className="text-yellow-600">Whatsapp Flows</span>
           </div>
+        </div>
+      </div>
+
 
           {/* Tabs */}
           <div className="flex border-b border-gray-300 mb-4">
             <button
               className={`py-2 px-4 font-medium cursor-pointer ${
                 activePage === "flows"
-                  ? "border-b-2  border-yellow-600 text-yellow-600"
+                  ? "border-b-2 border-yellow-600 text-yellow-600"
                   : "text-gray-500"
               }`}
               onClick={() => setActivePage("flows")}
@@ -123,7 +123,7 @@ const WhatsappFlow = () => {
           </div>
 
           {/* Controls Section */}
-          <div className="bg-white p-4 shadow-md rounded-t-md flex justify-end items-center border- border-gray-300">
+          <div className="bg-white p-4 shadow-md rounded-t-md flex justify-end items-center border-b border-gray-300">
             {/* Search Bar */}
             <div className="relative flex items-center w-[280px] border border-gray-300 rounded-md bg-white mr-4">
               <span className="text-gray-500 text-lg px-3">
@@ -132,7 +132,7 @@ const WhatsappFlow = () => {
               <input
                 type="text"
                 placeholder="Search here"
-                className="w-full px-2 py-2 text-gray-700 placeholder-gray-400 outline-none bg-transparent"
+                className="w-full px-2 py-2 text-gray-700 placeholder-gray-400 outline-none bg-transparent font-medium"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -153,7 +153,7 @@ const WhatsappFlow = () => {
           </div>
 
           {/* Table Section */}
-          <div className="bg-white p-4 rounded-b-md ">
+          <div className="bg-white p-4 rounded-b-md">
             <table className="w-full border-collapse border border-gray-300 mt-2">
               <thead>
                 <tr className="bg-gray-200 text-gray-700 border border-gray-300 text-left">
@@ -162,7 +162,7 @@ const WhatsappFlow = () => {
                   <th className="p-2 border-r border-gray-300 text-gray-600 font-medium">Flow ID</th>
                   <th className="p-2 border-r border-gray-300 text-gray-600 font-medium">Status</th>
                   <th className="p-2 border-r border-gray-300 text-gray-600 font-medium">Responses</th>
-                  <th className="p-2">Action</th>
+                  <th className="p-2 font-medium">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -170,11 +170,11 @@ const WhatsappFlow = () => {
                   <tr
                     key={flow.id}
                     className="border border-gray-300 p-4 cursor-pointer hover:bg-gray-100"
-                    onClick={(e) => handleRowClick(flow, e)} 
+                    onClick={(e) => handleRowClick(flow, e)}
                   >
-                    <td className="p-3">{index + 1}</td>
-                    <td className="p-3">{flow.name}</td>
-                    <td className="p-3">{flow.flowId}</td>
+                    <td className="p-3 font-medium">{index + 1}</td>
+                    <td className="p-3 font-medium">{flow.name}</td>
+                    <td className="p-3 font-medium">{flow.flowId}</td>
                     <td className="p-3">
                       <span
                         className={`px-3 py-1 rounded text-xs font-semibold ${
@@ -189,9 +189,9 @@ const WhatsappFlow = () => {
                       </span>
                     </td>
                     <td
-                      className="p-2 text-yellow-600 underline underline-offset-2 decoration-yellow-600 cursor-pointer"
+                      className="p-2 text-yellow-600 underline underline-offset-2 decoration-yellow-600 cursor-pointer font-medium"
                       onClick={(e) => {
-                        e.stopPropagation(); // Prevent row click event
+                        e.stopPropagation();
                         setActivePage("responses");
                         setSelectedFlowName(flow.name);
                         setSelectedFlowStatus(flow.status);
@@ -200,12 +200,11 @@ const WhatsappFlow = () => {
                       Show Responses
                     </td>
                     <td className="p-2 relative">
-                      {/* Three Dots Button */}
                       {flow.status !== "DEPRECATED" && (
                         <button
                           className="p-2 border border-yellow-600 cursor-pointer"
                           onClick={(e) => {
-                            e.stopPropagation(); // Prevent row click event
+                            e.stopPropagation();
                             toggleDropdown(flow.id);
                           }}
                         >
@@ -213,19 +212,18 @@ const WhatsappFlow = () => {
                         </button>
                       )}
 
-                      {/* Dropdown Menu */}
                       {openDropdownId === flow.id && (
                         <div className="absolute right-0 mt-2 w-28 bg-white shadow-md rounded-md p-2 border border-gray-200 z-10">
                           {flow.status === "DRAFT" && (
                             <>
                               <button
-                                className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                                className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 font-medium"
                                 onClick={() => handlePublish(flow.id)}
                               >
                                 Publish
                               </button>
                               <button
-                                className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                                className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 font-medium"
                                 onClick={() => handleDelete(flow.id)}
                               >
                                 Delete
@@ -234,7 +232,7 @@ const WhatsappFlow = () => {
                           )}
                           {flow.status === "PUBLISHED" && (
                             <button
-                              className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                              className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 font-medium"
                               onClick={() => handleDeprecate(flow.id)}
                             >
                               Deprecate
@@ -263,7 +261,11 @@ const WhatsappFlow = () => {
           </div>
         </div>
       ) : (
-        <Response goBack={() => setActivePage("flows")} selectedFlowName={selectedFlowName} selectedFlowStatus={selectedFlowStatus} />
+        <Response 
+          goBack={() => setActivePage("flows")} 
+          selectedFlowName={selectedFlowName} 
+          selectedFlowStatus={selectedFlowStatus} 
+        />
       )}
 
       {/* Modal */}
@@ -273,7 +275,7 @@ const WhatsappFlow = () => {
         flowName={selectedFlowName}
         flowStatus={selectedFlowStatus}
       />
-    </>
+    </div>
   );
 };
 

@@ -1,5 +1,5 @@
 import React from "react";
-import ReusableTable from "../Dynamic Components/ReusableTable";
+import ReusableTable from "../../Dynamic Components/ReusableTable";
 
 const ScheduleLogo = () => {
   const columns = [
