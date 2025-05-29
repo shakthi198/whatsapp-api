@@ -28,6 +28,11 @@ import ContactsUI from "./Pages/ContactsUI";
 import ManageGroups from './Components/ManageGroups';
 import Contacts from "./Pages/Contacts";
 import UISubscribe from "./Pages/UISubscribe";
+import LiveChatUI from "./Components/livechat";
+import Historylive from "./Components/Historylive";
+import ChatAgentpage from "./Components/ChatAgentPage";
+
+
 
 
 function App() {
@@ -51,8 +56,8 @@ function MainContent({ darkMode, setDarkMode }) {
     return (
         <div
             className={`${isLoginPage
-                    ? "flex justify-center items-center h-screen w-screen" // Fullscreen styles for login page
-                    : `flex flex-col md:flex-row ${darkMode ? "bg-gray-900 text-white" : "bg-[#F5F5F5] text-black"}`
+                ? "flex justify-center items-center h-screen w-screen" // Fullscreen styles for login page
+                : `flex flex-col md:flex-row ${darkMode ? "bg-gray-900 text-white" : "bg-[#F5F5F5] text-black"}`
                 }`}
         >
             {!isLoginPage && <Sidebar darkMode={darkMode} />} {/* Sidebar hidden on Login Page */}
@@ -60,7 +65,7 @@ function MainContent({ darkMode, setDarkMode }) {
             <div className={`${isLoginPage ? "w-full h-full flex items-center justify-center" : "flex-1 p-4 md:ml-64"}`}>
                 {!isLoginPage && <Header darkMode={darkMode} toggleDarkMode={() => setDarkMode((prev) => !prev)} />} {/* Header hidden on Login Page */}
 
-               
+
                 <Routes>
                     <Route path="/" element={<Dashboard darkMode={darkMode} />} />
                     <Route path="/login" element={<Login darkMode={darkMode} />} />
@@ -76,7 +81,7 @@ function MainContent({ darkMode, setDarkMode }) {
                     <Route path="/contacts/uicontact" element={<ContactsUI />} />
                     <Route path="/allcontacts" element={<Contacts />} />
                     <Route path="/manage-groups" element={<ManageGroups />} />
-                    <Route path="/contacts/unsubscribe" element={<UISubscribe  />} />
+                    <Route path="/contacts/unsubscribe" element={<UISubscribe />} />
 
 
 
@@ -97,7 +102,11 @@ function MainContent({ darkMode, setDarkMode }) {
                     <Route path="/user-attributes" element={<UserAttribute />} />
                     <Route path="/billing" element={<Billing />} />
                     <Route path="/api-settings" element={<ApiKeyManager />} />
-
+                    <Route path="/LiveChatUI" element={<LiveChatUI />} />
+                    <Route path="/history" element={<Historylive />} />
+                    <Route path="/chatagent" element={<ChatAgentpage />} />
+                    
+                    
                 </Routes>
             </div>
         </div>

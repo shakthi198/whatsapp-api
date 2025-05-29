@@ -3,7 +3,7 @@ import { FiDownload } from "react-icons/fi";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import AddTagModal from '../Components/AddTagModal'; // Import the modal component
+import AddTagModal from '../Components/AddTagModal';
 
 const ContactsUI = () => {
   const [selectedValue, setSelectedValue] = useState(10);
@@ -59,8 +59,8 @@ const ContactsUI = () => {
   const openModal = (contactId, event) => {
     const buttonRect = event.currentTarget.getBoundingClientRect();
     setButtonPosition({
-        top: buttonRect.top + window.scrollY - 20, // Move modal 150px above
-        left: buttonRect.left + window.scrollX + buttonRect.width / 2, // Center the modal
+        top: buttonRect.top + window.scrollY - 20,
+        left: buttonRect.left + window.scrollX + buttonRect.width / 2,
     });
     setSelectedContactId(contactId);
     setIsModalOpen(true);
@@ -70,9 +70,8 @@ const ContactsUI = () => {
     setIsModalOpen(false);
     setSelectedContactId(null);
   };
-// Filter contacts based on search query
-const filteredContacts = contacts.filter((contact) => {
-    // Check name, mobile, and tags for matching query
+
+  const filteredContacts = contacts.filter((contact) => {
     return (
       contact.name.toLowerCase().includes(searchQuery) ||
       contact.mobile.includes(searchQuery) ||
@@ -81,7 +80,7 @@ const filteredContacts = contacts.filter((contact) => {
   });
   
   return (
-    <div className="p-4">
+    <div className="p-4" style={{ fontFamily: "'Montserrat', sans-serif" }}>
       <ToastContainer />
       {/* Add Tag Modal */}
       {isModalOpen && (
@@ -99,12 +98,12 @@ const filteredContacts = contacts.filter((contact) => {
 
       {/* Page Header */}
       <div className="flex items-center mb-6">
-        <h2 className="text-3xl font-medium text-gray-700">UI-Contacts</h2>
+        <h2 className="text-2xl font-medium">UI-Contacts</h2>
         <div className="h-5 w-[2px] bg-gray-300 mx-2"></div>
-        <div className="text-[#DDA853] text-md flex items-center">
+        <div className="text-yellow-600 text-md flex items-center">
           <span>Home</span>
           <HiChevronRight className="mx-1 text-black text-md" />
-          <span className="text-[#DDA853]">UI-contacts</span>
+          <span className="text-yellow-600">UI-contacts</span>
         </div>
       </div>
 
@@ -115,16 +114,17 @@ const filteredContacts = contacts.filter((contact) => {
           placeholder="Search tag / name / number"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value.toLowerCase())}
-          className="border border-gray-300 text-gray-500 px-4 py-2 text-sm rounded-md w-1/5 focus:outline-none focus:border-[#DDA853]"
+          className="border border-gray-300 text-gray-500 px-4 py-2 text-sm rounded-md w-1/5 focus:outline-none focus:border-yellow-600"
+          style={{ fontFamily: "'Montserrat', sans-serif" }}
         />
-        <button className="text-gray-600 p-2  hover:bg-gray-100">
+        <button className="text-gray-600 p-2 hover:bg-gray-100">
           <FiDownload size={22} />
         </button>
       </div>
 
       {/* Table Section */}
       <div className="bg-white rounded-b-md w-full overflow-x-auto">
-        <table className="w-full text-left text-sm text-gray-600">
+        <table className="w-full text-left text-sm text-gray-600" style={{ fontFamily: "'Montserrat', sans-serif" }}>
           <thead className="bg-white text-gray-800 border-t border-gray-300">
             <tr>
               <th className="pl-3 pr-10 py-4 text-left font-medium">S.No.</th>
@@ -136,7 +136,7 @@ const filteredContacts = contacts.filter((contact) => {
             </tr>
           </thead>
           <tbody>
-          {filteredContacts.map((contact, index) => (
+            {filteredContacts.map((contact, index) => (
               <tr
                 key={contact.id}
                 className={`hover:bg-gray-50 transition-all cursor-pointer ${
@@ -177,7 +177,7 @@ const filteredContacts = contacts.filter((contact) => {
         <button className="p-2 rounded-md text-gray-600 hover:bg-gray-300">
           <HiChevronLeft className="text-2xl" />
         </button>
-        <button className="border border-[#DDA853] px-4 py-2 rounded-md text-black font-medium">
+        <button className="border border-yellow-600 px-4 py-2 rounded-md text-black font-medium">
           1
         </button>
         <button className="p-2 rounded-md text-gray-600 hover:bg-gray-300">
@@ -187,7 +187,8 @@ const filteredContacts = contacts.filter((contact) => {
         <select
           value={selectedValue}
           onChange={(e) => setSelectedValue(Number(e.target.value))}
-          className="border border-gray-300 bg-gray-100 px-2  text-gray-700 mr-5"
+          className="border border-gray-300 bg-gray-100 px-2 text-gray-700 mr-5"
+          style={{ fontFamily: "'Montserrat', sans-serif" }}
         >
           {pageSizes.map((size) => (
             <option key={size} value={size}>

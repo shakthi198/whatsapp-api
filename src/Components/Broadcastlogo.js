@@ -3,10 +3,10 @@ import { FaChevronRight } from "react-icons/fa";
 import DeliveryChartUI from "../Dynamic Components/DeliveryChartUI";
 import ReusableTable from "../Dynamic Components/ReusableTable";
 import Pagination from "../Dynamic Components/Pagination";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 
 const Broadcastlogo = () => {
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
 
   const columns = [
     "S.No",
@@ -23,33 +23,54 @@ const Broadcastlogo = () => {
 
   const data = []; // Empty data array
 
-  // Function to handle "Next" button click
   const handleNextClick = () => {
-    navigate("/ApiLogoui"); // Navigate to the next component
+    navigate("/ApiLogoui");
   };
 
   return (
-    <div className="w-full min-h-screen p-3  items-start">
+    <div 
+      className="w-full min-h-screen p-3 items-start"
+      style={{ fontFamily: "'Montserrat', sans-serif" }}
+    >
+      {/* Header Section */}
       <div className="flex mb-10">
-        <h1 className="text-gray-700 font-semibold text-lg mr-2">Broadcast-Logs</h1>
+        <h1 
+          className="font-medium text-2xl mr-2"
+          style={{ fontFamily: "'Montserrat', sans-serif" }}
+        >
+          Broadcast-Logs
+        </h1>
         <span className="text-gray-300 mx-1">|</span>
-        <div className="flex items-center text-sm text-gray-400">
-          <span className="hover:text-gray-600 cursor-pointer">Home</span>
-          <FaChevronRight className="mx-1 text-gray-300 text-xs" />
-          <span className="text-orange-400 cursor-pointer">Broadcast-logs</span>
+        <div 
+          className="flex items-center text-md"
+          style={{ fontFamily: "'Montserrat', sans-serif" }}
+        >
+          <span className="text-yellow-600">Home</span>
+          <FaChevronRight className="mx-1 text-gray-300 text-md" />
+          <span className="text-yellow-600 cursor-pointer">Broadcast-logs</span>
         </div>
       </div>
+
+      {/* Chart Component */}
       <div className="mb-4">
         <DeliveryChartUI />
       </div>
+
+      {/* Table Component */}
       <div>
-        <ReusableTable columns={columns} data={data} />
+        <ReusableTable 
+          columns={columns} 
+          data={data} 
+          fontFamily="'Montserrat', sans-serif"
+        />
       </div>
+
+      {/* Pagination (commented out) */}
       {/* <Pagination
         currentPage={1}
         totalPages={1}
         setCurrentPage={() => {}}
-        onNextClick={handleNextClick} // Pass the handleNextClick function
+        onNextClick={handleNextClick}
       /> */}
     </div>
   );

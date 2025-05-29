@@ -71,7 +71,7 @@ const NewFlow = ({ isOpen, onClose, onCreateFlow }) => {
           <input
             type="text"
             placeholder=""
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:border-[#DDA853] bg-white"
+            className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:border-yellow-600 bg-white"
             value={name}
             onChange={(e) => {
               setName(e.target.value);
@@ -133,7 +133,7 @@ const NewFlow = ({ isOpen, onClose, onCreateFlow }) => {
           <button className="border border-gray-400 text-gray-700 px-4 py-2 rounded-md" onClick={onClose}>
             Cancel
           </button>
-          <button className="bg-[#DDA853] text-white px-5 py-2 rounded-md cursor-pointer" onClick={handleCreate}>
+          <button className="bg-yellow-600 text-white px-5 py-2 rounded-md cursor-pointer" onClick={handleCreate}>
             Create
           </button>
         </div>

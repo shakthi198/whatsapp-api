@@ -187,10 +187,10 @@ const ManageTemplates = () => {
       <div className="flex items-center mb-4">
         <h2 className="text-3xl font-semibold text-gray-700">Manage Template</h2>
         <div className="h-5 w-[2px] bg-gray-300 mx-2"></div>
-        <div className="text-[#DDA853] text-md flex items-center">
+        <div className="text-yellow-600 text-md flex items-center">
           <span>Home</span>
           <HiChevronRight className="mx-1 text-black text-md" />
-          <span className="text-[#DDA853]">Manage Template</span>
+          <span className="text-yellow-600">Manage Template</span>
         </div>
       </div>
 
@@ -228,12 +228,12 @@ const ManageTemplates = () => {
                 </option>
               ))}
             </select>
-            <button className="text-white px-4 py-2 rounded-md bg-[#DDA853]">
+            <button className="text-white px-4 py-2 rounded-md bg-yellow-600">
               📺 Watch Tutorial
             </button>
             <button
               onClick={handleCreateTemplate}
-              className="text-white px-4 py-2 rounded-md bg-[#DDA853]"
+              className="text-white px-4 py-2 rounded-md bg-yellow-600"
             >
               + Create New Template
             </button>
@@ -327,7 +327,7 @@ const ManageTemplates = () => {
             >
               <HiChevronLeft className="text-2xl" />
             </button>
-            <button className="border border-[#DDA853] px-4 py-2 rounded-md text-black font-medium">
+            <button className="border border-yellow-600 px-4 py-2 rounded-md text-black font-medium">
               {currentPage}
             </button>
             <button

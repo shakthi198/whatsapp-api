@@ -11,10 +11,10 @@ const ManageGroups = () => {
       <div className="flex items-center mb-6">
         <h2 className="text-3xl text-gray-700 font-medium">Manage Groups</h2>
         <div className="h-5 w-[2px] bg-gray-300 mx-2"></div>
-        <div className="text-[#DDA853] text-md flex items-center">
+        <div className="text-yellow-600 text-md flex items-center">
           <span>Home</span>
           <HiChevronRight className="mx-1 text-black text-md" />
-          <span className="text-[#DDA853]">Manage Groups</span>
+          <span className="text-yellow-600">Manage Groups</span>
         </div>
       </div>
 
@@ -23,9 +23,9 @@ const ManageGroups = () => {
         <input
           type="text"
           placeholder="Search Group"
-          className="border border-gray-300 text-gray-500 px-4 py-2 text-sm rounded-md w-1/6 focus:outline-none focus:border-[#DDA853]"
+          className="border border-gray-300 text-gray-500 px-4 py-2 text-sm rounded-md w-1/6 focus:outline-none focus:border-yellow-600"
         />
-        <button className="bg-[#DDA853] text-white px-4 py-2 rounded flex items-center hover:cursor-pointer" onClick={() => navigate("/")}>
+        <button className="bg-yellow-600 text-white px-4 py-2 rounded flex items-center hover:cursor-pointer" onClick={() => navigate("/")}>
           <LuUsers className="mr-2" /> Manage Contacts
         </button>
       </div>

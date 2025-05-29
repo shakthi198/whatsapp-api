@@ -29,7 +29,7 @@ const AddTagModal = ({ onClose, onAdd, position }) => {
           value={tag}
           onChange={(e) => setTag(e.target.value)}
           placeholder="Enter new tag"
-          className="w-full border border-gray-300 px-4 py-2 rounded focus:outline-none focus:ring-1 focus:ring-[#DDA853] text-sm"
+          className="w-full border border-gray-300 px-4 py-2 rounded focus:outline-none focus:ring-1 focus:ring-yellow-600 text-sm"
         />
 
         {/* Add Button */}
@@ -43,7 +43,7 @@ const AddTagModal = ({ onClose, onAdd, position }) => {
           disabled={!tag.trim()}
           className={`mt-4 w-1/5 py-1 text-sm font-medium ${
             tag.trim()
-              ? "bg-[#DDA853] text-white cursor-pointer"
+              ? "bg-yellow-600 text-white cursor-pointer"
               : "bg-gray-200 text-gray-400 cursor-not-allowed"
           }`}
         >

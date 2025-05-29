@@ -23,7 +23,7 @@ const UnsubscribeModal = ({ isOpen, onClose }) => {
         <h2 className="text-lg font-semibold text-gray-700 mb-4">Unsubscribe Words</h2>
 
         {/* Search Bar */}
-        <div className="rounded-md px-3 py-2 flex items-center bg-gray-100 border border-[#DDA853]">
+        <div className="rounded-md px-3 py-2 flex items-center bg-gray-100 border border-yellow-600">
           <input
             type="text"
             placeholder="Key Words"
@@ -46,7 +46,7 @@ const UnsubscribeModal = ({ isOpen, onClose }) => {
           >
             Cancel
           </button>
-          <button className="bg-[#DDA853] text-white px-5 py-2 rounded-md" onClick={onClose}>
+          <button className="bg-yellow-600 text-white px-5 py-2 rounded-md" onClick={onClose}>
             OK
           </button>
         </div>

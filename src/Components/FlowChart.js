@@ -59,13 +59,13 @@ const FlowChart = () => {
     <div className="h-screen w-full flex flex-col items-center p-4">
       {/* Toolbar */}
       <div className="mb-4 flex justify-start w-full space-x-2">
-        <button className="bg-[#DDA853] px-4 py-2 rounded-md text-white cursor-pointer" onClick={addNode}>
+        <button className="bg-yellow-600 px-4 py-2 rounded-md text-white cursor-pointer" onClick={addNode}>
           Add A Node
         </button>
-        <button className="bg-[#DDA853] px-4 py-2 rounded-md text-white cursor-pointer" onClick={handleSave}>
+        <button className="bg-yellow-600 px-4 py-2 rounded-md text-white cursor-pointer" onClick={handleSave}>
           Save
         </button>
-        <button className="bg-[#DDA853] px-4 py-2 rounded-md text-white cursor-pointer" onClick={() => navigate(-1)}>
+        <button className="bg-yellow-600 px-4 py-2 rounded-md text-white cursor-pointer" onClick={() => navigate(-1)}>
           Back
         </button>
       </div>

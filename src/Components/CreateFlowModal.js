@@ -53,13 +53,13 @@ return (
           placeholder="Flow Name"
           value={flowName}
           onChange={(e) => setFlowName(e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:border-[#DDA853] bg-gray-100 mb-4"
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:border-yellow-600 bg-gray-100 mb-4"
         />
 
         {/* Flow Type Dropdown */}
         <div className="relative">
           <div
-            className="w-full border border-[#DDA853] rounded-md px-3 py-2 text-gray-700 bg-white cursor-pointer flex justify-between items-center"
+            className="w-full border border-yellow-600 rounded-md px-3 py-2 text-gray-700 bg-white cursor-pointer flex justify-between items-center"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
             {selectedFlow}
@@ -90,7 +90,7 @@ return (
             Cancel
           </button>
           <button
-            className="bg-[#DDA853] text-white px-5 py-2 rounded-md"
+            className="bg-yellow-600 text-white px-5 py-2 rounded-md"
             onClick={handleCreateFlow}
           >
             OK

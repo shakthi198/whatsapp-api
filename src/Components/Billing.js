@@ -9,34 +9,38 @@ const Billing = () => {
   const [activeTab, setActiveTab] = useState("billings"); // Default tab
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-6" style={{ fontFamily: "'Montserrat', sans-serif" }}>
       {/* Page Header */}
       <div className="flex items-center mb-6">
-        <h2 className="text-3xl font-semibold text-gray-700">Billing</h2>
+        <h2 className="text-2xl font-medium">Billing</h2>
         <div className="h-5 w-[2px] bg-gray-300 mx-2"></div>
-        <div className="text-[#DDA853] text-md flex items-center">
+        <div className="text-yellow-600 text-md flex items-center">
           <span>Home</span>
           <HiChevronRight className="mx-1 text-black text-md" />
-          <span className="text-[#DDA853]">Billing</span>
+          <span className="text-yellow-600">Billing</span>
         </div>
       </div>
 
       {/* Navigation Tabs */}
+         
       <div className="flex border-b border-gray-300">
         <button
           className={`px-6 py-2 text-md ${
-            activeTab === "billings" ? "text-[#DDA853] border-b-2 border-yellow-500 " : "text-gray-500"
+            activeTab === "billings" ? "text-yellow-600 border-b-2 cursor-pointer border-yellow-600" : "text-gray-500"
           }`}
           onClick={() => setActiveTab("billings")}
+          style={{ fontFamily: "'Montserrat', sans-serif" }}
         >
           Billings
         </button>
 
         <button
-          className={`px-6 py-2 text-md ${
-            activeTab === "transactions" ? "text-[#DDA853] border-b-2 border-yellow-500 " : "text-gray-500"
+          className={`px-6 py-2 text-md  ${
+            activeTab === "transactions" ? "text-yellow-600 border-b-2 cursor-pointer border-yellow-600" : "text-gray-500"
+           
           }`}
           onClick={() => setActiveTab("transactions")}
+          style={{ fontFamily: "'Montserrat', sans-serif" }}
         >
           Transactions
         </button>
@@ -50,14 +54,25 @@ const Billing = () => {
             <div className="bg-white p-4 rounded shadow-md flex items-center justify-between">
               {/* Left Side: Filters */}
               <div className="flex items-center space-x-4">
-                <select className="border border-gray-300 p-2 rounded text-gray-600 w-72">
+                <select 
+                  className="border border-gray-300 p-2 rounded text-gray-600 w-72"
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                >
                   <option value="all">All</option>
                 </select>
-                <input type="text" placeholder="Search tag" className="border border-gray-300 p-2 rounded text-gray-600 w-56" />
+                <input 
+                  type="text" 
+                  placeholder="Search tag" 
+                  className="border border-gray-300 p-2 rounded text-gray-600 w-56"
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                />
               </div>
 
               {/* Right Side: Export Button */}
-              <button className="bg-[#DDA853] text-white px-4 py-2 rounded flex items-center">
+              <button 
+                className="bg-yellow-600 text-white px-4 py-2 rounded flex items-center"
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
+              >
                 <LuDownload className="mr-2" /> Export
               </button>
             </div>
@@ -69,9 +84,19 @@ const Billing = () => {
 
               {/* Date Picker */}
               <div className="flex items-center border border-gray-300 bg-white text-lg px-2 py-2 rounded-md shadow-md">
-                <input type="text" className="text-gray-500 p-2 outline-none border-none bg-transparent" placeholder="Start date" />
+                <input 
+                  type="text" 
+                  className="text-gray-500 p-2 outline-none border-none bg-transparent" 
+                  placeholder="Start date" 
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                />
                 <span className="text-gray-500 mx-2">→</span>
-                <input type="text" className="text-gray-500 p-2 outline-none border-none bg-transparent" placeholder="End date" />
+                <input 
+                  type="text" 
+                  className="text-gray-500 p-2 outline-none border-none bg-transparent" 
+                  placeholder="End date" 
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                />
                 <span className="text-gray-400 ml-2"><CiCalendar size={24}/></span>
               </div>
 
@@ -92,7 +117,7 @@ const Billing = () => {
               <div className="bg-white p-6 rounded-b-md shadow-md w-full">
                 {/* Table Header */}
                 <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
+                  <table className="w-full border-collapse" style={{ fontFamily: "'Montserrat', sans-serif" }}>
                     <thead>
                       <tr className="bg-gray-100 text-gray-700 text-gray-600 font-medium">
                         {["S. No.", "Hour Data", "Marketing Usage", "Service Usage", "Utility Usage", "Authentication Usage"]

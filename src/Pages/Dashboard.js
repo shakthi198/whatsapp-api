@@ -87,10 +87,8 @@ const Dashboard = () => {
   }), [cardData]);
 
   return (
-    <Box sx={{ padding: "6px", marginTop:"10px" }}>
-
-      
-      <Typography variant="h5" sx={{ fontWeight: "medium", marginBottom: "20px" }}>
+    <Box sx={{ padding: "6px", marginTop: "10px" }}>
+      <Typography variant="h5" sx={{ fontWeight: "medium", marginBottom: "20px", fontFamily: "Montserrat, sans-serif" }}>
         Account Overview
       </Typography>
 
@@ -99,10 +97,10 @@ const Dashboard = () => {
         <Grid item xs={12} md={4}>
           <Card sx={{ padding: "20px", borderRadius: "12px", boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)", backgroundColor: "rgb(232, 232, 232)" }}>
             <CardContent>
-              <Typography variant="h6" sx={{ fontWeight: "medium", color: "#333" }}>
+              <Typography variant="h6" sx={{ fontWeight: "medium", color: "#333", fontFamily: "Montserrat, sans-serif" }}>
                 Hello Elcodamics!
               </Typography>
-              <Typography variant="h4" sx={{ fontWeight: "medium", marginTop: "10px" }}>
+              <Typography variant="h4" sx={{ fontWeight: "medium", marginTop: "10px", fontFamily: "Montserrat, sans-serif" }}>
                 INR 5.49
               </Typography>
             </CardContent>
@@ -115,15 +113,16 @@ const Dashboard = () => {
             sx={{ padding: "7px", borderRadius: "12px", boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)", backgroundColor: "#FAF3E0" }}
           >
             <CardContent>
-              <Typography variant="h6" sx={{ fontWeight: "medium", color: "#333" }}>
+              <Typography variant="h6" sx={{ fontWeight: "medium", color: "#333", fontFamily: "Montserrat, sans-serif" }}>
                 {currentPlan.planName}
               </Typography>
-              <Typography sx={{ marginBottom: "10px", color: "#666" }}>
+              <Typography sx={{ marginBottom: "10px", color: "#666", fontFamily: "Montserrat, sans-serif" }}>
                 {currentPlan.features}
               </Typography>
               <button 
                 onClick={() => navigate("/upgrade")}
                 style={{
+                  fontFamily: "Montserrat, sans-serif",
                   backgroundColor: "#D6B76F",
                   border: "none",
                   color: "white",
@@ -147,11 +146,11 @@ const Dashboard = () => {
             onClick={() => navigate("/usage")}
           >
             <CardContent>
-              <Typography variant="h6" sx={{ fontWeight: "medium", color: "#333" }}>
+              <Typography variant="h6" sx={{ fontWeight: "medium", color: "#333", fontFamily: "Montserrat, sans-serif" }}>
                 Usage
               </Typography>
               <LinearProgress variant="determinate" value={usagePercentage} sx={{ height: "10px", borderRadius: "5px", marginTop: "10px" }} />
-              <Typography sx={{ marginTop: "10px", color: "#666", textAlign: "center" }}>
+              <Typography sx={{ marginTop: "10px", color: "#666", textAlign: "center", fontFamily: "Montserrat, sans-serif" }}>
                 {usage.used} out of {usage.total} ({usagePercentage.toFixed(1)}%)
               </Typography>
             </CardContent>
@@ -159,7 +158,7 @@ const Dashboard = () => {
         </Grid>
       </Grid>
 
-      <Typography variant="h5" sx={{ fontWeight: "medium", marginTop: "30px", marginBottom: "20px" }}>
+      <Typography variant="h5" sx={{ fontWeight: "medium", marginTop: "30px", marginBottom: "20px", fontFamily: "Montserrat, sans-serif" }}>
         Dashboard Overview
       </Typography>
       <CardComponent cards={cardsData.Overview} isScrollable={false} />

@@ -9,10 +9,10 @@ const CatalogPage = ({ catalogs, onAddClick, onAddShippingClick }) => {
             <div className="flex items-center mb-4">
                 <h2 className="text-3xl font-semibold text-gray-700">Catalog</h2>
                 <div className="h-5 w-[2px] bg-gray-300 mx-2"></div>
-                <div className="text-[#DDA853] text-md flex items-center">
+                <div className="text-yellow-600 text-md flex items-center">
                     <span>Home</span>
                     <HiChevronRight className="mx-1 text-black text-md" />
-                    <span className="text-[#DDA853]">Catalog</span>
+                    <span className="text-yellow-600">Catalog</span>
                 </div>
             </div>
             <div className=" mx-auto bg-white shadow-md p-6 rounded-lg">

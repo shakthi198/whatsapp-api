@@ -89,21 +89,21 @@ const WhatsappFlow = () => {
         <div className="p-6 bg-gray-100">
           {/* Page Header */}
           <div className="flex items-center mb-6">
-            <h2 className="text-3xl font-semibold text-gray-700">Whatsapp Flows</h2>
+            <h2 className="text-2xl font-medium text-gray-700">Whatsapp Flows</h2>
             <div className="h-5 w-[2px] bg-gray-300 mx-2"></div>
-            <div className="text-[#DDA853] text-md flex items-center">
+            <div className="text-yellow-600 text-md flex items-center">
               <span>Home</span>
               <HiChevronRight className="mx-1 text-black text-md" />
-              <span className="text-[#DDA853]">Whatsapp Flows</span>
+              <span className="text-yellow-600">Whatsapp Flows</span>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="flex border-b mb-4">
+          <div className="flex border-b border-gray-300 mb-4">
             <button
               className={`py-2 px-4 font-medium cursor-pointer ${
                 activePage === "flows"
-                  ? "border-b-2 border-[#DDA853] text-[#DDA853]"
+                  ? "border-b-2  border-yellow-600 text-yellow-600"
                   : "text-gray-500"
               }`}
               onClick={() => setActivePage("flows")}
@@ -113,7 +113,7 @@ const WhatsappFlow = () => {
             <button
               className={`py-2 px-4 font-medium cursor-pointer ${
                 activePage === "responses"
-                  ? "border-b-2 border-[#DDA853] text-[#DDA853]"
+                  ? "border-b-2 border-yellow-600 text-yellow-600"
                   : "text-gray-500"
               }`}
               onClick={() => setActivePage("responses")}
@@ -123,7 +123,7 @@ const WhatsappFlow = () => {
           </div>
 
           {/* Controls Section */}
-          <div className="bg-white p-4 shadow-md rounded-t-md flex justify-end items-center border-b border-gray-300">
+          <div className="bg-white p-4 shadow-md rounded-t-md flex justify-end items-center border- border-gray-300">
             {/* Search Bar */}
             <div className="relative flex items-center w-[280px] border border-gray-300 rounded-md bg-white mr-4">
               <span className="text-gray-500 text-lg px-3">
@@ -140,7 +140,7 @@ const WhatsappFlow = () => {
 
             {/* Create Flow Button */}
             <button
-              className="bg-[#DDA853] text-white px-5 py-2 rounded-md font-medium shadow-md hover:bg-[#c29a4a] transition cursor-pointer"
+              className="bg-yellow-600 text-white px-5 py-2 rounded-md font-medium shadow-md hover:bg-[#c29a4a] transition cursor-pointer"
               onClick={() => setIsNewFlowOpen(true)}
             >
               + Create Flow
@@ -189,7 +189,7 @@ const WhatsappFlow = () => {
                       </span>
                     </td>
                     <td
-                      className="p-2 text-[#DDA853] underline underline-offset-2 decoration-[#DDA853] cursor-pointer"
+                      className="p-2 text-yellow-600 underline underline-offset-2 decoration-yellow-600 cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation(); // Prevent row click event
                         setActivePage("responses");
@@ -203,13 +203,13 @@ const WhatsappFlow = () => {
                       {/* Three Dots Button */}
                       {flow.status !== "DEPRECATED" && (
                         <button
-                          className="p-2 border border-[#DDA853] cursor-pointer"
+                          className="p-2 border border-yellow-600 cursor-pointer"
                           onClick={(e) => {
                             e.stopPropagation(); // Prevent row click event
                             toggleDropdown(flow.id);
                           }}
                         >
-                          <BsThreeDotsVertical className="text-[#DDA853]" />
+                          <BsThreeDotsVertical className="text-yellow-600" />
                         </button>
                       )}
 
@@ -254,7 +254,7 @@ const WhatsappFlow = () => {
             <button className="p-2 rounded-md text-gray-600 hover:bg-gray-300">
               <HiChevronLeft className="text-2xl" />
             </button>
-            <button className="border border-[#DDA853] px-4 py-2 rounded-md text-black font-medium">
+            <button className="border border-yellow-600 px-4 py-2 rounded-md text-black font-medium">
               1
             </button>
             <button className="p-2 rounded-md text-gray-600 hover:bg-gray-300">

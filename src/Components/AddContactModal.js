@@ -130,7 +130,7 @@ const AddContactModal = ({ onClose, refreshContacts }) => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#DDA853]"
+                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-yellow-600"
                 required
               />
               {isFocused ? (
@@ -173,7 +173,7 @@ const AddContactModal = ({ onClose, refreshContacts }) => {
               </label>
               <select
                 name="country_code"
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#DDA853]"
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-yellow-600"
                 value={formData.country_code}
                 onChange={handleInputChange}
                 required
@@ -195,7 +195,7 @@ const AddContactModal = ({ onClose, refreshContacts }) => {
                 placeholder="Mobile number"
                 value={formData.mobile_number}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#DDA853]"
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-yellow-600"
                 required
               />
             </div>
@@ -211,7 +211,7 @@ const AddContactModal = ({ onClose, refreshContacts }) => {
               placeholder="Contact Name"
               value={formData.contact_name}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#DDA853]"
+              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-yellow-600"
               required
             />
           </div>
@@ -226,7 +226,7 @@ const AddContactModal = ({ onClose, refreshContacts }) => {
               placeholder="Tags (comma separated)"
               value={formData.tags}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#DDA853]"
+              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-yellow-600"
             />
           </div>
 
@@ -241,7 +241,7 @@ const AddContactModal = ({ onClose, refreshContacts }) => {
             </button>
             <button
               type="submit"
-              className="bg-[#DDA853] text-white px-6 py-2 rounded-md hover:bg-[#c49a4b] transition-all disabled:opacity-50"
+              className="bg-yellow-600 text-white px-6 py-2 rounded-md hover:bg-[#c49a4b] transition-all disabled:opacity-50"
               disabled={isSubmitting}
             >
               {isSubmitting ? "Adding..." : "Add Contact"}

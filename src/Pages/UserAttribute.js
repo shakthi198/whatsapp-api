@@ -54,10 +54,10 @@ const UserAttribute = () => {
       <div className="flex items-center mb-4">
         <h2 className="text-3xl font-semibold text-gray-700">Manage User Attributes</h2>
         <div className="h-5 w-[2px] bg-gray-300 mx-2"></div>
-        <div className="text-[#DDA853] text-md flex items-center">
+        <div className="text-yellow-600 text-md flex items-center">
           <span>Home</span>
           <HiChevronRight className="mx-1 text-black text-md" />
-          <span className="text-[#DDA853]">Manage User Attributes</span>
+          <span className="text-yellow-600">Manage User Attributes</span>
         </div>
       </div>
 
@@ -66,7 +66,7 @@ const UserAttribute = () => {
         <div></div>
         <div className="flex items-center gap-3">
           <button
-            className="bg-[#DDA853] text-white px-5 py-2 rounded-md font-medium shadow-md cursor-pointer"
+            className="bg-yellow-600 text-white px-5 py-2 rounded-md font-medium shadow-md cursor-pointer"
             onClick={() => setIsCreateFlowOpen(true)}
           >
             + Create User Attribute
@@ -98,16 +98,16 @@ const UserAttribute = () => {
                 <td className="p-2">{flow.value}</td>
                 <td className="p-2 text-left space-x-3">
                   <button
-                    className="border border-[#DDA853] text-white p-3 rounded-md cursor-pointer"
+                    className="border border-yellow-600 text-white p-3 rounded-md cursor-pointer"
                     onClick={() => handleEdit(flow)} // Add onClick handler for edit
                   >
-                    <FaEdit className="text-xl text-[#DDA853]" strokeWidth={2.5} />
+                    <FaEdit className="text-xl text-yellow-600" strokeWidth={2.5} />
                   </button>
                   <button
-                    className="border border-[#DDA853] text-white p-3 rounded-md cursor-pointer"
+                    className="border border-yellow-600 text-white p-3 rounded-md cursor-pointer"
                     onClick={() => handleDelete(flow.id)} // Add onClick handler for delete
                   >
-                    <MdOutlineDelete className="text-xl text-[#DDA853]" />
+                    <MdOutlineDelete className="text-xl text-yellow-600" />
                   </button>
                 </td>
               </tr>
@@ -121,7 +121,7 @@ const UserAttribute = () => {
         <button className="p-2 rounded-md text-gray-600 hover:bg-gray-300">
           <HiChevronLeft className="text-2xl" />
         </button>
-        <button className="border border-[#DDA853] px-4 py-2 rounded-md text-black font-medium">
+        <button className="border border-yellow-600 px-4 py-2 rounded-md text-black font-medium">
           1
         </button>
         <button className="p-2 rounded-md text-gray-600 hover:bg-gray-300">

@@ -38,7 +38,7 @@ const CreateAttributeModal = ({ isOpen, onClose, onCreateAttribute }) => {
             <input
               type="text"
               placeholder="Flow Name"
-              className="w-3/5 border border-gray-300 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:border-[#DDA853] bg-gray-100"
+              className="w-3/5 border border-gray-300 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:border-yellow-600 bg-gray-100"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -49,7 +49,7 @@ const CreateAttributeModal = ({ isOpen, onClose, onCreateAttribute }) => {
             <input
               type="text"
               placeholder="Flow Name"
-              className="w-3/4 border border-gray-300 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:border-[#DDA853] bg-gray-100"
+              className="w-3/4 border border-gray-300 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:border-yellow-600 bg-gray-100"
               value={value}
               onChange={(e) => setValue(e.target.value)}
             />
@@ -64,7 +64,7 @@ const CreateAttributeModal = ({ isOpen, onClose, onCreateAttribute }) => {
             Cancel
           </button>
           <button
-            className="bg-[#DDA853] text-white px-5 py-2 rounded-md cursor-pointer"
+            className="bg-yellow-600 text-white px-5 py-2 rounded-md cursor-pointer"
             onClick={handleSubmit}
           >
             OK

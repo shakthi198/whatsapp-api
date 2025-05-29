@@ -4,12 +4,11 @@ import { ChevronDown, Upload } from "lucide-react";
 import MessagePopup from "./MessagePopup";
 
 export default function SingleMsg() {
-  
   const [campaignName, setCampaignName] = useState("CAMP-75206");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [messageContent, setMessageContent] = useState("");
-  const [selectedFile, setSelectedFile] = useState(null); // Store uploaded file
+  const [selectedFile, setSelectedFile] = useState(null);
   
   const location = useLocation();
   const navigate = useNavigate();
@@ -34,24 +33,22 @@ export default function SingleMsg() {
     }
   };
 
-  // Function to update message content
   const handleSelectTemplate = (template) => {
-    setMessageContent(template.templateBody || template.content); // Use the correct property from the template
-    setIsPopupOpen(false); // Close popup after selection
+    setMessageContent(template.templateBody || template.content);
+    setIsPopupOpen(false);
   };
 
-  // Handle file upload
   const handleFileChange = (event) => {
-    const file = event.target.files[0]; // Get selected file
+    const file = event.target.files[0];
     if (file) {
       setSelectedFile(file);
     }
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6" style={{ fontFamily: "Montserrat" }}>
+     <div className="max-w-6xl mx-auto p-6" style={{ fontFamily: "Montserrat" }}>
       <div className="flex items-center">
-        <h1 className="text-2xl font-semibold mr-4">Compose Message</h1>
+        <h1 className="text-2xl font-medium mr-4">Compose Message</h1>
         <div className="flex items-center text-gray-500 text-sm">
           <span className="mr-2">|</span>
           <span className="text-yellow-600">Home</span>
@@ -86,7 +83,7 @@ export default function SingleMsg() {
             className="w-full p-2 border border-yellow-600 bg-gray-100 rounded-md h-32 cursor-pointer"
             readOnly
             value={messageContent}
-            onClick={() => setIsPopupOpen(true)} // Open popup
+            onClick={() => setIsPopupOpen(true)}
           />
 
           <div className="mt-4">
@@ -95,7 +92,7 @@ export default function SingleMsg() {
               type="text"
               className="w-full p-2 border border-gray-300 rounded-md"
               value={campaignName}
-              onChange={(e) => setCampaignName(e.target.value)} // Make editable
+              onChange={(e) => setCampaignName(e.target.value)}
             />
           </div>
 
@@ -152,9 +149,9 @@ export default function SingleMsg() {
             <label className="w-full p-2 border border-gray-300 rounded-md flex items-center justify-center cursor-pointer bg-gray-100">
               <input
                 type="file"
-                accept=".csv" // Restrict to CSV files
+                accept=".csv"
                 className="hidden"
-                onChange={handleFileChange} // Handle file selection
+                onChange={handleFileChange}
               />
               <Upload className="w-5 h-5 text-gray-600 mr-2" />
               <span className="text-gray-600">{selectedFile ? selectedFile.name : "Upload File"}</span>
