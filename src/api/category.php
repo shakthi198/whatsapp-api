@@ -12,7 +12,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Add this line (past date)
 $host = "localhost";
 $user = "root";
 $password = "";
-$database = "meta";
+$database = "whatapp";
 
 $conn = new mysqli($host, $user, $password, $database);
 if ($conn->connect_error) {
@@ -90,7 +90,7 @@ elseif ($method === 'GET') {
             FROM category c
             LEFT JOIN templates t ON t.categoryGuid = c.guid AND t.isDelete = 0
             WHERE c.isDelete = 0
-            ORDER BY c.id DESC";
+            ORDER BY c.id";
 
     $result = $conn->query($sql);
 
