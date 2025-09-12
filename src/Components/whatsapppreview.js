@@ -1,16 +1,20 @@
 import React from "react";
 import { Box, Typography, Stack, Button } from "@mui/material";
 
-
 const WhatsAppPreview = ({ templateData }) => {
-  const { headerType, headerText, body,Stack, footer, buttons, Box,Typography} = templateData;
+  const { headerType, headerText, body, footer,buttons } = templateData;
 
   return (
     <Box
       border="1px solid #ccc"
       borderRadius="12px"
       overflow="hidden"
-      sx={{ backgroundColor: "#e5ddd5", height: '100%', minHeight: 400 ,width:500}}
+      sx={{
+        backgroundColor: "#e5ddd5",
+        height: "100%",
+        minHeight: 400,
+        width: 500,
+      }}
     >
       {/* WhatsApp Green Header */}
       <Box bgcolor="#075e54" color="white" p={1.5}>
@@ -19,13 +23,7 @@ const WhatsAppPreview = ({ templateData }) => {
 
       {/* Message Bubble */}
       <Box p={2}>
-        <Box
-          bgcolor="#dcf8c6"
-          borderRadius="12px"
-          px={2}
-          py={1}
-          maxWidth="80%"
-        >
+        <Box bgcolor="#dcf8c6" borderRadius="12px" px={2} py={1} maxWidth="80%">
           {/* Optional Header */}
           {headerType === "text" && headerText && (
             <Typography fontWeight="bold">{headerText}</Typography>
@@ -38,12 +36,7 @@ const WhatsAppPreview = ({ templateData }) => {
 
           {/* Optional Footer */}
           {footer && (
-            <Typography
-              variant="caption"
-              display="block"
-              color="gray"
-              mt={1}
-            >
+            <Typography variant="caption" display="block" color="gray" mt={1}>
               {footer}
             </Typography>
           )}

@@ -1,17 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState,useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import apiEndpoints from "../apiconfig";
 import WhatsAppPreview from "./whatsapppreview";
 import { Box, Typography, Button, Stack } from "@mui/material";
-import { HiChevronLeft, HiChevronRight } from 'react-icons/hi';
+import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
 
 
 const CreateTemplate = () => {
   const navigate = useNavigate();
   const location = useLocation();
-
+  const textareaRef = useRef(null);
   const [templateBody, setTemplateBody] = useState("");
   const [templateFooter, setTemplateFooter] = useState("");
   const [showPopup, setShowPopup] = useState(false);
@@ -33,6 +33,13 @@ const CreateTemplate = () => {
   });
   const [categories, setCategories] = useState([]);
   const [languages, setLanguages] = useState([]);
+
+  // ✅ Global variables available in all templates
+  const GLOBAL_ATTRIBUTES = [
+    { name: "name", value: "user name" },
+    { name: "date", value: "meet date" },
+  ];
+
   // Fetch Categories
   useEffect(() => {
     const fetchCategories = async () => {
@@ -42,37 +49,39 @@ const CreateTemplate = () => {
         if (res.ok && data.status) {
           setCategories(data.data);
         } else {
-          toast.error(data.message || 'Failed to load categories');
+          toast.error(data.message || "Failed to load categories");
         }
       } catch (err) {
         console.error(err);
-        toast.error('Error loading categories');
+        toast.error("Error loading categories");
       }
     };
     fetchCategories();
   }, []);
 
   // Fetch Languages
-  // useEffect(() => {
-  //   const fetchLanguages = async () => {
-  //     try {
-  //       const res = await fetch(apiEndpoints.language);
-  //       const data = await res.json();
-  //       if (res.ok && data.status) {
-  //         setLanguages(data.data.map(lang => ({
-  //           guid: lang.guid,
-  //           name: lang.languageName,
-  //         })));
-  //       } else {
-  //         toast.error(data.message || 'Failed to load languages');
-  //       }
-  //     } catch (err) {
-  //       console.error(err);
-  //       toast.error('Error loading languages');
-  //     }
-  //   };
-  //   fetchLanguages();
-  // }, []);
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      try {
+        const res = await fetch(apiEndpoints.language);
+        const data = await res.json();
+        if (res.ok && data.status) {
+          setLanguages(
+            data.data.map((lang) => ({
+              guid: lang.guid,
+              name: lang.languageName,
+            }))
+          );
+        } else {
+          toast.error(data.message || "Failed to load languages");
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error("Error loading languages");
+      }
+    };
+    fetchLanguages();
+  }, []);
 
   // Populate form when editing
   useEffect(() => {
@@ -91,7 +100,19 @@ const CreateTemplate = () => {
       });
       setTemplateBody(template.templateBody);
       setTemplateFooter(template.templateFooter);
-      setAttributes(template.attributes || []);
+      // setAttributes(template.attributes || []);
+      let attrs = [];
+      try {
+        attrs =
+          typeof template.attributes === "string"
+            ? JSON.parse(template.attributes)
+            : template.attributes;
+      } catch (err) {
+        console.error("Failed to parse attributes:", err);
+        attrs = [];
+      }
+
+      setAttributes(Array.isArray(attrs) ? attrs : []);
     }
   }, [location.state]);
 
@@ -105,9 +126,36 @@ const CreateTemplate = () => {
   const handleSaveAttribute = () => {
     if (newAttribute.name && newAttribute.value) {
       setAttributes([...attributes, newAttribute]);
+
+      // insert value with curly braces
+      insertPlaceholderValue(newAttribute.value);
+
       setShowAddAttributePopup(false);
     }
   };
+
+ const insertPlaceholderValue = (value) => {
+   const placeholder = `{{${value}}}`;
+   const textarea = textareaRef.current;
+
+   if (textarea) {
+     const start = textarea.selectionStart;
+     const end = textarea.selectionEnd;
+
+     const updatedText =
+       templateBody.substring(0, start) +
+       placeholder +
+       templateBody.substring(end);
+
+     setTemplateBody(updatedText);
+
+     setTimeout(() => {
+       textarea.selectionStart = textarea.selectionEnd =
+         start + placeholder.length;
+       textarea.focus();
+     }, 0);
+   }
+ };
 
   const handleDelete = (index) => {
     setAttributes(attributes.filter((_, i) => i !== index));
@@ -115,93 +163,104 @@ const CreateTemplate = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  // Validate required fields
-  const requiredFields = ['templateName', 'categoryGuid', 'languageGuid', 'type'];
-  const missing = requiredFields.filter(field => !formData[field]);
-  if (missing.length) {
-    toast.error(`Please fill: ${missing.join(', ')}`);
-    return;
-  }
-
-  // Prepare data matching backend structure
-  const templateData = {
-    name: formData.templateName,
-    categoryGuid: formData.categoryGuid,
-    languageGuid: formData.languageGuid,
-    typeId: formData.type === 'TEXT' ? 1 : 2,
-    isFile: formData.type === 'MEDIA' ? 1 : 0,
-    body: templateBody,
-    templateFooter: templateFooter,
-    templateHeaders: JSON.stringify({  // Stringify the headers object
-      type: formData.headerType,
-      text: formData.headerText,
-    }),
-    erpCategoryGuid: formData.erpCategory || null,
-    isVariable: attributes.length > 0 ? 1 : 0,
-    bodyStyle: "",
-    actionId: null,
-    actionGuid: null,
-    fileGuids: JSON.stringify([]),  // Stringify empty array
-    status: formData.status,
-    attributes: JSON.stringify(attributes)  // Stringify attributes array
-  };
-
-  console.log("Submitting data:", templateData); // Debug log
-
-  try {
-    const response = await fetch(apiEndpoints.templates, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(templateData),
-    });
-
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to save template');
+    // Validate required fields
+    const requiredFields = [
+      "templateName",
+      "categoryGuid",
+      "languageGuid",
+      "type",
+    ];
+    const missing = requiredFields.filter((field) => !formData[field]);
+    if (missing.length) {
+      toast.error(`Please fill: ${missing.join(", ")}`);
+      return;
     }
 
-    toast.success('Template saved successfully!');
-    navigate("/templates");
-  } catch (error) {
-    console.error('Submission error:', error);
-    toast.error(error.message || 'Failed to save template. Please check console for details.');
-  }
-};
+    // Prepare data matching backend structure
+    const templateData = {
+      name: formData.templateName,
+      categoryGuid: formData.categoryGuid,
+      languageGuid: formData.languageGuid,
+      typeId: formData.type === "TEXT" ? 1 : 2,
+      isFile: formData.type === "MEDIA" ? 1 : 0,
+      body: templateBody,
+      templateFooter: templateFooter,
+      templateHeaders: JSON.stringify({
+        // Stringify the headers object
+        type: formData.headerType,
+        text: formData.headerText,
+      }),
+      erpCategoryGuid: formData.erpCategory || null,
+      isVariable: attributes.length > 0 ? 1 : 0,
+      bodyStyle: "",
+      actionId: null,
+      actionGuid: null,
+      fileGuids: JSON.stringify([]), // Stringify empty array
+      status: formData.status,
+      attributes: JSON.stringify(attributes), // Stringify attributes array
+    };
+
+    console.log("Submitting data:", templateData); // Debug log
+
+    try {
+      const response = await fetch(apiEndpoints.managetemplate, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(templateData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to save template");
+      }
+
+      toast.success("Template saved successfully!");
+      navigate("/templates");
+    } catch (error) {
+      console.error("Submission error:", error);
+      toast.error(
+        error.message ||
+          "Failed to save template. Please check console for details."
+      );
+    }
+  };
 
   const previewData = {
     headerType: formData.headerType,
     headerText: formData.headerText,
     body: templateBody,
     footer: templateFooter,
-    buttons: attributes.map(attr => attr.value),
-    Box,
-    Typography,
-    Stack,
   };
 
-
   return (
-    <div className="min-h-screen bg-gray-50 p-6" style={{ fontFamily: "Montserrat" }}>
+    <div
+      className="min-h-screen bg-gray-50 p-6"
+      style={{ fontFamily: "Montserrat" }}
+    >
       <Box display="flex" gap={2}>
         {/* Left: Form Section - flex grows to occupy available space */}
         <Box sx={{ flex: 1 }}>
           <div className="bg-white shadow-md rounded-lg p-6 w-full">
-            <h1 className="text-2xl font-bold mb-6 text-gray-800">Create New Template</h1>
+            <h1 className="text-2xl font-bold mb-6 text-gray-800">
+              Create New Template
+            </h1>
 
             {/* Top Section - Basic Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               {/* Template Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Template Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Template Name
+                </label>
                 <input
                   type="text"
                   className="border border-gray-300 p-2 rounded w-full"
@@ -211,10 +270,11 @@ const CreateTemplate = () => {
                   onChange={handleChange}
                 />
                 {!formData.templateName && (
-                  <p className="text-red-500 text-xs mt-1">Error Template Name</p>
+                  <p className="text-red-500 text-xs mt-1">
+                    Error Template Name
+                  </p>
                 )}
               </div>
-
 
               <select
                 className="border border-gray-300 p-2 rounded w-full"
@@ -235,7 +295,6 @@ const CreateTemplate = () => {
                 className="border border-gray-300 p-2 rounded w-full"
                 name="languageGuid"
                 value={formData.languageGuid}
-
                 onChange={handleChange}
               >
                 <option value="">Select language</option>
@@ -247,7 +306,9 @@ const CreateTemplate = () => {
               </select>
               {/* Template Type */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Template Type</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Template Type
+                </label>
                 <select
                   className="border border-gray-300 p-2 rounded w-full"
                   name="type"
@@ -265,7 +326,8 @@ const CreateTemplate = () => {
             <div className="mb-8">
               <h2 className="text-lg font-semibold mb-2 text-gray-800">Body</h2>
               <p className="text-sm text-gray-600 mb-3">
-                Make your messages personal using variables like and get more replies!
+                Make your messages personal using variables like and get more
+                replies!
               </p>
 
               <button
@@ -277,6 +339,7 @@ const CreateTemplate = () => {
 
               <div className="border border-gray-300 rounded-md p-4">
                 <textarea
+                  ref={textareaRef}
                   placeholder="Template Body"
                   className="w-full h-40 border-none outline-none resize-none"
                   value={templateBody}
@@ -290,7 +353,9 @@ const CreateTemplate = () => {
 
             {/* Interactive Actions */}
             <div className="mb-8">
-              <h2 className="text-lg font-semibold mb-2 text-gray-800">Interactive Actions (Optional)</h2>
+              <h2 className="text-lg font-semibold mb-2 text-gray-800">
+                Interactive Actions (Optional)
+              </h2>
               <select className="border border-gray-300 p-2 rounded w-full max-w-xs">
                 <option value="">Select action</option>
                 <option value="CTA">Call To Action</option>
@@ -300,9 +365,12 @@ const CreateTemplate = () => {
 
             {/* Template Footer */}
             <div className="mb-8">
-              <h2 className="text-lg font-semibold mb-2 text-gray-800">Template Footer (Optional)</h2>
+              <h2 className="text-lg font-semibold mb-2 text-gray-800">
+                Template Footer (Optional)
+              </h2>
               <p className="text-sm text-gray-600 mb-3">
-                Footers are great to add any disclaimers or to add a thoughtful PS and only up to 60 characters are allowed.
+                Footers are great to add any disclaimers or to add a thoughtful
+                PS and only up to 60 characters are allowed.
               </p>
               <input
                 type="text"
@@ -335,7 +403,12 @@ const CreateTemplate = () => {
               <div className="bg-white p-6 rounded-lg shadow-lg w-1/2">
                 <div className="flex justify-between items-center">
                   <h2 className="text-lg font-semibold">Select Attribute</h2>
-                  <button onClick={() => setShowPopup(false)} className="text-m font-bold">X</button>
+                  <button
+                    onClick={() => setShowPopup(false)}
+                    className="text-m font-bold"
+                  >
+                    X
+                  </button>
                 </div>
                 <div className="mt-4 flex items-center gap-2">
                   <input
@@ -352,15 +425,35 @@ const CreateTemplate = () => {
                     + Add Attribute
                   </button>
                 </div>
-                <div className="mt-4 flex items-center justify-center flex-wrap gap-2">
+                {/* ✅ Global Variables Section */}
+                <h3 className="font-semibold mt-4">Global Variables</h3>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {GLOBAL_ATTRIBUTES.map((attr, index) => (
+                    <div
+                      key={`global-${index}`}
+                      className="flex items-center bg-blue-500 text-white px-4 py-2 rounded-full border border-blue-400 cursor-pointer"
+                      onClick={() => insertPlaceholderValue(attr.value)}
+                    >
+                      {attr.name}: {attr.value}
+                    </div>
+                  ))}
+                </div>
+
+                {/* ✅ Template Variables Section */}
+                <h3 className="font-semibold mt-4">Template Variables</h3>
+                <div className="mt-2 flex flex-wrap gap-2">
                   {attributes.map((attr, index) => (
                     <div
-                      key={index}
-                      className="flex items-center bg-green-500 text-white px-4 py-2 rounded-full border border-green-400"
+                      key={`local-${index}`}
+                      className="flex items-center bg-green-500 text-white px-4 py-2 rounded-full border border-green-400 cursor-pointer"
+                      onClick={() => insertPlaceholderValue(attr.value)}
                     >
                       {attr.name}: {attr.value}
                       <button
-                        onClick={() => handleDelete(index)}
+                        onClick={(e) => {
+                          e.stopPropagation(); // prevent insert when delete clicked
+                          handleDelete(index);
+                        }}
                         className="ml-2 bg-white text-red-500 p-1 rounded-full"
                       >
                         🗑
@@ -368,6 +461,7 @@ const CreateTemplate = () => {
                     </div>
                   ))}
                 </div>
+
                 <div className="flex mt-4 items-center gap-2">
                   <button className="p-2 rounded-md text-gray-600 hover:bg-gray-300">
                     <HiChevronLeft className="text-2xl" />
@@ -397,7 +491,9 @@ const CreateTemplate = () => {
                     placeholder="Enter Attribute Name"
                     className="w-full border p-2 rounded mt-1"
                     value={newAttribute.name}
-                    onChange={(e) => setNewAttribute({ ...newAttribute, name: e.target.value })}
+                    onChange={(e) =>
+                      setNewAttribute({ ...newAttribute, name: e.target.value })
+                    }
                   />
                 </div>
                 <div className="mt-4">
@@ -407,14 +503,25 @@ const CreateTemplate = () => {
                     placeholder="Enter Attribute Value"
                     className="w-full border p-2 rounded mt-1"
                     value={newAttribute.value}
-                    onChange={(e) => setNewAttribute({ ...newAttribute, value: e.target.value })}
+                    onChange={(e) =>
+                      setNewAttribute({
+                        ...newAttribute,
+                        value: e.target.value,
+                      })
+                    }
                   />
                 </div>
                 <div className="mt-6 flex justify-end gap-2">
-                  <button className="border px-4 py-2 rounded" onClick={handleCloseAddPopup}>
+                  <button
+                    className="border px-4 py-2 rounded"
+                    onClick={handleCloseAddPopup}
+                  >
                     Cancel
                   </button>
-                  <button className="bg-[#D2B887] text-white px-4 py-2 rounded" onClick={handleSaveAttribute}>
+                  <button
+                    className="bg-[#D2B887] text-white px-4 py-2 rounded"
+                    onClick={handleSaveAttribute}
+                  >
                     OK
                   </button>
                 </div>

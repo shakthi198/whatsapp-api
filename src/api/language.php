@@ -8,7 +8,7 @@ header("Access-Control-Allow-Headers: Content-Type");
 $host = "localhost";
 $user = "root";
 $password = "";
-$database = "meta"; // Change this if needed
+$database = "whatapp"; // Change this if needed
 
 $conn = new mysqli($host, $user, $password, $database);
 
@@ -58,7 +58,7 @@ elseif ($method === 'GET') {
             echo json_encode(["status" => false, "message" => "Language not found."]);
         }
     } else {
-        $sql = "SELECT * FROM language WHERE isDelete = 0 ORDER BY id DESC";
+        $sql = "SELECT * FROM language WHERE isDelete = 0 ORDER BY id ASC";
         $result = $conn->query($sql);
 
         $languages = [];

@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faTrash, faCopy, faAngleLeft, faAngleRight, faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import {
+  faEye,
+  faTrash,
+  faCopy,
+  faAngleLeft,
+  faAngleRight,
+  faEnvelope,
+} from "@fortawesome/free-solid-svg-icons";
 import { HiChevronRight, HiChevronLeft } from "react-icons/hi";
 import MessagePopup from "./MessagePopup";
 import apiEndpoints from "../apiconfig";
@@ -19,6 +26,8 @@ const ManageTemplates = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const templatesPerPage = 5;
+  const [curlModal, setCurlModal] = useState({ open: false, data: null });
+
 
   // Load templates from API
   useEffect(() => {
@@ -32,19 +41,31 @@ const ManageTemplates = () => {
           // Transform data to match expected structure
           // In your fetchTemplates function:
           // In your fetchTemplates function:
-          const formattedTemplates = data.data.map(template => ({
+          const formattedTemplates = data.data.map((template) => ({
             id: template.id,
             guid: template.guid,
             templateName: template.template_name, // Changed from name to template_name
             category: template.category,
             status: template.isActive ? "Active" : "Inactive",
-            type: template.template_type === "1" ? "Transactional" : "Promotional",
+            type:
+              template.template_type === "1" ? "Transactional" : "Promotional",
             createdOn: template.createdOn,
             templateBody: template.body,
             templateFooter: template.template_footer,
-            attributes: template.templateHeaders || [],
+            attributes: (() => {
+              try {
+                // if it's a stringified JSON, parse it
+                if (typeof template.templateHeaders === "string") {
+                  return JSON.parse(template.templateHeaders);
+                }
+                // if it's already an array, return as-is
+                return template.templateHeaders || [];
+              } catch {
+                return [];
+              }
+            })(),
             isFile: template.isFile,
-            isVariable: template.isVariable
+            isVariable: template.isVariable,
           }));
           setTemplates(formattedTemplates);
         } else {
@@ -65,43 +86,40 @@ const ManageTemplates = () => {
   useEffect(() => {
     if (location.state?.template) {
       const newTemplate = location.state.template;
-      setTemplates(prev => [newTemplate, ...prev]);
+      setTemplates((prev) => [newTemplate, ...prev]);
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state, navigate, location.pathname]);
-
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this template?")) {
       try {
         const response = await fetch(apiEndpoints.managetemplate, {
-          method: 'DELETE',
+          method: "DELETE",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: id })
+          body: JSON.stringify({ id: id }),
         });
 
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.message || 'Failed to delete template');
+          throw new Error(data.message || "Failed to delete template");
         }
 
         if (data.status === "success") {
-          setTemplates(prev => prev.filter(template => template.id !== id));
-          alert('Template deleted successfully!');
+          setTemplates((prev) => prev.filter((template) => template.id !== id));
+          alert("Template deleted successfully!");
         } else {
-          throw new Error(data.message || 'Unknown error occurred');
+          throw new Error(data.message || "Unknown error occurred");
         }
       } catch (error) {
-        console.error('Delete error:', error);
+        console.error("Delete error:", error);
         alert(`Error: ${error.message}`);
       }
     }
   };
-
-
 
   // Handle copy template
   const handleCopy = (template) => {
@@ -117,6 +135,49 @@ const ManageTemplates = () => {
   const handleCreateTemplate = () => {
     setModal({ type: "create", data: null });
   };
+  
+const handleShowCurl = (template, values = {}) => {
+  // values is an object like { name: "Shakthi", date: "2025-09-10" }
+
+  const bodyComponent = { type: "body" };
+
+  // Check if template.attributes exists
+  if (template.attributes && typeof template.attributes === "object") {
+    // Convert object to array if needed
+    const attributesArray = Array.isArray(template.attributes)
+      ? template.attributes
+      : [template.attributes];
+
+    bodyComponent.parameters = attributesArray.map((attr, index) => {
+      const key =
+        attr?.text || attr?.value || attr?.name || `value-${index + 1}`;
+      return {
+        type: attr?.type || "text",
+        text: values[key] || key, // inject real value if provided
+      };
+    });
+  }
+
+  const curlJSON = {
+    to: "<sample-number-with-country-code>", // replace with real number
+    type: "template",
+    template: {
+      language: { policy: "deterministic", code: "en" },
+      name: template.templateName || template.name || "defaultTemplate",
+      components: [bodyComponent],
+    },
+  };
+
+  console.log("Generated cURL JSON 👉", curlJSON);
+
+  // Optional: open modal with cURL command
+  const curlCommand = `curl --location 'http://localhost/whatsapp?token=<sample-token>' \\
+--header 'Content-Type: application/json' \\
+--data '${JSON.stringify(curlJSON, null, 2)}'`;
+
+  setCurlModal({ open: true, data: curlCommand });
+};
+
 
   // Close modal
   const closeModal = () => {
@@ -125,19 +186,23 @@ const ManageTemplates = () => {
 
   // Filter templates
   const filteredTemplates = templates.filter((template) => {
-    const matchesSearch = template.templateName &&
+    const matchesSearch =
+      template.templateName &&
       template.templateName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory ?
-      template.category === selectedCategory : true;
-    const matchesType = selectedType ?
-      template.type === selectedType : true;
+    const matchesCategory = selectedCategory
+      ? template.category === selectedCategory
+      : true;
+    const matchesType = selectedType ? template.type === selectedType : true;
     return matchesSearch && matchesCategory && matchesType;
   });
 
   // Pagination logic
   const indexOfLastTemplate = currentPage * templatesPerPage;
   const indexOfFirstTemplate = indexOfLastTemplate - templatesPerPage;
-  const currentTemplates = filteredTemplates.slice(indexOfFirstTemplate, indexOfLastTemplate);
+  const currentTemplates = filteredTemplates.slice(
+    indexOfFirstTemplate,
+    indexOfLastTemplate
+  );
   const totalPages = Math.ceil(filteredTemplates.length / templatesPerPage);
 
   const handleNextPage = () => {
@@ -153,7 +218,9 @@ const ManageTemplates = () => {
   };
 
   // Extract unique categories and types
-  const categories = [...new Set(templates.map((template) => template.category))];
+  const categories = [
+    ...new Set(templates.map((template) => template.category)),
+  ];
   const types = [...new Set(templates.map((template) => template.type))];
 
   if (isLoading) {
@@ -185,7 +252,9 @@ const ManageTemplates = () => {
     <div className="p-6 bg-gray-100" style={{ fontFamily: "Montserrat" }}>
       {/* Header */}
       <div className="flex items-center mb-4">
-        <h2 className="text-3xl font-semibold text-gray-700">Manage Template</h2>
+        <h2 className="text-3xl font-semibold text-gray-700">
+          Manage Template
+        </h2>
         <div className="h-5 w-[2px] bg-gray-300 mx-2"></div>
         <div className="text-yellow-600 text-md flex items-center">
           <span>Home</span>
@@ -212,9 +281,10 @@ const ManageTemplates = () => {
             >
               <option value="">Select Category</option>
               {categories.map((category, index) => (
-                <option key={index} value={category}>{category}</option>
+                <option key={index} value={category}>
+                  {category}
+                </option>
               ))}
-
             </select>
             <select
               value={selectedType}
@@ -256,50 +326,74 @@ const ManageTemplates = () => {
           <tbody>
             {currentTemplates.length > 0 ? (
               currentTemplates.map((template, index) => (
-                <tr key={template.id} className="border border-gray-300 hover:bg-gray-50">
+                <tr
+                  key={template.id}
+                  className="border border-gray-300 hover:bg-gray-50"
+                >
                   <td className="p-3">{indexOfFirstTemplate + index + 1}</td>
                   <td className="p-3">{template.templateName}</td>
                   <td className="p-3">{template.category}</td>
                   <td className="p-3">
-                    <span className={`px-2 py-1 rounded text-sm ${template.status === "Approved"
-                      ? "bg-green-500 text-white"
-                      : template.status === "Pending"
-                        ? "bg-yellow-500 text-white"
-                        : "bg-red-500 text-white"
-                      }`}>
+                    <span
+                      className={`px-2 py-1 rounded text-sm ${
+                        template.status === "Approved"
+                          ? "bg-green-500 text-white"
+                          : template.status === "Pending"
+                          ? "bg-yellow-500 text-white"
+                          : "bg-red-500 text-white"
+                      }`}
+                    >
                       {template.status}
                     </span>
                   </td>
                   <td className="p-3">{template.type}</td>
-                  <td className="p-3">{new Date(template.createdOn).toLocaleString()}</td>
+                  <td className="p-3">
+                    {new Date(template.createdOn).toLocaleString()}
+                  </td>
                   <td className="p-3 flex space-x-2">
                     <button
                       className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
                       onClick={() => handlePreview(template)}
                       title="Preview"
                     >
-                      <FontAwesomeIcon icon={faEye} className="text-yellow-600" />
+                      <FontAwesomeIcon
+                        icon={faEye}
+                        className="text-yellow-600"
+                      />
                     </button>
                     <button
                       className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
                       onClick={() => handleCopy(template)}
                       title="Copy"
                     >
-                      <FontAwesomeIcon icon={faCopy} className="text-yellow-600" />
+                      <FontAwesomeIcon
+                        icon={faCopy}
+                        className="text-yellow-600"
+                      />
                     </button>
                     <button
                       className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
                       onClick={() => handleDelete(template.id)}
                       title="Delete"
                     >
-                      <FontAwesomeIcon icon={faTrash} className="text-yellow-600" />
+                      <FontAwesomeIcon
+                        icon={faTrash}
+                        className="text-yellow-600"
+                      />
                     </button>
                     <button
                       className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
-                      title="Move"
+                      title="Show cURL"
+                      onClick={() => handleShowCurl(template)}
                     >
-                      <FontAwesomeIcon icon={faAngleLeft} className="text-yellow-600" />
-                      <FontAwesomeIcon icon={faAngleRight} className="text-yellow-600 ml-1" />
+                      <FontAwesomeIcon
+                        icon={faAngleLeft}
+                        className="text-yellow-600"
+                      />
+                      <FontAwesomeIcon
+                        icon={faAngleRight}
+                        className="text-yellow-600 ml-1"
+                      />
                     </button>
                   </td>
                 </tr>
@@ -317,7 +411,9 @@ const ManageTemplates = () => {
         {/* Pagination */}
         <div className="flex justify-between items-center mt-4">
           <div className="text-sm text-gray-500">
-            Showing {indexOfFirstTemplate + 1} to {Math.min(indexOfLastTemplate, filteredTemplates.length)} of {filteredTemplates.length} entries
+            Showing {indexOfFirstTemplate + 1} to{" "}
+            {Math.min(indexOfLastTemplate, filteredTemplates.length)} of{" "}
+            {filteredTemplates.length} entries
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -351,7 +447,9 @@ const ManageTemplates = () => {
             >
               &times;
             </button>
-            <h2 className="text-xl font-semibold mb-4">{modal.data?.templateName || "Template Preview"}</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              {modal.data?.templateName || "Template Preview"}
+            </h2>
             <div className="border border-gray-300 p-4 rounded-md bg-gray-50">
               <div className="whitespace-pre-wrap mb-4">
                 {modal.data?.templateBody || "No content available"}
@@ -384,7 +482,9 @@ const ManageTemplates = () => {
         <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center p-4 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl border border-gray-300">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-700">Create New Template</h2>
+              <h2 className="text-xl font-semibold text-gray-700">
+                Create New Template
+              </h2>
               <button
                 onClick={closeModal}
                 className="text-gray-500 hover:text-gray-700 text-2xl"
@@ -402,29 +502,91 @@ const ManageTemplates = () => {
               >
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-8 w-8 text-green-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
                     </svg>
                   </div>
-                  <h4 className="text-lg font-semibold text-gray-700">Start from scratch</h4>
-                  <p className="text-sm text-gray-600 mt-1">Start from a blank template</p>
+                  <h4 className="text-lg font-semibold text-gray-700">
+                    Start from scratch
+                  </h4>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Start from a blank template
+                  </p>
                 </div>
               </div>
-              <div
-                className="bg-gray-100 border-2 border-dashed border-green-500 p-6 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors"
-              >
+              <div className="bg-gray-100 border-2 border-dashed border-green-500 p-6 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8m4-8v8m4-8v8" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-8 w-8 text-blue-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7v8m4-8v8m4-8v8"
+                      />
                     </svg>
                   </div>
-                  <h4 className="text-lg font-semibold text-gray-700">Use a template</h4>
-                  <p className="text-sm text-gray-600 mt-1">Use one of our pre-defined templates and edit them</p>
+                  <h4 className="text-lg font-semibold text-gray-700">
+                    Use a template
+                  </h4>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Use one of our pre-defined templates and edit them
+                  </p>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* cURL Modal */}
+      {curlModal.open && (
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center p-4 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-3xl border border-gray-300 relative">
+            <button
+              onClick={() => setCurlModal({ open: false, data: null })}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl"
+            >
+              &times;
+            </button>
+            <h2 className="text-xl font-semibold mb-4">
+              Generated cURL Command
+            </h2>
+            <pre className="bg-gray-100 p-4 rounded-md text-sm overflow-x-auto whitespace-pre-wrap">
+              {curlModal.data}
+            </pre>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(curlModal.data);
+                alert("Copied to clipboard!");
+              }}
+              className="mt-4 bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700"
+            >
+              Copy to Clipboard
+            </button>
           </div>
         </div>
       )}
