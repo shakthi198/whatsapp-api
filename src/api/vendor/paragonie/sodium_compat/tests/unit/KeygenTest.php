@@ -1,0 +1,60 @@
+<?php
+use PHPUnit\Framework\TestCase;
+
+/**
+ * Class KeygenTest
+ */
+class KeygenTest extends TestCase
+{
+    public function testVectors(): void
+    {
+        $this->assertSame(
+            ParagonIE_Sodium_Compat::CRYPTO_AUTH_KEYBYTES,
+            ParagonIE_Sodium_Core_Util::strlen(
+                ParagonIE_Sodium_Compat::crypto_auth_keygen()
+            )
+        );
+        $this->assertSame(
+            ParagonIE_Sodium_Compat::CRYPTO_AEAD_CHACHA20POLY1305_KEYBYTES,
+            ParagonIE_Sodium_Core_Util::strlen(
+                ParagonIE_Sodium_Compat::crypto_aead_chacha20poly1305_keygen()
+            )
+        );
+        $this->assertSame(
+            ParagonIE_Sodium_Compat::CRYPTO_AEAD_CHACHA20POLY1305_IETF_KEYBYTES,
+            ParagonIE_Sodium_Core_Util::strlen(
+                ParagonIE_Sodium_Compat::crypto_aead_chacha20poly1305_ietf_keygen()
+            )
+        );
+        $this->assertSame(
+            ParagonIE_Sodium_Compat::CRYPTO_AEAD_XCHACHA20POLY1305_IETF_KEYBYTES,
+            ParagonIE_Sodium_Core_Util::strlen(
+                ParagonIE_Sodium_Compat::crypto_aead_xchacha20poly1305_ietf_keygen()
+            )
+        );
+        $this->assertSame(
+            ParagonIE_Sodium_Compat::CRYPTO_GENERICHASH_KEYBYTES,
+            ParagonIE_Sodium_Core_Util::strlen(
+                ParagonIE_Sodium_Compat::crypto_generichash_keygen()
+            )
+        );
+        $this->assertSame(
+            ParagonIE_Sodium_Compat::CRYPTO_SECRETBOX_KEYBYTES,
+            ParagonIE_Sodium_Core_Util::strlen(
+                ParagonIE_Sodium_Compat::crypto_secretbox_keygen()
+            )
+        );
+        $this->assertSame(
+            ParagonIE_Sodium_Compat::CRYPTO_SHORTHASH_KEYBYTES,
+            ParagonIE_Sodium_Core_Util::strlen(
+                ParagonIE_Sodium_Compat::crypto_shorthash_keygen()
+            )
+        );
+        $this->assertSame(
+            ParagonIE_Sodium_Compat::CRYPTO_STREAM_KEYBYTES,
+            ParagonIE_Sodium_Core_Util::strlen(
+                ParagonIE_Sodium_Compat::crypto_stream_keygen()
+            )
+        );
+    }
+}

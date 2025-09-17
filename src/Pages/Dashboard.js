@@ -6,6 +6,7 @@ import { MdSupportAgent, MdAssignment, MdPendingActions, MdOutlineCancel } from 
 import CardComponent from "../Components/Card.js";
 import ClientOverview from "../Components/ClientOverview";
 import Header from "../Components/Header.js";
+import ReminderPopup from "../Components/ReminderPopup";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -33,6 +34,10 @@ const Dashboard = () => {
     used: 0,
     total: 1000,
   });
+
+  // Popup reminder state
+  const [showReminder, setShowReminder] = useState(false);
+  const [reminderMessage, setReminderMessage] = useState("Don't forget to check your notifications!");
 
   useEffect(() => {
     fetch("YOUR_API_ENDPOINT") // Replace with actual API
@@ -66,6 +71,9 @@ const Dashboard = () => {
         used: 1, // Change dynamically based on API data
         total: 1000,
       });
+
+      // Show the popup reminder after 1 second
+      setShowReminder(true);
     }, 1000);
   }, []);
 
@@ -163,6 +171,14 @@ const Dashboard = () => {
       </Typography>
       <CardComponent cards={cardsData.Overview} isScrollable={false} />
       <ClientOverview />
+
+      {/* Reminder Popup */}
+      {showReminder && (
+        <ReminderPopup 
+          message={reminderMessage} 
+          onClose={() => setShowReminder(false)} 
+        />
+      )}
     </Box>
   );
 };
