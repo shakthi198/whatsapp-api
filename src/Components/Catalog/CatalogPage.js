@@ -4,9 +4,9 @@ import { HiChevronRight } from "react-icons/hi";
 
 const CatalogPage = ({ catalogs, onAddClick, onAddShippingClick }) => {
 
-    return (
+ /*   return (
        <div className="max-w-7xl mx-auto p-4 md:p-6" style={{ fontFamily: "'Montserrat'" }}>
-      {/* Header Section */}
+    
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 md:mb-6">
         <div className="flex flex-col md:flex-row md:items-center mb-3 md:mb-0">
           <h2 className="text-xl md:text-2xl font-medium mb-2 md:mb-0 md:mr-4">Catalog</h2>
@@ -22,7 +22,7 @@ const CatalogPage = ({ catalogs, onAddClick, onAddShippingClick }) => {
 
             <div className=" mx-auto bg-white shadow-md p-4 rounded-lg">
 
-                {/* Top Section */}
+                
                 <div className="flex justify-end space-x-2">
                     <button
                         className="bg-yellow-600 text-white px-4 py-2 rounded-md shadow-sm"
@@ -37,7 +37,6 @@ const CatalogPage = ({ catalogs, onAddClick, onAddShippingClick }) => {
                 </div>
 
 
-                {/* Catalog List */}
                 <div className="mt-6 bg-gray-50 p-4 rounded-lg min-h-[150px] flex items-center justify-center">
                     {catalogs.length === 0 ? (
                         <p className="text-gray-400 italic">No catalogs added yet</p>
@@ -61,7 +60,7 @@ const CatalogPage = ({ catalogs, onAddClick, onAddShippingClick }) => {
                 </div>
             </div>
         </div>
-    );
+    );*/
 };
 
 export default CatalogPage;

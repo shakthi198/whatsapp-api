@@ -28,10 +28,10 @@ const AddShippingPricePopup = ({ isOpen, onClose, onSubmit }) => {
 
     if (!isOpen) return null;
 
-    return (
+   /* return (
         <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex items-center justify-center" style={{ fontFamily: "Montserrat"}}>
             <div className="bg-white p-6 w-105 shadow-lg">
-                {/* Header */}
+           
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-semibold">Set Shipping Price</h2>
                     <button onClick={onClose} className="text-gray-500 hover:text-gray-800 transition">
@@ -39,7 +39,6 @@ const AddShippingPricePopup = ({ isOpen, onClose, onSubmit }) => {
                     </button>
                 </div>
 
-                {/* Current Shipping Price */}
                 <div className="flex items-center justify-between bg-gray-100 h-16 pr-4">
                     <div className="flex items-center border-l-4 border-blue-500 pl-4 py-5">
                         <span className="text-gray-900 font-semibold">Current Shipping Price:</span>
@@ -48,9 +47,9 @@ const AddShippingPricePopup = ({ isOpen, onClose, onSubmit }) => {
                 </div>
 
 
-                {/* Form */}
+                
                 <form onSubmit={handleSubmit} className="space-y-5 mt-4">
-                    {/* Shipping Price Input */}
+                
                     <div>
                         <label className="text-gray-700 font-semibold">New Shipping Price</label>
                         <div className="relative mt-1"><input
@@ -70,10 +69,8 @@ const AddShippingPricePopup = ({ isOpen, onClose, onSubmit }) => {
                     </div>
 
 
-                    {/* Info Text */}
                     <p className="text-gray-500 text-sm">This price will be applied to all catalog items.</p>
 
-                    {/* Buttons */}
                     <div className="flex justify-end items-center mt-4 gap-2">
                         <button
                             type="button"
@@ -101,7 +98,7 @@ const AddShippingPricePopup = ({ isOpen, onClose, onSubmit }) => {
                 </form>
             </div>
         </div>
-    );
+    );*/
 };
 
 export default AddShippingPricePopup;
