@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Sidebar from "./Components/Sidebar";
 import Header from "./Components/Header";
 import Dashboard from "./Pages/Dashboard";
-import Catalog from "./Components/Catalog/Catalog"
+
 
 import Login from "./Components/Login";
 import SingleMsg from "./Components/Compose Message/SingleMsg";
@@ -16,13 +16,13 @@ import Broadcastlogo from "./Components/Reports/Broadcastlogo";
 import ApiLogoui from "./Components/Reports/ApiLogoui";
 import ScheduleLogoui from "./Components/Reports/ScheduleLogsUI";
 import WhatsAppCampaignTable from "./Components/WhatsAppCampaignTable";
-import WhatsappFlow from "./Components/Whatsapp Flows/WhatsappFlow";
-import ModalReplica from "./Components/ModalReplica";
+
+
 
 import FlowPage from "./Components/Flow/FlowPage";
 import FlowChart from "./Components/FlowChart";
 import UserAttribute from './Components/Setttings/UserAttribute';
-import Billing from './Components/Billing/Billing';
+
 import ApiKeyManager from "./Components/Setttings/ApiKeyManager";
 import ContactsUI from "./Components/Contacts/ContactsUI";
 import ManageGroups from './Components/ManageGroups';
@@ -87,20 +87,20 @@ function MainContent({ darkMode, setDarkMode }) {
 
                     <Route path="/create-template" element={<CreateTemplate />} />
                     <Route path="/qrcode" element={<QRCodeGenerator />} />
-                    <Route path="/catalog" element={<Catalog />} />
+                  
 
 
                     <Route path="/broadcast-logs" element={<Broadcastlogo />} />
                     <Route path="/api-logs" element={<ApiLogoui />} />
                     <Route path="/schedule-logs" element={<ScheduleLogoui />} />
                     <Route path="/WhatsAppCampaignTable/:campaignName" element={<WhatsAppCampaignTable />} />
-                    <Route path="/whatsappflow" element={<WhatsappFlow />} />
-                    <Route path="" element={<ModalReplica />} />
+                  {/*   <Route path="/whatsappflow" element={<WhatsappFlow />} /> */}
+                {/*     <Route path="" element={<ModalReplica />} /> */}
 
                     <Route path="/flow" element={<FlowPage />} />
                     <Route path="/flow-chart/:id" element={<FlowChart />} />
                     <Route path="/user-attributes" element={<UserAttribute />} />
-                    <Route path="/billing" element={<Billing />} />
+                   
                     <Route path="/api-settings" element={<ApiKeyManager />} />
                     <Route path="/LiveChatUI" element={<LiveChatUI />} />
                     <Route path="/history" element={<Historylive />} />

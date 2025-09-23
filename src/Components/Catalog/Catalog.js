@@ -21,7 +21,7 @@ const App = () => {
     setIsShippingOpen(false);
   };
 
-  return (
+ /* return (
     <div >
       <CatalogPage 
         catalogs={catalogs} 
@@ -39,7 +39,7 @@ const App = () => {
         onSubmit={handleAddShippingPrice}
       />
     </div>
-  );
+  );*/
 };
 
 export default App;
