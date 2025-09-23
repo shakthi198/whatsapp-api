@@ -4,8 +4,8 @@ import { IoMdSearch } from "react-icons/io";
 import NewFlow from "../NewFlow";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import Response from "./Response";
-import ModalReplica from "../ModalReplica";
-import Popover from "../Popover"
+  {/*import ModalReplica from "../ModalReplica";*/}
+ {/* import Popover from "../Popover" */}
 
 const flowsData = [
   { id: 1, name: "asd", flowId: "680349591016296", status: "DEPRECATED" },
@@ -76,15 +76,15 @@ const WhatsappFlow = () => {
   const filteredFlows = flows.filter((flow) =>
     flow.name.toLowerCase().includes(search.toLowerCase())
   );
-
+/*
   return (
     <div className="font-montserrat">
-      {/* Popover */}
+    
       {popover.show && <Popover message={popover.message} onClose={() => setPopover({ show: false, message: "" })} />}
 
       {activePage === "flows" ? (
       <div className="max-w-7xl mx-auto p-4 md:p-6" style={{ fontFamily: "'Montserrat'" }}>
-      {/* Header Section */}
+     
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 md:mb-6">
         <div className="flex flex-col md:flex-row md:items-center mb-3 md:mb-0">
           <h2 className="text-xl md:text-2xl font-medium mb-2 md:mb-0 md:mr-4">Whatsapp Flows</h2>
@@ -98,7 +98,7 @@ const WhatsappFlow = () => {
       </div>
 
 
-          {/* Tabs */}
+         
           <div className="flex border-b border-gray-300 mb-4">
             <button
               className={`py-2 px-4 font-medium cursor-pointer ${
@@ -122,9 +122,9 @@ const WhatsappFlow = () => {
             </button>
           </div>
 
-          {/* Controls Section */}
+        
           <div className="bg-white p-4 shadow-md rounded-t-md flex justify-end items-center border-b border-gray-300">
-            {/* Search Bar */}
+          
             <div className="relative flex items-center w-[280px] border border-gray-300 rounded-md bg-white mr-4">
               <span className="text-gray-500 text-lg px-3">
                 <IoMdSearch />
@@ -138,7 +138,7 @@ const WhatsappFlow = () => {
               />
             </div>
 
-            {/* Create Flow Button */}
+     
             <button
               className="bg-yellow-600 text-white px-5 py-2 rounded-md font-medium shadow-md hover:bg-[#c29a4a] transition cursor-pointer"
               onClick={() => setIsNewFlowOpen(true)}
@@ -152,7 +152,6 @@ const WhatsappFlow = () => {
             />
           </div>
 
-          {/* Table Section */}
           <div className="bg-white p-4 rounded-b-md">
             <table className="w-full border-collapse border border-gray-300 mt-2">
               <thead>
@@ -247,7 +246,7 @@ const WhatsappFlow = () => {
             </table>
           </div>
 
-          {/* Pagination */}
+       
           <div className="flex justify-end mt-4 items-center gap-2">
             <button className="p-2 rounded-md text-gray-600 hover:bg-gray-300">
               <HiChevronLeft className="text-2xl" />
@@ -268,7 +267,7 @@ const WhatsappFlow = () => {
         />
       )}
 
-      {/* Modal */}
+    
       <ModalReplica
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -276,7 +275,7 @@ const WhatsappFlow = () => {
         flowStatus={selectedFlowStatus}
       />
     </div>
-  );
+  ); */
 };
 
 export default WhatsappFlow;

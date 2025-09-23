@@ -1,7 +1,7 @@
 import { MdOutlineInbox } from "react-icons/md";
 
 const TransactionsUI = () => {
-  return (
+ /* return (
     <div className="bg-white p-4 shadow rounded">
       <table className="w-full border-collapse ">
         <thead>
@@ -23,7 +23,7 @@ const TransactionsUI = () => {
           </tr>
         </thead>
         <tbody>
-            {/* No Data State */}
+         
             <tr>
             <td colSpan="12" className="text-center py-8 text-gray-500">
               <div className="flex flex-col items-center justify-center h-full">
@@ -35,7 +35,7 @@ const TransactionsUI = () => {
         </tbody>
       </table>
     </div>
-  );
+  ); */
 };
 
 export default TransactionsUI;

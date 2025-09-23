@@ -125,23 +125,14 @@ const Sidebar = ({ darkMode }) => {
               { label: "Schedule Logs", path: "/schedule-logs" },
             ]}
           />
-          <NavItem icon={<CreditCard size={20} />} label="Billing" path="/billing" closeSidebar={closeSidebar} />
+      {/*    <NavItem icon={<CreditCard size={20} />} label="Billing" path="/billing" closeSidebar={closeSidebar} />  */}
           <NavItem icon={<Zap size={20} />} label="Flow" path="/flow" closeSidebar={closeSidebar} />
-          <NavItem icon={<MessageSquare size={20} />} label="Chatbot Builder" path="/chatbot" closeSidebar={closeSidebar} />
-          <NavItem icon={<Zap size={20} />} label="Whatsapp Flows" path="/whatsappflow" closeSidebar={closeSidebar} />
-          <NavItem icon={<Zap size={20} />} label="Integration" path="/integration" closeSidebar={closeSidebar} />
-          <NavItem icon={<Zap size={20} />} label="Payments" path="/payments" closeSidebar={closeSidebar} />
+       {/*      <NavItem icon={<MessageSquare size={20} />} label="Chatbot Builder" path="/chatbot" closeSidebar={closeSidebar} />   */}
+       {/*     <NavItem icon={<Zap size={20} />} label="Whatsapp Flows" path="/whatsappflow" closeSidebar={closeSidebar} /> */}
+        {/*   <NavItem icon={<Zap size={20} />} label="Integration" path="/integration" closeSidebar={closeSidebar} /> */}
+        {/*   <NavItem icon={<Zap size={20} />} label="Payments" path="/payments" closeSidebar={closeSidebar} />*/}
           {/* Catalog with Dropdown */}
-          <DropdownItem
-            icon={<BookOpen size={20} />}
-            label="Catalog"
-            isOpen={dropdowns.catalog}
-            toggleDropdown={() => toggleDropdown("catalog")}
-            subItems={[
-              { label: "Catalog", path: "/catalog" },
-              { label: "Orders", path: "/orders" },
-            ]}
-          />
+        
           {/* Settings with Dropdown */}
           <DropdownItem
             icon={<Settings size={20} />}

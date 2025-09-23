@@ -50,7 +50,7 @@ const AddCatalogPopup = ({ isOpen, onClose, onSubmit }) => {
 
     if (!isOpen) return null;
 
-    return (
+  /*  return (
         <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex items-center justify-center transition-opacity duration-300"
         style={{ fontFamily: "Montserrat"}}>
             <div className="bg-white p-6 w-150 shadow-lg">
@@ -61,7 +61,7 @@ const AddCatalogPopup = ({ isOpen, onClose, onSubmit }) => {
                     </button>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Catalog Name */}
+          
                     <div>
                         <label className="text-gray-700 font-semibold">Catalog Name*</label>
                         <input
@@ -75,7 +75,6 @@ const AddCatalogPopup = ({ isOpen, onClose, onSubmit }) => {
                         />
                     </div>
 
-                    {/* Catalog Type with Dropdown */}
                     <div>
                         <label className="text-gray-700 font-semibold">Catalog Type*</label>
                         <div className="relative">
@@ -108,7 +107,7 @@ const AddCatalogPopup = ({ isOpen, onClose, onSubmit }) => {
                         </div>
                     </div>
 
-                    {/* Image Upload */}
+                
 
                     <div>
                         <label className="text-gray-700 font-semibold">
@@ -132,7 +131,6 @@ const AddCatalogPopup = ({ isOpen, onClose, onSubmit }) => {
                         )}
                     </div>
 
-                    {/* Submit Button */}
                     <button
                         type="submit"
                         className="w-30 bg-[#C5A76E] text-white py-2  mt-3 hover:bg-[#b1925c] transition"
@@ -144,7 +142,7 @@ const AddCatalogPopup = ({ isOpen, onClose, onSubmit }) => {
 
             </div>
         </div>
-    );
+    );*/
 };
 
 export default AddCatalogPopup;
