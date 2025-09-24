@@ -125,7 +125,7 @@ const Sidebar = ({ darkMode }) => {
               { label: "Schedule Logs", path: "/schedule-logs" },
             ]}
           />
-      {/*    <NavItem icon={<CreditCard size={20} />} label="Billing" path="/billing" closeSidebar={closeSidebar} />  */}
+          <NavItem icon={<CreditCard size={20} />} label="Billing" path="/billing" closeSidebar={closeSidebar} />  
           <NavItem icon={<Zap size={20} />} label="Flow" path="/flow" closeSidebar={closeSidebar} />
        {/*      <NavItem icon={<MessageSquare size={20} />} label="Chatbot Builder" path="/chatbot" closeSidebar={closeSidebar} />   */}
        {/*     <NavItem icon={<Zap size={20} />} label="Whatsapp Flows" path="/whatsappflow" closeSidebar={closeSidebar} /> */}

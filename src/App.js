@@ -17,7 +17,7 @@ import ApiLogoui from "./Components/Reports/ApiLogoui";
 import ScheduleLogoui from "./Components/Reports/ScheduleLogsUI";
 import WhatsAppCampaignTable from "./Components/WhatsAppCampaignTable";
 
-
+import Billing from './Components/Billing/Billing';
 
 import FlowPage from "./Components/Flow/FlowPage";
 import FlowChart from "./Components/FlowChart";
@@ -100,7 +100,7 @@ function MainContent({ darkMode, setDarkMode }) {
                     <Route path="/flow" element={<FlowPage />} />
                     <Route path="/flow-chart/:id" element={<FlowChart />} />
                     <Route path="/user-attributes" element={<UserAttribute />} />
-                   
+                   <Route path="/billing" element={<Billing />} />
                     <Route path="/api-settings" element={<ApiKeyManager />} />
                     <Route path="/LiveChatUI" element={<LiveChatUI />} />
                     <Route path="/history" element={<Historylive />} />
