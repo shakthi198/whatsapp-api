@@ -4,14 +4,10 @@ header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json");
 
-
+// Include config
+require_once "config.php";
 
 // Database connection
-$host = "localhost";
-$user = "root";        // replace with your DB username
-$pass = "";            // replace with your DB password
-$db   = "whatsapp"; // replace with your database name
-
 $conn = new mysqli($host, $user, $pass, $db);
 if ($conn->connect_error) {
     echo json_encode(["status" => "error", "message" => "DB Connection Failed"]);
@@ -39,7 +35,6 @@ $sql = "INSERT INTO `transaction` (`transaction_id`, `customer_name`, `amount`, 
         VALUES ('$transaction_id', '$customer_name', '$amount', '$gst', '$total_amount', '$status', '$date_time')";
 
 if ($conn->query($sql) === TRUE) {
-    // Return the inserted transaction
     $insertedTransaction = [
         "transaction_id" => $transaction_id,
         "customer_name" => $customer_name,
