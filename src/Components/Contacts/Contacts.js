@@ -21,13 +21,28 @@ const Contacts = () => {
   const navigate = useNavigate();
 
   const fetchContacts = async () => {
-    try {
-      const response = await axios.get(apiEndpoints.addContact);
-      setContacts(response.data);
-    } catch (error) {
-      console.error("Error fetching contacts:", error);
+  try {
+    const response = await axios.get(apiEndpoints.addContact);
+
+    // Ensure response is always treated as an array
+    let data = response.data;
+
+    // If backend sends {status: true, data: [...]}
+    if (data && typeof data === "object" && data.data) {
+      data = data.data;
     }
-  };
+
+    // If still not an array, fallback to []
+    if (!Array.isArray(data)) {
+      data = [];
+    }
+
+    setContacts(data);
+  } catch (error) {
+    console.error("Error fetching contacts:", error);
+    setContacts([]); // fallback safe empty array
+  }
+};
 
   useEffect(() => {
     fetchContacts();

@@ -1,18 +1,23 @@
 import { MdOutlineInbox } from "react-icons/md";
 
-const TransactionsUI = () => {
- /* return (
+const TransactionsUI = ({ transactions }) => {
+  return (
     <div className="bg-white p-4 shadow rounded">
-      <table className="w-full border-collapse ">
+      <table className="w-full border-collapse">
         <thead>
-          <tr className="bg-gray-100 ">
+          <tr className="bg-gray-100">
             {[
-              "S.No.", "Balance", "Amount Paid", "GST", "Gateway",
-              "Date & Time", "Method", "Recharge Amount", 
-              "Amount Deducted", "Reason", "Status", "Invoice"
-            ].map((header, index, arr) => ( // Added `index` and `arr` parameters
+              "S.No.",
+              "Transaction ID",
+              "Customer Name",
+              "Amount",
+              "GST",
+              "Total Amount",
+              "Date & Time",
+              "Status",
+            ].map((header, index, arr) => (
               <th
-                key={header} // Use `header` as the key
+                key={header}
                 className={`py-3 px-4 text-xs text-gray-600 font-medium ${
                   index !== arr.length - 1 ? "border-r border-gray-300" : ""
                 }`}
@@ -23,19 +28,33 @@ const TransactionsUI = () => {
           </tr>
         </thead>
         <tbody>
-         
+          {transactions && transactions.length > 0 ? (
+            transactions.map((txn, idx) => (
+              <tr key={txn.transaction_id} className="text-sm text-gray-700">
+                <td className="py-2 px-4">{idx + 1}</td>
+                <td className="py-2 px-4">{txn.transaction_id}</td>
+                <td className="py-2 px-4">{txn.customer_name}</td>
+                <td className="py-2 px-4">₹ {txn.amount}</td>
+                <td className="py-2 px-4">₹ {parseFloat(txn.gst).toFixed(2)}</td>
+                <td className="py-2 px-4">₹ {txn.total_amount}</td>
+                <td className="py-2 px-4">{txn.date_time}</td>
+                <td className="py-2 px-4">{txn.status}</td>
+              </tr>
+            ))
+          ) : (
             <tr>
-            <td colSpan="12" className="text-center py-8 text-gray-500">
-              <div className="flex flex-col items-center justify-center h-full">
-                <MdOutlineInbox className="text-gray-400" size={72} />
-                <p className="mt-4">No data</p>
-              </div>
-            </td>
+              <td colSpan="8" className="text-center py-8 text-gray-500">
+                <div className="flex flex-col items-center justify-center h-full">
+                  <MdOutlineInbox className="text-gray-400" size={72} />
+                  <p className="mt-4">No data</p>
+                </div>
+              </td>
             </tr>
+          )}
         </tbody>
       </table>
     </div>
-  ); */
+  );
 };
 
 export default TransactionsUI;
