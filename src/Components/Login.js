@@ -38,6 +38,7 @@ const Login = () => {
 
       if (data.status === "success") {
         localStorage.setItem("token", data.token);
+            localStorage.setItem("waba_number", data.user.waba_number);
         navigate("/"); // redirect to home/dashboard
       } else {
         setErrors({ email: "Invalid email or password" });

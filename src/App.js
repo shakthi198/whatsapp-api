@@ -1,9 +1,8 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Sidebar from "./Components/Sidebar";
 import Header from "./Components/Header";
 import Dashboard from "./Pages/Dashboard";
-
 
 import Login from "./Components/Login";
 import SingleMsg from "./Components/Compose Message/SingleMsg";
@@ -16,7 +15,6 @@ import Broadcastlogo from "./Components/Reports/Broadcastlogo";
 import ApiLogoui from "./Components/Reports/ApiLogoui";
 import ScheduleLogoui from "./Components/Reports/ScheduleLogsUI";
 import WhatsAppCampaignTable from "./Components/WhatsAppCampaignTable";
-
 import Billing from './Components/Billing/Billing';
 
 import FlowPage from "./Components/Flow/FlowPage";
@@ -32,9 +30,6 @@ import LiveChatUI from "./Components/Chat/livechat";
 import Historylive from "./Components/Chat/Historylive";
 import ChatAgentpage from "./Components/Chat/ChatAgentPage";
 
-
-
-
 function App() {
     const [darkMode, setDarkMode] = useState(() => localStorage.getItem("theme") === "dark");
 
@@ -49,64 +44,61 @@ function App() {
     );
 }
 
+// Protects routes if token is missing
+const ProtectedRoute = ({ children }) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+        return <Navigate to="/login" replace />;
+    }
+    return children;
+};
+
 function MainContent({ darkMode, setDarkMode }) {
     const location = useLocation();
-    const isLoginPage = location.pathname === "/login"; // Check if the current route is the login page
+    const isLoginPage = location.pathname === "/login"; // Check if current route is login
 
     return (
         <div
             className={`${isLoginPage
-                ? "flex justify-center items-center h-screen w-screen" // Fullscreen styles for login page
+                ? "flex justify-center items-center h-screen w-screen"
                 : `flex flex-col md:flex-row ${darkMode ? "bg-gray-900 text-white" : "bg-[#F5F5F5] text-black"}`
-                }`}
+            }`}
         >
-            {!isLoginPage && <Sidebar darkMode={darkMode} />} {/* Sidebar hidden on Login Page */}
+            {!isLoginPage && <Sidebar darkMode={darkMode} />}
 
             <div className={`${isLoginPage ? "w-full h-full flex items-center justify-center" : "flex-1 p-4 md:ml-64"}`}>
-                {!isLoginPage && <Header darkMode={darkMode} toggleDarkMode={() => setDarkMode((prev) => !prev)} />} {/* Header hidden on Login Page */}
-
+                {!isLoginPage && <Header darkMode={darkMode} toggleDarkMode={() => setDarkMode(prev => !prev)} />}
 
                 <Routes>
-                    <Route path="/" element={<Dashboard darkMode={darkMode} />} />
+                    {/* Public route */}
                     <Route path="/login" element={<Login darkMode={darkMode} />} />
-                    <Route path="/templates" element={<ManageTemplates />} />
 
-                    {/* compose tabs */}
-                    <Route path="/compose" element={<SingleMsg />} />
-                    <Route path="/group" element={<Group />} />
-                    <Route path="/csv" element={<CSV />} />
-
-
-                    {/* contacts */}
-                    <Route path="/contacts/uicontact" element={<ContactsUI />} />
-                    <Route path="/allcontacts" element={<Contacts />} />
-                    <Route path="/manage-groups" element={<ManageGroups />} />
-                    <Route path="/contacts/unsubscribe" element={<UISubscribe />} />
-
-
-
-                    <Route path="/create-template" element={<CreateTemplate />} />
-                    <Route path="/qrcode" element={<QRCodeGenerator />} />
-                  
-
-
-                    <Route path="/broadcast-logs" element={<Broadcastlogo />} />
-                    <Route path="/api-logs" element={<ApiLogoui />} />
-                    <Route path="/schedule-logs" element={<ScheduleLogoui />} />
-                    <Route path="/WhatsAppCampaignTable/:campaignName" element={<WhatsAppCampaignTable />} />
-                  {/*   <Route path="/whatsappflow" element={<WhatsappFlow />} /> */}
-                {/*     <Route path="" element={<ModalReplica />} /> */}
-
-                    <Route path="/flow" element={<FlowPage />} />
-                    <Route path="/flow-chart/:id" element={<FlowChart />} />
-                    <Route path="/user-attributes" element={<UserAttribute />} />
-                   <Route path="/billing" element={<Billing />} />
-                    <Route path="/api-settings" element={<ApiKeyManager />} />
-                    <Route path="/LiveChatUI" element={<LiveChatUI />} />
-                    <Route path="/history" element={<Historylive />} />
-                    <Route path="/chatagent" element={<ChatAgentpage />} />
-                    
-                    
+                    {/* Protected routes */}
+                   {/* Redirect root "/" to "/dashboard" if token exists */}
+                    <Route path="/" element={<ProtectedRoute><Navigate to="/dashboard" replace /></ProtectedRoute>} />
+                    <Route path="/dashboard" element={<ProtectedRoute><Dashboard darkMode={darkMode} /></ProtectedRoute>} />
+                    <Route path="/templates" element={<ProtectedRoute><ManageTemplates /></ProtectedRoute>} />
+                    <Route path="/compose" element={<ProtectedRoute><SingleMsg /></ProtectedRoute>} />
+                    <Route path="/group" element={<ProtectedRoute><Group /></ProtectedRoute>} />
+                    <Route path="/csv" element={<ProtectedRoute><CSV /></ProtectedRoute>} />
+                    <Route path="/contacts/uicontact" element={<ProtectedRoute><ContactsUI /></ProtectedRoute>} />
+                    <Route path="/allcontacts" element={<ProtectedRoute><Contacts /></ProtectedRoute>} />
+                    <Route path="/manage-groups" element={<ProtectedRoute><ManageGroups /></ProtectedRoute>} />
+                    <Route path="/contacts/unsubscribe" element={<ProtectedRoute><UISubscribe /></ProtectedRoute>} />
+                    <Route path="/create-template" element={<ProtectedRoute><CreateTemplate /></ProtectedRoute>} />
+                    <Route path="/qrcode" element={<ProtectedRoute><QRCodeGenerator /></ProtectedRoute>} />
+                    <Route path="/broadcast-logs" element={<ProtectedRoute><Broadcastlogo /></ProtectedRoute>} />
+                    <Route path="/api-logs" element={<ProtectedRoute><ApiLogoui /></ProtectedRoute>} />
+                    <Route path="/schedule-logs" element={<ProtectedRoute><ScheduleLogoui /></ProtectedRoute>} />
+                    <Route path="/WhatsAppCampaignTable/:campaignName" element={<ProtectedRoute><WhatsAppCampaignTable /></ProtectedRoute>} />
+                    <Route path="/flow" element={<ProtectedRoute><FlowPage /></ProtectedRoute>} />
+                    <Route path="/flow-chart/:id" element={<ProtectedRoute><FlowChart /></ProtectedRoute>} />
+                    <Route path="/user-attributes" element={<ProtectedRoute><UserAttribute /></ProtectedRoute>} />
+                    <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+                    <Route path="/api-settings" element={<ProtectedRoute><ApiKeyManager /></ProtectedRoute>} />
+                    <Route path="/LiveChatUI" element={<ProtectedRoute><LiveChatUI /></ProtectedRoute>} />
+                    <Route path="/history" element={<ProtectedRoute><Historylive /></ProtectedRoute>} />
+                    <Route path="/chatagent" element={<ProtectedRoute><ChatAgentpage /></ProtectedRoute>} />
                 </Routes>
             </div>
         </div>
