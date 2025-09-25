@@ -1,6 +1,26 @@
+import React, { useEffect, useState } from "react";
 import { MdOutlineInbox } from "react-icons/md";
+import axios from "axios";
 
-const TransactionsUI = ({ transactions }) => {
+const TransactionsUI = () => {
+  const [transactions, setTransactions] = useState([]);
+
+  // Fetch transactions from backend
+  const fetchTransactions = async () => {
+    try {
+      const res = await axios.get("http://localhost/whatsapp_admin/add_transaction.php");
+      if (res.data.status === "success") {
+        setTransactions(res.data.transactions);
+      }
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
   return (
     <div className="bg-white p-4 shadow rounded">
       <table className="w-full border-collapse">
@@ -28,7 +48,7 @@ const TransactionsUI = ({ transactions }) => {
           </tr>
         </thead>
         <tbody>
-          {transactions && transactions.length > 0 ? (
+          {transactions.length > 0 ? (
             transactions.map((txn, idx) => (
               <tr key={txn.transaction_id} className="text-sm text-gray-700">
                 <td className="py-2 px-4">{idx + 1}</td>

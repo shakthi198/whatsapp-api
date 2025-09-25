@@ -114,7 +114,13 @@ function loginCustomer($conn, $email, $password) {
     $payload = ["data" => $user, "id" => $user['id'], "iat" => time()];
     $jwt = JWT::encode($payload, $jwt_secret, $jwt_algorithm);
 
-    return ["status" => "success", "message" => "Login successful", "token" => $jwt];
+    return [
+    "status" => "success",
+    "message" => "Login successful",
+    "token" => $jwt,
+    "user" => $user // send user data including waba_number
+];
+
 }
 
 

@@ -8,13 +8,30 @@ header("Content-Type: application/json");
 require_once "config.php";
 
 // Database connection
-$conn = new mysqli($host, $user, $pass, $db);
+$conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
     echo json_encode(["status" => "error", "message" => "DB Connection Failed"]);
     exit;
 }
 
-// Read POST data
+// Handle GET request: fetch all transactions
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $sql = "SELECT * FROM `transaction` ORDER BY `date_time` DESC";
+    $result = $conn->query($sql);
+
+    $transactions = [];
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $transactions[] = $row;
+        }
+    }
+
+    echo json_encode(["status" => "success", "transactions" => $transactions]);
+    $conn->close();
+    exit;
+}
+
+// Handle POST request: add transaction
 $data = json_decode(file_get_contents("php://input"), true);
 if (!$data) {
     echo json_encode(["status" => "error", "message" => "Invalid input"]);
