@@ -120,9 +120,9 @@ const Sidebar = ({ darkMode }) => {
             isOpen={dropdowns.reports}
             toggleDropdown={() => toggleDropdown("reports")}
             subItems={[
-              { label: "Broadcast Logs", path: "/broadcast-logs" },
+           /*   { label: "Broadcast Logs", path: "/broadcast-logs" },*/
               { label: "API Logs", path: "/api-logs" },
-              { label: "Schedule Logs", path: "/schedule-logs" },
+           /*   { label: "Schedule Logs", path: "/schedule-logs" },*/
             ]}
           />
           <NavItem icon={<CreditCard size={20} />} label="Billing" path="/billing" closeSidebar={closeSidebar} />  
