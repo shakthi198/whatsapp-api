@@ -13,12 +13,7 @@ import LoopIcon from "@mui/icons-material/Loop";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 
 const clientData = [
-  {
-    title: "Overview Summary of Broadcast Message",
-    sent: 0,
-    delivered: 0,
-    read: 0,
-  },
+  
   {
     title: "Overview Summary of API Message",
     sent: 0,

@@ -74,7 +74,7 @@ const handleDownload = () => {
 
 
   return (
-    <div className="w-full p-6 bg-white shadow-lg rounded-md">
+    <div className="w-full p-4 sm:p-6 bg-white shadow-lg rounded-md">
       {/* Header Section */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg font-semibold text-gray-700">

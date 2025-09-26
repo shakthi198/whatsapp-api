@@ -7,6 +7,8 @@ const apiEndpoints = {
     Category: `${API_BASE_URL}/category.php`,
     transaction: `${API_BASE_URL}/add_transaction.php`,
     getProfile: `${API_BASE_URL}/register.php`,
+    getGroups: `${API_BASE_URL}/get_groups.php`,
+    managetemplate: `${API_BASE_URL}/managetemplate.php`,
 };
 
 export default apiEndpoints;

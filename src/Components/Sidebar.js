@@ -108,8 +108,8 @@ const Sidebar = ({ darkMode }) => {
             toggleDropdown={() => toggleDropdown("contacts")}
             subItems={[
               { label: "Contacts", path: "/allcontacts" },
-              { label: "UI Contacts", path: "/contacts/uicontact" },
-              { label: "Un Subscribe", path: "/contacts/unsubscribe" },
+           /*   { label: "UI Contacts", path: "/contacts/uicontact" },*/
+          /*    { label: "Un Subscribe", path: "/contacts/unsubscribe" },*/
             ]}
           />
           <NavItem icon={<FileText size={20} />} label="Manage Template" path="/templates" closeSidebar={closeSidebar} />
@@ -120,9 +120,9 @@ const Sidebar = ({ darkMode }) => {
             isOpen={dropdowns.reports}
             toggleDropdown={() => toggleDropdown("reports")}
             subItems={[
-              { label: "Broadcast Logs", path: "/broadcast-logs" },
+           /*   { label: "Broadcast Logs", path: "/broadcast-logs" },*/
               { label: "API Logs", path: "/api-logs" },
-              { label: "Schedule Logs", path: "/schedule-logs" },
+           /*   { label: "Schedule Logs", path: "/schedule-logs" },*/
             ]}
           />
           <NavItem icon={<CreditCard size={20} />} label="Billing" path="/billing" closeSidebar={closeSidebar} />  
@@ -140,10 +140,10 @@ const Sidebar = ({ darkMode }) => {
             isOpen={dropdowns.settings}
             toggleDropdown={() => toggleDropdown("settings")}
             subItems={[
-              { label: "Dialog Flow", path: "/dialogflow" },
+          /*    { label: "Dialog Flow", path: "/dialogflow" },*/
               { label: "API Settings", path: "/api-settings" },
-              { label: "User Attributes", path: "/user-attributes" },
-              { label: "QR Code", path: "/qrcode" },
+          /*    { label: "User Attributes", path: "/user-attributes" },*/
+             /* { label: "QR Code", path: "/qrcode" },*/
             ]}
           />
         </nav>
