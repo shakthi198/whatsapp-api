@@ -41,6 +41,15 @@ const Header = ({ darkMode, toggleDarkMode }) => {
     quality: "GREEN",
     tier: "MSG_1000 LIMIT",
   });
+  const handleLogout = () => {
+  // Remove token and user info
+  localStorage.removeItem("token");
+  localStorage.removeItem("user"); // if you store user info
+
+  // Redirect to login
+  navigate("/login", { replace: true });
+};
+
 
   useEffect(() => {
     setTimeout(() => {
@@ -259,10 +268,11 @@ const Header = ({ darkMode, toggleDarkMode }) => {
             <MdAccountCircle size={20} style={{ marginRight: "10px" }} />
             Profile
           </MenuItem>
-          <MenuItem onClick={() => navigate("/login")} sx={{ color: "red", fontSize: "16px", fontFamily: "montserrat" }}>
-            <MdLogout size={20} style={{ marginRight: "10px" }} />
-            Logout
-          </MenuItem>
+        <MenuItem onClick={handleLogout} sx={{ color: "red", fontSize: "16px", fontFamily: "montserrat" }}>
+  <MdLogout size={20} style={{ marginRight: "10px" }} />
+  Logout
+</MenuItem>
+
         </Menu>
       </Box>
     </Box>

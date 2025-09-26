@@ -1,79 +1,72 @@
-import React from "react";
-import { FaChevronRight } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
-import DeliveryChartUI from "../../Dynamic Components/DeliveryChartUI";
-import ScheduleLogo from "./ScheduleLogo";
+import React, { useEffect, useState } from "react";
 import Apilogoschartui from "../../Dynamic Components/Apilogochartui";
 import ReusableTable from "../../Dynamic Components/ReusableTable";
-import Pagination from "../../Dynamic Components/Pagination";
 
 const ApiLogoui = () => {
-  const navigate = useNavigate();
+  const [data, setData] = useState([]);
+  const [phone, setPhone] = useState(localStorage.getItem("waba_number") || ""); // auto from login
 
-  const columns = [
-    "S.No",
-    "Campaign Name",
-    "Target Users",
-    "Submitted",
-    "Failed Users",
-    "Sent",
-    "Delivered",
-    "Read",
-    "Status",
-  ];
+  // Table column headers for message-level data
+  const columns = ["S.No", "Message ID", "Message", "Recipient Number", "Status", "Timestamp"];
 
-  const data = [
-    {
-      "S.No": 1,
-      "Campaign Name": "Test Api",
-      "Published Time": "2025-03-13 10:00 AM",
-      "Target Users": 5000,
-      Submitted: 4500,
-      "Failed Users": 500,
-      Sent: 4300,
-      Delivered: 4200,
-      Read: 3900,
-      Status: "Completed",
-    },
-  ];
-
-  const handlePrevClick = () => {
-    navigate("/Broadcastlogo");
+  // Fetch WhatsApp message statuses by phone number
+  const fetchLogs = () => {
+    if (!phone) return; // prevent empty fetch
+    fetch(`http://localhost/whatsapp_admin/whatsapp_log.php?phone=${encodeURIComponent(phone)}`)
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.status) {
+          setData(res.data);
+        } else {
+          setData([]);
+          console.error("Failed to fetch logs:", res.message);
+        }
+      })
+      .catch((err) => console.error("Failed to fetch logs:", err));
   };
 
-  const handleCampaignClick = (campaignName) => {
-    navigate(`/WhatsAppCampaignTable/${encodeURIComponent(campaignName)}`);
-  };
+  useEffect(() => {
+    fetchLogs();
+  }, [phone]);
 
-  const modifiedData = data.map((item) => ({
-    ...item,
-    Status: (
+  // --- Group data by date for chart ---
+  const chartData = Object.values(
+    data.reduce((acc, item) => {
+      const date = new Date(item.timestamp * 1000).toISOString().split("T")[0]; // YYYY-MM-DD
+      if (!acc[date]) acc[date] = { date, sent: 0, delivered: 0, read: 0, failed: 0 };
+
+      if (item.status === "sent") acc[date].sent += 1;
+      else if (item.status === "delivered") acc[date].delivered += 1;
+      else if (item.status === "read") acc[date].read += 1;
+      else acc[date].failed += 1;
+
+      return acc;
+    }, {})
+  );
+
+  // --- Modify data for table display ---
+  const modifiedData = data.map((item, index) => ({
+    "S.No": index + 1,
+    "Message ID": item.message_id,
+    "Message": item.message_text || "-", // show "-" if no message
+    "Recipient Number": item.recipient_id,
+    "Status": (
       <span
         className={`px-2 py-1 text-white font-semibold rounded ${
-          item.Status === "Completed" ? "bg-green-500" : "bg-orange-400"
+          item.status === "delivered"
+            ? "bg-green-500"
+            : item.status === "read"
+            ? "bg-blue-500"
+            : item.status === "sent"
+            ? "bg-yellow-500"
+            : "bg-red-500"
         }`}
-        style={{ fontFamily: "'Montserrat', sans-serif" }}
       >
-        {item.Status}
+        {item.status}
       </span>
     ),
-    "Campaign Name": (
-      <span
-        style={{
-          color: "green",
-          cursor: "pointer",
-          fontFamily: "'Montserrat', sans-serif",
-        }}
-        onClick={() => handleCampaignClick(item["Campaign Name"])}
-      >
-        {item["Campaign Name"]}
-      </span>
-    ),
+    "Timestamp": new Date(item.timestamp * 1000).toLocaleString(),
   }));
-
-  const handleNextClick = () => {
-    navigate("/schedule-logs");
-  };
 
   return (
     <div
@@ -82,41 +75,38 @@ const ApiLogoui = () => {
     >
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 md:mb-6">
-        <div className="flex flex-col md:flex-row md:items-center mb-3 md:mb-0">
-          <h2 className="text-lg sm:text-xl md:text-2xl font-medium mb-2 md:mb-0 md:mr-4">
-            API-Logs
-          </h2>
-          <div className="flex flex-wrap items-center text-xs sm:text-sm text-gray-600">
-            <span className="mr-2 hidden md:inline">|</span>
-            <span className="text-yellow-600">Home</span>
-            <span className="mx-1 md:mx-2">›</span>
-            <span className="text-yellow-600">Api-logs</span>
-          </div>
+        <h2 className="text-xl md:text-2xl font-medium mb-2 md:mb-0">WhatsApp API Logs</h2>
+        {/* Phone number input */}
+        <div className="mt-2 md:mt-0 flex items-center gap-2">
+          <input
+            type="text"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="Enter WhatsApp number"
+            className="border px-2 py-1 rounded"
+          />
+          <button
+            onClick={fetchLogs}
+            className="bg-yellow-600 text-white px-3 py-1 rounded"
+          >
+            Fetch Logs
+          </button>
         </div>
       </div>
 
-      {/* Chart Component */}
-      <div className="mb-4 overflow-x-auto">
-        <Apilogoschartui />
+      {/* Delivery Chart */}
+      <div className="mb-4">
+        <Apilogoschartui data={chartData} tableData={modifiedData} />
       </div>
 
       {/* Table Component */}
-      <div className="overflow-x-auto">
+      <div>
         <ReusableTable
           columns={columns}
           data={modifiedData}
           fontFamily="'Montserrat', sans-serif"
         />
       </div>
-
-      {/* Pagination (commented out) */}
-      {/* <Pagination
-        currentPage={1}
-        totalPages={1}
-        setCurrentPage={() => {}}
-        onNextClick={handleNextClick}
-        onPrevClick={handlePrevClick}
-      /> */}
     </div>
   );
 };
