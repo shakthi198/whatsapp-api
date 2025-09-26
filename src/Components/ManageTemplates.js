@@ -28,7 +28,6 @@ const ManageTemplates = () => {
   const templatesPerPage = 5;
   const [curlModal, setCurlModal] = useState({ open: false, data: null });
 
-
   // Load templates from API
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -38,13 +37,10 @@ const ManageTemplates = () => {
         const data = await response.json();
 
         if (data.status === "success") {
-          // Transform data to match expected structure
-          // In your fetchTemplates function:
-          // In your fetchTemplates function:
           const formattedTemplates = data.data.map((template) => ({
             id: template.id,
             guid: template.guid,
-            templateName: template.template_name, // Changed from name to template_name
+            templateName: template.template_name,
             category: template.category,
             status: template.isActive ? "Active" : "Inactive",
             type:
@@ -54,11 +50,9 @@ const ManageTemplates = () => {
             templateFooter: template.template_footer,
             attributes: (() => {
               try {
-                // if it's a stringified JSON, parse it
                 if (typeof template.templateHeaders === "string") {
                   return JSON.parse(template.templateHeaders);
                 }
-                // if it's already an array, return as-is
                 return template.templateHeaders || [];
               } catch {
                 return [];
@@ -121,70 +115,58 @@ const ManageTemplates = () => {
     }
   };
 
-  // Handle copy template
   const handleCopy = (template) => {
     navigate("/create-template", { state: { template } });
   };
 
-  // Handle preview template
   const handlePreview = (template) => {
     setModal({ type: "preview", data: template });
   };
 
-  // Handle create template modal
   const handleCreateTemplate = () => {
     setModal({ type: "create", data: null });
   };
-  
-const handleShowCurl = (template, values = {}) => {
-  // values is an object like { name: "Shakthi", date: "2025-09-10" }
 
-  const bodyComponent = { type: "body" };
+  const handleShowCurl = (template, values = {}) => {
+    const bodyComponent = { type: "body" };
+    if (template.attributes && typeof template.attributes === "object") {
+      const attributesArray = Array.isArray(template.attributes)
+        ? template.attributes
+        : [template.attributes];
 
-  // Check if template.attributes exists
-  if (template.attributes && typeof template.attributes === "object") {
-    // Convert object to array if needed
-    const attributesArray = Array.isArray(template.attributes)
-      ? template.attributes
-      : [template.attributes];
+      bodyComponent.parameters = attributesArray.map((attr, index) => {
+        const key =
+          attr?.text || attr?.value || attr?.name || `value-${index + 1}`;
+        return {
+          type: attr?.type || "text",
+          text: values[key] || key,
+        };
+      });
+    }
 
-    bodyComponent.parameters = attributesArray.map((attr, index) => {
-      const key =
-        attr?.text || attr?.value || attr?.name || `value-${index + 1}`;
-      return {
-        type: attr?.type || "text",
-        text: values[key] || key, // inject real value if provided
-      };
-    });
-  }
+    const curlJSON = {
+      to: "<sample-number-with-country-code>",
+      type: "template",
+      template: {
+        language: { policy: "deterministic", code: "en" },
+        name: template.templateName || template.name || "defaultTemplate",
+        components: [bodyComponent],
+      },
+    };
 
-  const curlJSON = {
-    to: "<sample-number-with-country-code>", // replace with real number
-    type: "template",
-    template: {
-      language: { policy: "deterministic", code: "en" },
-      name: template.templateName || template.name || "defaultTemplate",
-      components: [bodyComponent],
-    },
-  };
+    console.log("Generated cURL JSON 👉", curlJSON);
 
-  console.log("Generated cURL JSON 👉", curlJSON);
-
-  // Optional: open modal with cURL command
-  const curlCommand = `curl --location 'http://localhost/whatsapp?token=<sample-token>' \\
+    const curlCommand = `curl --location 'http://localhost/whatsapp?token=<sample-token>' \\
 --header 'Content-Type: application/json' \\
 --data '${JSON.stringify(curlJSON, null, 2)}'`;
 
-  setCurlModal({ open: true, data: curlCommand });
-};
+    setCurlModal({ open: true, data: curlCommand });
+  };
 
-
-  // Close modal
   const closeModal = () => {
     setModal({ type: null, data: null });
   };
 
-  // Filter templates
   const filteredTemplates = templates.filter((template) => {
     const matchesSearch =
       template.templateName &&
@@ -196,7 +178,6 @@ const handleShowCurl = (template, values = {}) => {
     return matchesSearch && matchesCategory && matchesType;
   });
 
-  // Pagination logic
   const indexOfLastTemplate = currentPage * templatesPerPage;
   const indexOfFirstTemplate = indexOfLastTemplate - templatesPerPage;
   const currentTemplates = filteredTemplates.slice(
@@ -217,30 +198,25 @@ const handleShowCurl = (template, values = {}) => {
     }
   };
 
-  // Extract unique categories and types
-  const categories = [
-    ...new Set(templates.map((template) => template.category)),
-  ];
+  const categories = [...new Set(templates.map((template) => template.category))];
   const types = [...new Set(templates.map((template) => template.type))];
 
   if (isLoading) {
     return (
-      <div className="p-6 bg-gray-100" style={{ fontFamily: "Montserrat" }}>
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-600"></div>
-        </div>
+      <div className="p-6 bg-gray-100 min-h-screen flex justify-center items-center font-montserrat">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-600"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-6 bg-gray-100" style={{ fontFamily: "Montserrat" }}>
-        <div className="bg-white p-4 rounded-lg shadow-md border border-red-300">
+      <div className="p-6 bg-gray-100 min-h-screen flex justify-center items-center font-montserrat">
+        <div className="bg-white p-4 rounded-lg shadow-md border border-red-300 text-center">
           <div className="text-red-500 font-medium">{error}</div>
           <button
             onClick={() => window.location.reload()}
-            className="mt-2 bg-yellow-600 text-white px-4 py-2 rounded"
+            className="mt-2 bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700"
           >
             Retry
           </button>
@@ -248,15 +224,15 @@ const handleShowCurl = (template, values = {}) => {
       </div>
     );
   }
+
   return (
-    <div className="p-6 bg-gray-100" style={{ fontFamily: "Montserrat" }}>
+    <div className="p-4 md:p-6 bg-gray-100 min-h-screen font-montserrat">
       {/* Header */}
-      <div className="flex items-center mb-4">
-        <h2 className="text-3xl font-semibold text-gray-700">
+      <div className="flex flex-col md:flex-row items-start md:items-center mb-4 gap-2 md:gap-4">
+        <h2 className="text-2xl md:text-3xl font-semibold text-gray-700">
           Manage Template
         </h2>
-        <div className="h-5 w-[2px] bg-gray-300 mx-2"></div>
-        <div className="text-yellow-600 text-md flex items-center">
+        <div className="flex items-center text-yellow-600 text-sm md:text-md flex-wrap">
           <span>Home</span>
           <HiChevronRight className="mx-1 text-black text-md" />
           <span className="text-yellow-600">Manage Template</span>
@@ -264,20 +240,20 @@ const handleShowCurl = (template, values = {}) => {
       </div>
 
       {/* Table and Filters */}
-      <div className="bg-white p-4 shadow rounded-lg border border-gray-300">
-        <div className="flex justify-end items-center pb-4 flex-wrap gap-2">
-          <div className="flex gap-2 flex-wrap">
+      <div className="bg-white p-4 md:p-6 shadow rounded-lg border border-gray-300 overflow-x-auto">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center pb-4 flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 w-full md:w-auto">
             <input
               type="text"
               placeholder="Search Template"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="border border-gray-300 px-3 py-2 rounded-md"
+              className="border border-gray-300 px-3 py-2 rounded-md w-full md:w-auto"
             />
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="border text-gray-500 border-gray-300 px-3 py-2 rounded-md"
+              className="border text-gray-500 border-gray-300 px-3 py-2 rounded-md w-full md:w-auto"
             >
               <option value="">Select Category</option>
               {categories.map((category, index) => (
@@ -289,7 +265,7 @@ const handleShowCurl = (template, values = {}) => {
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className="border text-gray-500 border-gray-300 px-3 py-2 rounded-md"
+              className="border text-gray-500 border-gray-300 px-3 py-2 rounded-md w-full md:w-auto"
             >
               <option value="">Select Type</option>
               {types.map((type, index) => (
@@ -298,12 +274,12 @@ const handleShowCurl = (template, values = {}) => {
                 </option>
               ))}
             </select>
-            <button className="text-white px-4 py-2 rounded-md bg-yellow-600">
+            <button className="text-white px-4 py-2 rounded-md bg-yellow-600 w-full md:w-auto hover:bg-yellow-700">
               📺 Watch Tutorial
             </button>
             <button
               onClick={handleCreateTemplate}
-              className="text-white px-4 py-2 rounded-md bg-yellow-600"
+              className="text-white px-4 py-2 rounded-md bg-yellow-600 w-full md:w-auto hover:bg-yellow-700"
             >
               + Create New Template
             </button>
@@ -311,16 +287,16 @@ const handleShowCurl = (template, values = {}) => {
         </div>
 
         {/* Table */}
-        <table className="w-full mt-4 border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-gray-200 text-left">
-              <th className="p-3 text-gray-600 font-medium">S.No.</th>
-              <th className="p-3 text-gray-600 font-medium">Template Name</th>
-              <th className="p-3 text-gray-600 font-medium">Category</th>
-              <th className="p-3 text-gray-600 font-medium">Status</th>
-              <th className="p-3 text-gray-600 font-medium">Type</th>
-              <th className="p-3 text-gray-600 font-medium">Created On</th>
-              <th className="p-3 text-gray-600 font-medium">Actions</th>
+        <table className="w-full border-collapse border border-gray-300 min-w-[600px] md:min-w-full">
+          <thead className="bg-gray-200 text-left">
+            <tr>
+              <th className="p-2 md:p-3 text-gray-600 font-medium">S.No.</th>
+              <th className="p-2 md:p-3 text-gray-600 font-medium">Template Name</th>
+              <th className="p-2 md:p-3 text-gray-600 font-medium">Category</th>
+              <th className="p-2 md:p-3 text-gray-600 font-medium">Status</th>
+              <th className="p-2 md:p-3 text-gray-600 font-medium">Type</th>
+              <th className="p-2 md:p-3 text-gray-600 font-medium">Created On</th>
+              <th className="p-2 md:p-3 text-gray-600 font-medium">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -330,10 +306,10 @@ const handleShowCurl = (template, values = {}) => {
                   key={template.id}
                   className="border border-gray-300 hover:bg-gray-50"
                 >
-                  <td className="p-3">{indexOfFirstTemplate + index + 1}</td>
-                  <td className="p-3">{template.templateName}</td>
-                  <td className="p-3">{template.category}</td>
-                  <td className="p-3">
+                  <td className="p-2 md:p-3">{indexOfFirstTemplate + index + 1}</td>
+                  <td className="p-2 md:p-3">{template.templateName}</td>
+                  <td className="p-2 md:p-3">{template.category}</td>
+                  <td className="p-2 md:p-3">
                     <span
                       className={`px-2 py-1 rounded text-sm ${
                         template.status === "Approved"
@@ -346,11 +322,11 @@ const handleShowCurl = (template, values = {}) => {
                       {template.status}
                     </span>
                   </td>
-                  <td className="p-3">{template.type}</td>
-                  <td className="p-3">
+                  <td className="p-2 md:p-3">{template.type}</td>
+                  <td className="p-2 md:p-3">
                     {new Date(template.createdOn).toLocaleString()}
                   </td>
-                  <td className="p-3 flex space-x-2">
+                  <td className="p-2 md:p-3 flex flex-wrap gap-2">
                     <button
                       className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
                       onClick={() => handlePreview(template)}
@@ -382,7 +358,7 @@ const handleShowCurl = (template, values = {}) => {
                       />
                     </button>
                     <button
-                      className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
+                      className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded flex items-center gap-1"
                       title="Show cURL"
                       onClick={() => handleShowCurl(template)}
                     >
@@ -392,7 +368,7 @@ const handleShowCurl = (template, values = {}) => {
                       />
                       <FontAwesomeIcon
                         icon={faAngleRight}
-                        className="text-yellow-600 ml-1"
+                        className="text-yellow-600"
                       />
                     </button>
                   </td>
@@ -409,7 +385,7 @@ const handleShowCurl = (template, values = {}) => {
         </table>
 
         {/* Pagination */}
-        <div className="flex justify-between items-center mt-4">
+        <div className="flex flex-col md:flex-row justify-between items-center mt-4 gap-2 md:gap-0">
           <div className="text-sm text-gray-500">
             Showing {indexOfFirstTemplate + 1} to{" "}
             {Math.min(indexOfLastTemplate, filteredTemplates.length)} of{" "}
@@ -437,9 +413,9 @@ const handleShowCurl = (template, values = {}) => {
         </div>
       </div>
 
-      {/* Preview Modal */}
+      {/* Modals */}
       {modal.type === "preview" && (
-        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center p-4 z-50">
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center p-4 z-50 overflow-auto">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl border border-gray-300 relative">
             <button
               onClick={closeModal}
@@ -464,7 +440,7 @@ const handleShowCurl = (template, values = {}) => {
                   <h3 className="font-medium mb-2">Attributes:</h3>
                   <ul className="space-y-1">
                     {modal.data.attributes.map((attr, index) => (
-                      <li key={index} className="flex">
+                      <li key={index} className="flex flex-col md:flex-row gap-1 md:gap-2">
                         <span className="font-medium w-24">{attr.name}:</span>
                         <span>{attr.value}</span>
                       </li>
@@ -477,9 +453,8 @@ const handleShowCurl = (template, values = {}) => {
         </div>
       )}
 
-      {/* Create Template Modal */}
       {modal.type === "create" && (
-        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center p-4 z-50">
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center p-4 z-50 overflow-auto">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl border border-gray-300">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold text-gray-700">
@@ -494,77 +469,72 @@ const handleShowCurl = (template, values = {}) => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div
-                className="bg-gray-100 border-2 border-dashed border-green-500 p-6 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors"
+                className="bg-gray-100 border-2 border-dashed border-green-500 p-6 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors flex flex-col items-center text-center"
                 onClick={() => {
                   closeModal();
                   navigate("/create-template");
                 }}
               >
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-3">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-8 w-8 text-green-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                      />
-                    </svg>
-                  </div>
-                  <h4 className="text-lg font-semibold text-gray-700">
-                    Start from scratch
-                  </h4>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Start from a blank template
-                  </p>
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-3">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-8 w-8 text-green-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    />
+                  </svg>
                 </div>
+                <h4 className="text-lg font-semibold text-gray-700">
+                  Start from scratch
+                </h4>
+                <p className="text-sm text-gray-600 mt-1">
+                  Start from a blank template
+                </p>
               </div>
-              <div className="bg-gray-100 border-2 border-dashed border-green-500 p-6 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors">
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-3">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-8 w-8 text-blue-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 7v8m4-8v8m4-8v8"
-                      />
-                    </svg>
-                  </div>
-                  <h4 className="text-lg font-semibold text-gray-700">
-                    Use a template
-                  </h4>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Use one of our pre-defined templates and edit them
-                  </p>
+              <div className="bg-gray-100 border-2 border-dashed border-blue-500 p-6 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-3">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-8 w-8 text-blue-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7v8m4-8v8m4-8v8"
+                    />
+                  </svg>
                 </div>
+                <h4 className="text-lg font-semibold text-gray-700">
+                  Use a template
+                </h4>
+                <p className="text-sm text-gray-600 mt-1">
+                  Use one of our pre-defined templates and edit them
+                </p>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* cURL Modal */}
       {curlModal.open && (
-        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center p-4 z-50">
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center p-4 z-50 overflow-auto">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-3xl border border-gray-300 relative">
             <button
               onClick={() => setCurlModal({ open: false, data: null })}
@@ -591,7 +561,6 @@ const handleShowCurl = (template, values = {}) => {
         </div>
       )}
 
-      {/* Message Popup */}
       {showMessagePopup && (
         <MessagePopup
           templates={templates}

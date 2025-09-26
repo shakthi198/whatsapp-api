@@ -59,7 +59,11 @@ const ApiLogoui = () => {
     ),
     "Campaign Name": (
       <span
-        style={{ color: "green", cursor: "pointer", fontFamily: "'Montserrat', sans-serif" }}
+        style={{
+          color: "green",
+          cursor: "pointer",
+          fontFamily: "'Montserrat', sans-serif",
+        }}
         onClick={() => handleCampaignClick(item["Campaign Name"])}
       >
         {item["Campaign Name"]}
@@ -72,12 +76,17 @@ const ApiLogoui = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-4 md:p-6" style={{ fontFamily: "'Montserrat'" }}>
+    <div
+      className="max-w-7xl mx-auto p-4 md:p-6"
+      style={{ fontFamily: "'Montserrat'" }}
+    >
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 md:mb-6">
         <div className="flex flex-col md:flex-row md:items-center mb-3 md:mb-0">
-          <h2 className="text-xl md:text-2xl font-medium mb-2 md:mb-0 md:mr-4">API-Logs</h2>
-          <div className="flex items-center text-xs md:text-sm text-gray-600">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-medium mb-2 md:mb-0 md:mr-4">
+            API-Logs
+          </h2>
+          <div className="flex flex-wrap items-center text-xs sm:text-sm text-gray-600">
             <span className="mr-2 hidden md:inline">|</span>
             <span className="text-yellow-600">Home</span>
             <span className="mx-1 md:mx-2">›</span>
@@ -86,16 +95,15 @@ const ApiLogoui = () => {
         </div>
       </div>
 
-
       {/* Chart Component */}
-      <div className="mb-4">
+      <div className="mb-4 overflow-x-auto">
         <Apilogoschartui />
       </div>
 
       {/* Table Component */}
-      <div>
-        <ReusableTable 
-          columns={columns} 
+      <div className="overflow-x-auto">
+        <ReusableTable
+          columns={columns}
           data={modifiedData}
           fontFamily="'Montserrat', sans-serif"
         />

@@ -11,10 +11,10 @@ const Apilogochartui = () => {
       ["2025-03-10", 4800, 500, 4300],
       ["2025-03-11", 5200, 700, 4800],
       ["2025-03-12", 5300, 600, 4900],
-      ["2025-03-13", 5400, 500, 5000]
+      ["2025-03-13", 5400, 500, 5000],
     ];
 
-    const csvContent = data.map(row => row.join(",")).join("\n");
+    const csvContent = data.map((row) => row.join(",")).join("\n");
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
 
@@ -26,41 +26,42 @@ const Apilogochartui = () => {
   };
 
   return (
-    <div className="w-full p-6 bg-white shadow-lg rounded-md">
+    <div className="w-full p-4 sm:p-6 bg-white shadow-lg rounded-md">
       {/* Header Section */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold text-gray-700 mb-10">
-          Delivery Chart for last 7 Days Report
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <h2 className="text-base sm:text-lg font-semibold text-gray-700">
+          Delivery Chart for Last 7 Days Report
         </h2>
-        <div className="flex items-center gap-2 mb-10">
+
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
           <input
             type="date"
-            className="border border-gray-300 p-2 rounded text-gray-500"
-            placeholder="Start date"
+            className="border border-gray-300 p-2 rounded text-gray-600 text-sm sm:text-base w-full sm:w-auto"
           />
-          <span className="text-gray-500">→</span>
+          <span className="text-gray-500 hidden sm:block">→</span>
           <input
             type="date"
-            className="border border-gray-300 p-2 rounded text-gray-500"
-            placeholder="End date"
+            className="border border-gray-300 p-2 rounded text-gray-600 text-sm sm:text-base w-full sm:w-auto"
           />
           <button
             onClick={handleDownload}
-            className="bg-green-500 text-white px-4 py-2 flex items-center gap-1 rounded hover:bg-green-600"
+            className="bg-green-500 text-white px-3 sm:px-4 py-2 flex items-center justify-center gap-1 rounded hover:bg-green-600 w-full sm:w-auto"
           >
-            <FaDownload /> Download Report
+            <FaDownload /> <span className="hidden sm:inline">Download Report</span>
           </button>
         </div>
       </div>
 
       {/* Chart Placeholder Section */}
-      <div className="w-full h-86 gap-6 border-gray-200 grid grid-rows-11 relative">
+      <div className="w-full h-64 sm:h-80 mt-6 grid grid-rows-11 border-l border-gray-200 relative">
         {[...Array(11)].map((_, index) => (
           <div
             key={index}
-            className="border-b p-1 border-gray-200 flex items-center relative"
+            className="border-b border-gray-200 flex items-center relative"
           >
-            <span className="absolute left-[-10px] top-2/2 transform -translate-y-1/2 font-semibold text-gray-500">{10 - index}</span>
+            <span className="absolute -left-6 sm:-left-8 top-1/2 transform -translate-y-1/2 text-xs sm:text-sm font-semibold text-gray-500">
+              {10 - index}
+            </span>
           </div>
         ))}
       </div>
