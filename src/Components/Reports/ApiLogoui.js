@@ -60,7 +60,7 @@ const ApiLogoui = () => {
 
   return (
     <div
-      className="max-w-full sm:max-w-7xl mx-auto p-2 sm:p-4 md:p-6"
+      className="xl:w-7xl lg:w-2xl md:w-md mx-auto p-4 md:p-6"
       style={{ fontFamily: "'Montserrat'" }}
     >
       {/* Header Section */}
