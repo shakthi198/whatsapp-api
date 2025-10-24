@@ -228,10 +228,13 @@ const ManageTemplates = () => {
   }
 
   return (
-    <div className="p-6 bg-gray-100" style={{ fontFamily: "Montserrat" }}>
+    <div
+      className="p-6 bg-gray-100 xl:w-6xl lg:w-2xl md:w-md"
+      style={{ fontFamily: "Montserrat" }}
+    >
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center mb-4 gap-2">
-        <h2 className="text-3xl font-semibold text-gray-700 whitespace-nowrap">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center mb-4 gap-2">
+        <h2 className="text-3xl font-semibold text-gray-700 whitespace-wrap">
           Manage Template
         </h2>
         <div className="flex items-center flex-nowrap text-yellow-600 text-md gap-1">
@@ -466,7 +469,7 @@ const ManageTemplates = () => {
                 closeModal();
               }}
             >
-              Copy
+              Duplicate
             </button>
             <button
               className="mb-2 w-full text-left hover:bg-gray-100 p-2 rounded"

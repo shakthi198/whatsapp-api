@@ -98,9 +98,9 @@ const HistoryLive = () => {
   ];
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-gray-50 font-sans">
+    <div className="flex flex-col lg:flex-row h-screen bg-gray-50 font-sans">
       {/* Sidebar */}
-      <div className="w-full md:w-96 bg-white border-r border-gray-200 flex flex-col shadow-sm">
+      <div className="w-full lg:w-96 bg-white border-r border-gray-200 flex flex-col shadow-sm">
         {/* Header */}
         <div className="p-4 border-b border-gray-200">
           <div className="flex justify-between items-center mb-2">
@@ -147,7 +147,7 @@ const HistoryLive = () => {
             <button
               key={key}
               onClick={() => setActiveTab(key)}
-              className={`flex items-center px-4 py-2 mr-2 text-sm rounded-lg transition-all ${
+              className={`flex items-center px-2 py-2 text-sm rounded-lg transition-all ${
                 activeTab === key
                   ? `bg-${key === 'read' ? 'green' : key === 'unread' ? 'blue' : 'green'}-100 text-${key === 'read' ? 'green' : key === 'unread' ? 'blue' : 'green'}-800 shadow-inner`
                   : 'text-gray-500 hover:bg-gray-100'
@@ -226,7 +226,7 @@ const HistoryLive = () => {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 p-4 overflow-y-auto bg-[#e5ddd5] bg-opacity-30">
+            <div className="flex-1 p-3 overflow-y-auto bg-[#e5ddd5] bg-opacity-30">
               <div className="max-w-3xl mx-auto text-center text-xs text-gray-500 py-2 bg-white rounded-full inline-block px-4 mb-4">
                 {new Date().toLocaleDateString('en-US', {
                   weekday: 'long',
