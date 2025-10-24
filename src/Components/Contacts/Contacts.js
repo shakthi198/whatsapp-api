@@ -101,7 +101,7 @@ const Contacts = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-4 md:p-6">
+    <div className="xl:w-7xl lg:w-2xl md:w-md mx-auto p-4 md:p-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 md:mb-6">
         <div className="flex flex-col md:flex-row md:items-center mb-3 md:mb-0">
@@ -116,11 +116,11 @@ const Contacts = () => {
 
       {/* Filters */}
       <div className="bg-white p-4 rounded-t-md flex flex-col md:flex-row md:items-center md:justify-between shadow-md gap-3 md:gap-0">
-        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 w-full md:w-auto">
+        <div className="flex flex-col lg:flex-row md:items-center gap-2 md:gap-4 w-full md:w-auto">
           <select
             value={selectedFilter}
             onChange={(e) => setSelectedFilter(e.target.value)}
-            className="border border-gray-300 p-2 rounded w-full md:w-32 focus:outline-none focus:border-yellow-600"
+            className="border border-gray-300 p-2 rounded w-full lg:w-32 focus:outline-none focus:border-yellow-600"
           >
             <option value="All">All</option>
           </select>
