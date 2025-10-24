@@ -75,7 +75,6 @@ const Contacts = () => {
     }
   };
 
-  
   const handleExport = () => {
     const headers = ["Contact Name", "Group Name", "Tags", "Mobile Number"];
     const csvContent = [
