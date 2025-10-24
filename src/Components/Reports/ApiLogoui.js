@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Apilogoschartui from "../../Dynamic Components/Apilogochartui";
 import ReusableTable from "../../Dynamic Components/ReusableTable";
+import apiEndpoints from "../../apiconfig";
 
 const ApiLogoui = () => {
   const [data, setData] = useState([]);
@@ -10,7 +11,7 @@ const ApiLogoui = () => {
 
   const fetchLogs = () => {
     if (!phone) return;
-    fetch(`http://localhost/whatsapp_admin/whatsapp_log.php?phone=${encodeURIComponent(phone)}`)
+    fetch(`${apiEndpoints.whatsappLog}?phone=${encodeURIComponent(phone)}`)
       .then((res) => res.json())
       .then((res) => {
         if (res.status) setData(res.data);

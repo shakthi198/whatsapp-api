@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { HiChevronRight } from "react-icons/hi";
 import { LuDownload } from "react-icons/lu";
 import { CiCalendar } from "react-icons/ci";
 import TransactionsUI from "./TransactionsUI";
@@ -8,85 +7,78 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const Billing = () => {
-  const [activeTab, setActiveTab] = useState("billings"); // Default tab
+  const [activeTab, setActiveTab] = useState("billings");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [transactions, setTransactions] = useState([]); // Store transactions
+  const [transactions, setTransactions] = useState([]);
 
   return (
     <div
-      className="max-w-7xl mx-auto p-4 md:p-6"
-      style={{ fontFamily: "'Montserrat'" }}
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
+      style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 md:mb-6">
-        <div className="flex flex-col md:flex-row md:items-center mb-3 md:mb-0">
-          <h1 className="text-xl md:text-2xl font-medium mb-2 md:mb-0 md:mr-4">
-            Billing
-          </h1>
-          <div className="flex items-center text-xs md:text-sm text-gray-600 flex-wrap">
-            <span className="mr-2 hidden md:inline">|</span>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-2">
+        <div className="flex flex-col md:flex-row md:items-center gap-2">
+          <h1 className="text-2xl font-semibold text-gray-800">Billing</h1>
+          <div className="flex items-center text-sm text-gray-600 flex-wrap gap-1">
+            <span className="hidden md:inline">|</span>
             <span className="text-yellow-600">Home</span>
-            <span className="mx-1 md:mx-2">›</span>
+            <span>›</span>
             <span className="text-yellow-600">Billing</span>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex flex-wrap border-b border-gray-300">
-        <button
-          className={`px-4 md:px-6 py-2 text-sm md:text-md ${
-            activeTab === "billings"
-              ? "text-yellow-600 border-b-2 cursor-pointer border-yellow-600"
-              : "text-gray-500"
-          }`}
-          onClick={() => setActiveTab("billings")}
-        >
-          Billings
-        </button>
-
-        <button
-          className={`px-4 md:px-6 py-2 text-sm md:text-md ${
-            activeTab === "transactions"
-              ? "text-yellow-600 border-b-2 cursor-pointer border-yellow-600"
-              : "text-gray-500"
-          }`}
-          onClick={() => setActiveTab("transactions")}
-        >
-          Transactions
-        </button>
+      <div className="flex flex-wrap border-b border-gray-300 text-sm sm:text-base">
+        {[
+          { key: "billings", label: "Billings" },
+          { key: "transactions", label: "Transactions" },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            className={`px-4 sm:px-6 py-2 font-medium transition-colors ${
+              activeTab === tab.key
+                ? "text-yellow-600 border-b-2 border-yellow-600"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+            onClick={() => setActiveTab(tab.key)}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {/* Content */}
+      {/* Main Content */}
       <div className="mt-6">
         {activeTab === "billings" && (
           <>
             {/* Filters */}
-            <div className="bg-white p-4 rounded shadow-md flex flex-col md:flex-row gap-3 md:gap-6 items-stretch md:items-center justify-between">
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full">
-                <select className="border border-gray-300 p-2 rounded text-gray-600 w-full sm:w-48">
+            <div className="bg-white p-4 md:p-6 rounded-lg shadow flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center">
+              <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                <select className="border border-gray-300 p-2 rounded text-gray-600 w-full sm:w-48 focus:ring-2 focus:ring-yellow-400 outline-none">
                   <option value="all">All</option>
                 </select>
                 <input
                   type="text"
                   placeholder="Search tag"
-                  className="border border-gray-300 p-2 rounded text-gray-600 w-full sm:w-56"
+                  className="border border-gray-300 p-2 rounded text-gray-600 w-full sm:w-56 focus:ring-2 focus:ring-yellow-400 outline-none"
                 />
               </div>
 
-              <button className="bg-yellow-600 text-white px-4 py-2 rounded flex items-center justify-center w-full sm:w-auto">
+              <button className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded flex items-center justify-center w-full sm:w-auto transition-colors">
                 <LuDownload className="mr-2" /> Export
               </button>
             </div>
 
             {/* Balance Section */}
-            <div className="bg-white p-6 rounded-b-md shadow-md w-full flex flex-col items-center justify-center mt-6">
-              <h3 className="text-lg md:text-xl font-semibold text-gray-700 mb-4">
+            <div className="bg-white mt-6 p-6 rounded-lg shadow text-center">
+              <h3 className="text-xl font-semibold text-gray-700 mb-4">
                 Balance
               </h3>
 
               {/* Date Range */}
-              <div className="flex flex-col sm:flex-row items-center border border-gray-300 bg-white text-base px-2 py-2 rounded-md shadow-md w-full sm:w-auto">
+              <div className="flex flex-col sm:flex-row items-center justify-center border border-gray-300 bg-white px-3 py-2 rounded-md shadow-sm max-w-xs sm:max-w-md mx-auto">
                 <input
                   type="text"
                   className="text-gray-500 p-2 outline-none border-none bg-transparent w-full sm:w-auto"
@@ -98,20 +90,20 @@ const Billing = () => {
                   className="text-gray-500 p-2 outline-none border-none bg-transparent w-full sm:w-auto"
                   placeholder="End date"
                 />
-                <span className="text-gray-400 ml-2">
-                  <CiCalendar size={24} />
-                </span>
+                <CiCalendar className="text-gray-400 ml-2" size={22} />
               </div>
 
               {/* Balance Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mt-8 w-full">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mt-8">
                 {["MC", "UC", "AC", "BIC", "SM", "Total"].map((type) => (
                   <div
                     key={type}
-                    className="bg-gray-100 p-8 md:p-12 rounded shadow-md text-center border border-gray-300"
+                    className="bg-gray-100 p-6 sm:p-8 rounded-lg shadow text-center border border-gray-200 hover:shadow-md transition-shadow"
                   >
-                    <p className="text-lg md:text-xl font-bold">₹0.00</p>
-                    <p className="text-gray-600 mt-4 text-sm md:text-lg">
+                    <p className="text-lg sm:text-xl font-bold text-gray-800">
+                      ₹0.00
+                    </p>
+                    <p className="text-gray-600 mt-2 text-sm sm:text-base">
                       {type} Central Balance Usage
                     </p>
                   </div>
@@ -123,10 +115,10 @@ const Billing = () => {
 
         {activeTab === "transactions" && (
           <div>
-            {/* Add Transaction Button */}
+            {/* Add Transaction */}
             <div className="flex flex-col sm:flex-row justify-end mb-4">
               <button
-                className="px-4 py-2 rounded text-white bg-green-500 w-full sm:w-auto"
+                className="px-4 py-2 rounded text-white bg-green-500 hover:bg-green-600 w-full sm:w-auto transition-colors"
                 onClick={() => setIsDialogOpen(true)}
               >
                 Start Transaction
@@ -136,17 +128,17 @@ const Billing = () => {
             {/* Transactions Table */}
             <TransactionsUI transactions={transactions} />
 
-            {/* Payment dialog */}
+            {/* Payment Dialog */}
             <PaymentDialog
               isOpen={isDialogOpen}
               onClose={() => setIsDialogOpen(false)}
               addTransaction={(transaction) => {
-                const txnWithIdAndDate = {
+                const txnWithMeta = {
                   ...transaction,
-                  transaction_id: "TXN" + Date.now(), // unique temp ID
+                  transaction_id: "TXN" + Date.now(),
                   date_time: new Date().toLocaleString(),
                 };
-                setTransactions((prev) => [txnWithIdAndDate, ...prev]); // prepend new txn
+                setTransactions((prev) => [txnWithMeta, ...prev]);
                 setIsDialogOpen(false);
               }}
             />
@@ -154,8 +146,7 @@ const Billing = () => {
         )}
       </div>
 
-      {/* Toast */}
-      <ToastContainer />
+      <ToastContainer position="bottom-right" />
     </div>
   );
 };

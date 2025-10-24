@@ -5,16 +5,18 @@ header("Access-Control-Allow-Methods: POST, GET");
 header("Access-Control-Allow-Headers: Content-Type");
 
 // DB Config
-$host = "localhost";
-$user = "root";
-$password = "";
-$database = "whatapp"; // Change this if needed
+// $host = "localhost";
+// $user = "root";
+// $password = "";
+// $database = "whatsapp"; // Change this if needed
 
-$conn = new mysqli($host, $user, $password, $database);
+// $conn = new mysqli($host, $user, $password, $database);
 
-if ($conn->connect_error) {
-    die(json_encode(["status" => false, "message" => "Database connection failed."]));
-}
+// if ($conn->connect_error) {
+//     die(json_encode(["status" => false, "message" => "Database connection failed."]));
+// }
+
+require_once 'config.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 

@@ -16,18 +16,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Database connection
-$host = "localhost";
-$user = "root";
-$pass = "";
-$dbname = "whatsapp";
+// $host = "localhost";
+// $user = "root";
+// $pass = "";
+// $dbname = "whatsapp";
 
-$conn = new mysqli($host, $user, $pass, $dbname);
-if ($conn->connect_error) {
-    http_response_code(500);
-    echo json_encode(["status" => "error", "message" => "Database connection failed: " . $conn->connect_error]);
-    exit();
-}
+// $conn = new mysqli($host, $user, $pass, $dbname);
+// if ($conn->connect_error) {
+//     http_response_code(500);
+//     echo json_encode(["status" => "error", "message" => "Database connection failed: " . $conn->connect_error]);
+//     exit();
+// }
 
+require_once 'config.php';
 // ================= GET =================
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $sql = "SELECT 
@@ -101,46 +102,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $guid = $data['guid'] ?? bin2hex(random_bytes(16));
     $currentDateTime = date('Y-m-d H:i:s');
 
-    $sql = "INSERT INTO templates (
-                guid, name, categoryGuid, languageGuid, typeId, isFile,
-                templateHeaders, erpCategoryGuid, isVariable, body, bodyStyle,
-                actionId, actionGuid, templateFooter, fileGuids, createdOn,
-                modifiedOn, isActive, isDelete
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+   $sql = "INSERT INTO templates (
+    guid, name, categoryGuid, languageGuid, typeId, body, bodyStyle,
+    templateFooter, templateHeaders, fileGuids, actionId, actionGuid,
+    isFile, isVariable, isActive, isDelete, createdOn, modifiedOn, erpCategoryGuid
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-    $stmt = $conn->prepare($sql);
-    if (!$stmt) {
-        http_response_code(500);
-        echo json_encode(["status" => "error", "message" => "Prepare failed: " . $conn->error]);
-        exit();
-    }
+$stmt = $conn->prepare($sql);
 
-    // Ensure optional fields are null if not provided
-    $name = $data['name'];
-    $categoryGuid = $data['categoryGuid'];
-    $languageGuid = $data['languageGuid'];
-    $typeId = (int)$data['typeId'];
-    $isFile = isset($data['isFile']) ? (int)$data['isFile'] : 0;
-    $templateHeaders = json_encode($data['templateHeaders'] ?? []);
-    $erpCategoryGuid = $data['erpCategoryGuid'] ?? '';
-    $isVariable = isset($data['isVariable']) ? (int)$data['isVariable'] : 0;
-    $body = $data['body'] ?? '';
-    $bodyStyle = $data['bodyStyle'] ?? '';
-   $actionId = isset($data['actionId']) ? (int)$data['actionId'] : 0;
-  $actionGuid = $data['actionGuid'] ?? '';
-    $templateFooter = $data['templateFooter'] ?? '';
-    $fileGuids = json_encode($data['fileGuids'] ?? []);
-    $createdOn = $currentDateTime;
-    $modifiedOn = $currentDateTime;
-    $isActive = 1;
-    $isDelete = 0;
 
-  $stmt->bind_param(
-    "sssssississssssssssii",
-    $guid, $name, $categoryGuid, $languageGuid, $typeId, $isFile,
-    $templateHeaders, $erpCategoryGuid, $isVariable, $body, $bodyStyle,
-    $actionId, $actionGuid, $templateFooter, $fileGuids,
-    $createdOn, $modifiedOn, $isActive, $isDelete
+
+// Assign variables from POST data
+$guid = $data['guid'] ?? bin2hex(random_bytes(16));
+$name = $data['name'];
+$categoryGuid = $data['categoryGuid'];
+$languageGuid = $data['languageGuid'];
+$typeId = (int)$data['typeId'];
+$body = $data['body'] ?? '';
+$bodyStyle = $data['bodyStyle'] ?? '';
+$templateFooter = $data['templateFooter'] ?? '';
+$templateHeaders = json_encode($data['templateHeaders'] ?? []);
+$fileGuids = json_encode($data['fileGuids'] ?? []);
+$actionId = isset($data['actionId']) ? (int)$data['actionId'] : null;
+$actionGuid = $data['actionGuid'] ?? null;
+$isFile = isset($data['isFile']) ? (int)$data['isFile'] : 0;
+$isVariable = isset($data['isVariable']) ? (int)$data['isVariable'] : 0;
+$isActive = 1;
+$isDelete = 0;
+$createdOn = date('Y-m-d H:i:s');
+$modifiedOn = $createdOn;
+$erpCategoryGuid = $data['erpCategoryGuid'] ?? null;
+
+// ✅ Correct types for 19 fields
+$stmt->bind_param(
+    "ssssisssssissiiiiss",
+    $guid,
+    $name,
+    $categoryGuid,
+    $languageGuid,
+    $typeId,
+    $body,
+    $bodyStyle,
+    $templateFooter,
+    $templateHeaders,
+    $fileGuids,
+    $actionId,
+    $actionGuid,
+    $isFile,
+    $isVariable,
+    $isActive,
+    $isDelete,
+    $createdOn,
+    $modifiedOn,
+    $erpCategoryGuid
 );
 
 
