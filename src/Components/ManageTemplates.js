@@ -229,7 +229,7 @@ const ManageTemplates = () => {
 
   return (
     <div
-      className="p-6 bg-gray-100 xl:w-6xl lg:w-2xl md:w-md"
+      className="p-6 bg-gray-100 xl:w-full lg:w-2xl md:w-md"
       style={{ fontFamily: "Montserrat" }}
     >
       {/* Header */}
