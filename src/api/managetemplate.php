@@ -15,18 +15,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-// Database connection
-$host = "localhost";
-$user = "root";
-$pass = "";
-$dbname = "whatsapp";
+require_once "config.php";
 
-$conn = new mysqli($host, $user, $pass, $dbname);
-if ($conn->connect_error) {
-    http_response_code(500);
-    echo json_encode(["status" => "error", "message" => "Database connection failed: " . $conn->connect_error]);
-    exit();
-}
+// Database connection
+// $host = "localhost";
+// $user = "root";
+// $pass = "";
+// $dbname = "whatsapp";
+
+// $conn = new mysqli($host, $user, $pass, $dbname);
+// if ($conn->connect_error) {
+//     http_response_code(500);
+//     echo json_encode(["status" => "error", "message" => "Database connection failed: " . $conn->connect_error]);
+//     exit();
+// }
 
 // ================= GET =================
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {

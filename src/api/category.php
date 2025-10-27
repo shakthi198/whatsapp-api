@@ -8,19 +8,21 @@ header("Access-Control-Allow-Credentials: true");
 header("Cache-Control: no-cache, must-revalidate"); // Add this line
 header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Add this line (past date)
 
-// Database config
-$host = "localhost";
-$user = "root";
-$password = "";
-$database = "whatapp";
+require_once "config.php";
 
-$conn = new mysqli($host, $user, $password, $database);
-if ($conn->connect_error) {
-    die(json_encode([
-        "status" => false, 
-        "message" => "Database connection failed: " . $conn->connect_error
-    ]));
-}
+// Database config
+// $host = "localhost";
+// $user = "root";
+// $password = "";
+// $database = "whatapp";
+
+// $conn = new mysqli($host, $user, $password, $database);
+// if ($conn->connect_error) {
+//     die(json_encode([
+//         "status" => false, 
+//         "message" => "Database connection failed: " . $conn->connect_error
+//     ]));
+// }
 
 $method = $_SERVER['REQUEST_METHOD'];
 
