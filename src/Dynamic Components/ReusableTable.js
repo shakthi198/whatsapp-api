@@ -6,7 +6,7 @@ const ReusableTable = ({ columns, data }) => {
     <div className="overflow-x-auto">
       <table className="w-full table-auto border-collapse">
         {/* Table Header */}
-        <thead className="bg-gray-200">
+        <thead className="bg-gray-200" style={{ fontFamily: "Montserrat" }}>
           <tr>
             {columns.map((col, index) => (
               <th
@@ -20,12 +20,15 @@ const ReusableTable = ({ columns, data }) => {
         </thead>
 
         {/* Table Body */}
-        <tbody className="bg-white">
+        <tbody className="bg-white" style={{ fontFamily: "Montserrat" }}>
           {data.length > 0 ? (
             data.map((row, rowIndex) => (
               <tr key={rowIndex} className="hover:bg-gray-50">
                 {columns.map((col, colIndex) => (
-                  <td key={colIndex} className="px-4 py-2 text-gray-600 text-gray-600 font-medium">
+                  <td
+                    key={colIndex}
+                    className="px-4 py-2 text-gray-600 text-gray-600 font-medium"
+                  >
                     {row[col] || "-"}
                   </td>
                 ))}
@@ -38,8 +41,10 @@ const ReusableTable = ({ columns, data }) => {
                 className="text-center text-gray-400 py-10"
               >
                 <div className="flex flex-col items-center justify-center">
-                <FiInbox size={50}/>
-                  <span className="text-lg font-semibold">No data available</span>
+                  <FiInbox size={50} />
+                  <span className="text-lg font-semibold">
+                    No data available
+                  </span>
                 </div>
               </td>
             </tr>

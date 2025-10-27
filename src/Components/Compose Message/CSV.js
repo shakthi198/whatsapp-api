@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronDown, Upload, X } from "lucide-react";
 import MessagePopup from "../MessagePopup";
-
+import { HiChevronRight, HiChevronLeft } from "react-icons/hi";
 export default function SingleMsg() {
   const [campaignName, setCampaignName] = useState("CAMP-" + Math.floor(Math.random() * 100000));
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -85,17 +85,22 @@ export default function SingleMsg() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-4 md:p-6" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+    <div
+      className="max-w-7xl mx-auto p-4 md:p-6"
+      style={{ fontFamily: "'Montserrat', sans-serif" }}
+    >
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 md:mb-6">
-        <div className="flex flex-col md:flex-row md:items-center mb-3 md:mb-0">
-          <h1 className="text-xl md:text-2xl font-medium mb-2 md:mb-0 md:mr-4">Compose Message</h1>
-          <div className="flex items-center text-xs md:text-sm text-gray-600">
-            <span className="mr-2 hidden md:inline">|</span>
-            <span className="text-yellow-600">Home</span>
-            <span className="mx-1 md:mx-2">›</span>
-            <span className="text-yellow-600">Compose Message</span>
+      <div className="flex flex-col lg:flex-row items-start lg:items-center mb-4 gap-2">
+        <h2 className="text-3xl font-semibold text-gray-700 whitespace-wrap">
+          Compose Message
+        </h2>
+        <div className="flex items-center flex-nowrap text-yellow-600 text-md gap-1">
+          <div className="flex items-center text-lg text-gray-600 flex-wrap gap-1">
+            <span className="hidden md:inline">|</span>
           </div>
+          <span className="whitespace-nowrap">Home</span>
+          <HiChevronRight className="mx-1 text-black text-md" />
+          <span className="whitespace-nowrap">Compose Message</span>
         </div>
       </div>
 
@@ -147,7 +152,7 @@ export default function SingleMsg() {
                   Message Content
                 </label>
                 {messageContent && (
-                  <button 
+                  <button
                     onClick={() => setMessageContent("")}
                     className="text-gray-400 hover:text-gray-600"
                   >
@@ -179,13 +184,13 @@ export default function SingleMsg() {
 
             {/* Action Buttons */}
             <div className="flex flex-col-reverse md:flex-row justify-end gap-2 md:gap-4 pt-2">
-              <button 
+              <button
                 onClick={handleClear}
                 className="px-4 md:px-6 py-2 bg-white text-gray-700 rounded-md border border-gray-300 hover:bg-gray-50 transition-colors text-sm md:text-base"
               >
                 Clear
               </button>
-              
+
               <div className="relative">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -194,7 +199,7 @@ export default function SingleMsg() {
                   Send Now
                   <ChevronDown className="w-4 h-4 ml-2" />
                 </button>
-                
+
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-1 w-full md:w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                     <button
@@ -226,12 +231,13 @@ export default function SingleMsg() {
             {/* Upload Header */}
             <div className="bg-green-50 border border-green-100 rounded-md p-3 text-center">
               <p className="text-xs md:text-sm text-yellow-600 font-medium">
-                Upload <span className="font-bold">CSV only</span>, Max file size: <span className="font-bold">32 MB</span>
+                Upload <span className="font-bold">CSV only</span>, Max file
+                size: <span className="font-bold">32 MB</span>
               </p>
             </div>
 
             {/* File Upload Frame */}
-            <div 
+            <div
               className="border-2 border-dashed border-gray-300 rounded-lg p-4 md:p-6 text-center hover:border-yellow-500 transition-colors"
               onDragOver={handleDragOver}
               onDrop={handleDrop}
@@ -241,7 +247,9 @@ export default function SingleMsg() {
                   <Upload className="w-6 h-6 md:w-8 md:h-8 text-gray-400" />
                   <p className="text-xs md:text-sm text-gray-600">
                     {selectedFile ? (
-                      <span className="font-medium text-green-600">{selectedFile.name}</span>
+                      <span className="font-medium text-green-600">
+                        {selectedFile.name}
+                      </span>
                     ) : (
                       "Drag & drop your file here or click to browse"
                     )}

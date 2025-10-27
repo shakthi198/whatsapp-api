@@ -5,7 +5,7 @@ import TransactionsUI from "./TransactionsUI";
 import PaymentDialog from "./PaymentDialog";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import { HiChevronRight, HiChevronLeft } from "react-icons/hi";
 const Billing = () => {
   const [activeTab, setActiveTab] = useState("billings");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -13,19 +13,21 @@ const Billing = () => {
 
   return (
     <div
-      className="xl:w-7xl lg:w-2xl md:w-md mx-auto px-4 sm:px-6 lg:px-8 py-6"
+      className="xl:w-full lg:w-2xl md:w-md mx-auto px-4 sm:px-6 lg:px-8 py-6"
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-2">
-        <div className="flex flex-col md:flex-row md:items-center gap-2">
-          <h1 className="text-2xl font-semibold text-gray-800">Billing</h1>
-          <div className="flex items-center text-sm text-gray-600 flex-wrap gap-1">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center mb-4 gap-2">
+        <h2 className="text-3xl font-semibold text-gray-700 whitespace-wrap">
+          Billings
+        </h2>
+        <div className="flex items-center flex-nowrap text-yellow-600 text-md gap-1">
+          <div className="flex items-center text-lg text-gray-600 flex-wrap gap-1">
             <span className="hidden md:inline">|</span>
-            <span className="text-yellow-600">Home</span>
-            <span>›</span>
-            <span className="text-yellow-600">Billing</span>
           </div>
+          <span className="whitespace-nowrap">Home</span>
+          <HiChevronRight className="mx-1 text-black text-md" />
+          <span className="whitespace-nowrap">Billings</span>
         </div>
       </div>
 

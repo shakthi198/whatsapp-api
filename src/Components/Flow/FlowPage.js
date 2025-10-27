@@ -48,14 +48,17 @@ const FlowPage = () => {
   return (
     <div className="max-w-7xl xl:w-full lg:w-2xl md:w-md mx-auto p-4 md:p-6 font-montserrat">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 md:mb-6 gap-2 md:gap-0">
-        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-          <h2 className="text-xl md:text-2xl font-medium">Flow</h2>
-          <div className="flex items-center text-xs md:text-sm text-gray-600 flex-wrap">
-            <span className="text-yellow-600">Home</span>
-            <span className="mx-1 md:mx-2">›</span>
-            <span className="text-yellow-600">Flow</span>
-          </div>
+      <div className="flex flex-col lg:flex-row items-start lg:items-center mb-4 gap-2">
+        <h2 className="text-3xl font-semibold text-gray-700 whitespace-wrap">
+          Flow
+        </h2>
+        <div className="flex items-center flex-nowrap text-yellow-600 text-md gap-1">
+      <div className="flex items-center text-lg text-gray-600 flex-wrap gap-1">
+            <span className="hidden md:inline">|</span>
+            </div>
+          <span className="whitespace-nowrap">Home</span>
+          <HiChevronRight className="mx-1 text-black text-md" />
+          <span className="whitespace-nowrap">Flow</span>
         </div>
       </div>
 

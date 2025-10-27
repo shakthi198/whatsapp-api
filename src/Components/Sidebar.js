@@ -118,12 +118,10 @@ const Sidebar = ({ darkMode }) => {
             closeSidebar={closeSidebar}
           />
 
-          <DropdownItem
+          <NavItem
             icon={<BarChart size={20} />}
             label="Reports"
-            isOpen={dropdowns.reports}
-            toggleDropdown={() => toggleDropdown("reports")}
-            subItems={[{ label: "API Logs", path: "/api-logs" }]}
+            path="/api-logs"
             closeSidebar={closeSidebar}
           />
 
