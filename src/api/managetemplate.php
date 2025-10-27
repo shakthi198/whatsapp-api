@@ -15,13 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
+
 require_once "config.php";
 
-$conn = new mysqli($servername, $username, $password, $dbname);
-if ($conn->connect_error) {
-    echo json_encode(["status" => "error", "message" => "DB Connection Failed"]);
-    exit;
-}
 // ================= GET =================
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $sql = "SELECT 

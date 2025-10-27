@@ -14,11 +14,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Add this line (past date)
 
 require_once "config.php";
 
-$conn = new mysqli($servername, $username, $password, $dbname);
-if ($conn->connect_error) {
-    echo json_encode(["status" => "error", "message" => "DB Connection Failed"]);
-    exit;
-}
+
 
 $method = $_SERVER['REQUEST_METHOD'];
 

@@ -6,11 +6,8 @@ header("Access-Control-Allow-Headers: Content-Type");
 
 require_once "config.php";
 
-$conn = new mysqli($servername, $username, $password, $dbname);
-if ($conn->connect_error) {
-    echo json_encode(["status" => "error", "message" => "DB Connection Failed"]);
-    exit;
-}
+require_once "config.php";
+
 
 $method = $_SERVER['REQUEST_METHOD'];
 
