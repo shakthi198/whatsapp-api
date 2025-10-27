@@ -10,6 +10,7 @@ import {
   useTheme,
 } from "@mui/material";
 import axios from "axios";
+import apiEndpoints from "../apiconfig";
 
 const ReminderPopup = ({ token, onClose }) => {
   const yellow600 = "#d08700";
@@ -35,7 +36,7 @@ const ReminderPopup = ({ token, onClose }) => {
 
     axios
       .post(
-        "http://localhost/whatsapp_admin/register.php",
+        `${apiEndpoints.getProfile}`,
         { action: "getProfile" },
         { headers: { Authorization: `Bearer ${token}` } }
       )
@@ -67,7 +68,7 @@ const ReminderPopup = ({ token, onClose }) => {
   const handleSubmit = () => {
     axios
       .post(
-        "http://localhost/whatsapp_admin/register.php",
+        `${apiEndpoints.getProfile}`,
         { ...formData, action: "update" },
         { headers: { Authorization: `Bearer ${token}` } }
       )
@@ -149,7 +150,7 @@ const ReminderPopup = ({ token, onClose }) => {
             { label: "Street Name", name: "streetName" },
             { label: "City", name: "city" },
             { label: "State", name: "state" },
-            { label: "Country", name: "country", select: true, options: ["India", "USA"] },
+            { label: "Country", name: "country"},
             { label: "Zip", name: "pincode" },
             { label: "Company Website", name: "company_website" },
             { label: "GST NO", name: "gstno" },

@@ -13,6 +13,7 @@ require_once "config.php";
 // $database = "whatapp"; // Change this if needed
 
 // $conn = new mysqli($host, $user, $password, $database);
+// $conn = new mysqli($host, $user, $password, $database);
 
 // if ($conn->connect_error) {
 //     die(json_encode(["status" => false, "message" => "Database connection failed."]));

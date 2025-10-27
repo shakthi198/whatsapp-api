@@ -29,6 +29,7 @@ import UISubscribe from "./Components/Contacts/UISubscribe";
 import LiveChatUI from "./Components/Chat/livechat";
 import Historylive from "./Components/Chat/Historylive";
 import ChatAgentpage from "./Components/Chat/ChatAgentPage";
+import ProfilePage from "./Components/Profile/profile";
 
 function App() {
     const [darkMode, setDarkMode] = useState(() => localStorage.getItem("theme") === "dark");
@@ -76,6 +77,7 @@ function MainContent({ darkMode, setDarkMode }) {
                     {/* Protected routes */}
                    {/* Redirect root "/" to "/dashboard" if token exists */}
                     <Route path="/" element={<ProtectedRoute><Navigate to="/dashboard" replace /></ProtectedRoute>} />
+                    <Route path="/profile" element={<ProtectedRoute><ProfilePage></ProfilePage></ProtectedRoute>} />
                     <Route path="/dashboard" element={<ProtectedRoute><Dashboard darkMode={darkMode} /></ProtectedRoute>} />
                     <Route path="/templates" element={<ProtectedRoute><ManageTemplates /></ProtectedRoute>} />
                     <Route path="/compose" element={<ProtectedRoute><SingleMsg /></ProtectedRoute>} />

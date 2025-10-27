@@ -15,6 +15,10 @@ require_once "config.php";
 // $user = "root";
 // $password = "";
 // $database = "whatapp";
+// $host = "localhost";
+// $user = "root";
+// $password = "";
+// $database = "whatapp";
 
 // $conn = new mysqli($host, $user, $password, $database);
 // if ($conn->connect_error) {

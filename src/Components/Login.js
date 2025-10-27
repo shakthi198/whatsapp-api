@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import apiEndpoints from "../apiconfig";
 
 const Login = () => {
   const [isRegister, setIsRegister] = useState(false);
@@ -27,7 +28,7 @@ const Login = () => {
     if (Object.keys(tempErrors).length > 0) return;
 
     try {
-      const res = await fetch("http://localhost/whatsapp_admin/register.php", {
+      const res = await fetch(`${apiEndpoints.getProfile}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "login", email, password }),
@@ -62,7 +63,7 @@ const Login = () => {
     if (Object.keys(tempErrors).length > 0) return;
 
     try {
-      const res = await fetch("http://localhost/whatsapp_admin/register.php", {
+      const res = await fetch(`${apiEndpoints.getProfile}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
