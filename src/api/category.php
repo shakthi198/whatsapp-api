@@ -8,7 +8,13 @@ header("Access-Control-Allow-Credentials: true");
 header("Cache-Control: no-cache, must-revalidate"); // Add this line
 header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Add this line (past date)
 
+require_once "config.php";
+
 // Database config
+// $host = "localhost";
+// $user = "root";
+// $password = "";
+// $database = "whatapp";
 // $host = "localhost";
 // $user = "root";
 // $password = "";
@@ -21,7 +27,6 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Add this line (past date)
 //         "message" => "Database connection failed: " . $conn->connect_error
 //     ]));
 // }
-require_once 'config.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 

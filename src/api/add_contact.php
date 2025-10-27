@@ -4,12 +4,14 @@ header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json");
 header("Access-Control-Allow-Methods: GET, POST, DELETE");
 
-$conn = new mysqli("localhost", "root", "", "whatsapp");
+require_once "config.php";
 
-if ($conn->connect_error) {
-    echo json_encode(["status" => false, "message" => "Database connection failed"]);
-    exit;
-}
+// $conn = new mysqli("localhost", "root", "", "whatsapp");
+
+// if ($conn->connect_error) {
+//     echo json_encode(["status" => false, "message" => "Database connection failed"]);
+//     exit;
+// }
 
 // Decode input for POST/DELETE requests
 $input = json_decode(file_get_contents("php://input"), true);
