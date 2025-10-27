@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import apiEndpoints from "../apiconfig";
-import apiEndpoints from "../apiconfig";
+
 
 const ReminderPopup = ({ token, onClose }) => {
   const yellow600 = "#d08700";

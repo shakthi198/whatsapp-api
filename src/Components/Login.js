@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import apiEndpoints from "../apiconfig";
-import apiEndpoints from "../apiconfig";
 
 const Login = () => {
   const [isRegister, setIsRegister] = useState(false);

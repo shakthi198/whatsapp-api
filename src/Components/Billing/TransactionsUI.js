@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { MdOutlineInbox } from "react-icons/md";
 import axios from "axios";
 import apiEndpoints from "../../apiconfig";
-import apiEndpoints from "../../apiconfig";
+
 
 const TransactionsUI = () => {
   const [transactions, setTransactions] = useState([]);
