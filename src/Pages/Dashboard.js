@@ -6,8 +6,7 @@ import { MdSupportAgent, MdAssignment, MdPendingActions, MdOutlineCancel } from 
 import CardComponent from "../Components/Card.js";
 import ClientOverview from "../Components/ClientOverview";
 import ReminderPopup from "../Components/ReminderPopup";
-import apiEndpoints from "../apiconfig/index.js";
-
+import apiEndpoints from "../apiconfig";
 const Dashboard = () => {
   const navigate = useNavigate();
 
@@ -39,7 +38,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (!token) return;
 
-    fetch(apiEndpoints.getProfile, {
+    fetch(`${apiEndpoints.getProfile}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -279,7 +278,7 @@ const Dashboard = () => {
               <LinearProgress
                 variant="determinate"
                 value={usagePercentage}
-                sx={{ height: "10px", borderRadius: "5px", marginTop: "10px" }}
+                sx={{ height: "10px", borderRadius: "5px", marginTop: "10px" ,position:"relative" }}
               />
               <Typography
                 sx={{ marginTop: "10px", color: "#666", textAlign: "center", fontFamily: "Montserrat, sans-serif" }}

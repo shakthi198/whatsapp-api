@@ -7,7 +7,6 @@ import {
   faCopy,
   faAngleLeft,
   faAngleRight,
-  faEnvelope,
 } from "@fortawesome/free-solid-svg-icons";
 import { HiChevronRight, HiChevronLeft } from "react-icons/hi";
 import MessagePopup from "./MessagePopup";
@@ -28,8 +27,6 @@ const ManageTemplates = () => {
   const templatesPerPage = 5;
   const [curlModal, setCurlModal] = useState({ open: false, data: null });
 
-
-  // Load templates from API
   useEffect(() => {
     const fetchTemplates = async () => {
       setIsLoading(true);
@@ -38,13 +35,10 @@ const ManageTemplates = () => {
         const data = await response.json();
 
         if (data.status === "success") {
-          // Transform data to match expected structure
-          // In your fetchTemplates function:
-          // In your fetchTemplates function:
           const formattedTemplates = data.data.map((template) => ({
             id: template.id,
             guid: template.guid,
-            templateName: template.template_name, // Changed from name to template_name
+            templateName: template.template_name,
             category: template.category,
             status: template.isActive ? "Active" : "Inactive",
             type:
@@ -54,11 +48,9 @@ const ManageTemplates = () => {
             templateFooter: template.template_footer,
             attributes: (() => {
               try {
-                // if it's a stringified JSON, parse it
                 if (typeof template.templateHeaders === "string") {
                   return JSON.parse(template.templateHeaders);
                 }
-                // if it's already an array, return as-is
                 return template.templateHeaders || [];
               } catch {
                 return [];
@@ -82,7 +74,6 @@ const ManageTemplates = () => {
     fetchTemplates();
   }, []);
 
-  // Handle new template from navigation state
   useEffect(() => {
     if (location.state?.template) {
       const newTemplate = location.state.template;
@@ -121,70 +112,59 @@ const ManageTemplates = () => {
     }
   };
 
-  // Handle copy template
   const handleCopy = (template) => {
     navigate("/create-template", { state: { template } });
   };
 
-  // Handle preview template
   const handlePreview = (template) => {
     setModal({ type: "preview", data: template });
   };
 
-  // Handle create template modal
   const handleCreateTemplate = () => {
     setModal({ type: "create", data: null });
   };
-  
-const handleShowCurl = (template, values = {}) => {
-  // values is an object like { name: "Shakthi", date: "2025-09-10" }
 
-  const bodyComponent = { type: "body" };
+  const handleShowCurl = (template, values = {}) => {
+    const bodyComponent = { type: "body" };
 
-  // Check if template.attributes exists
-  if (template.attributes && typeof template.attributes === "object") {
-    // Convert object to array if needed
-    const attributesArray = Array.isArray(template.attributes)
-      ? template.attributes
-      : [template.attributes];
+    if (template.attributes && typeof template.attributes === "object") {
+      const attributesArray = Array.isArray(template.attributes)
+        ? template.attributes
+        : [template.attributes];
 
-    bodyComponent.parameters = attributesArray.map((attr, index) => {
-      const key =
-        attr?.text || attr?.value || attr?.name || `value-${index + 1}`;
-      return {
-        type: attr?.type || "text",
-        text: values[key] || key, // inject real value if provided
-      };
-    });
-  }
+      bodyComponent.parameters = attributesArray.map((attr, index) => {
+        const key =
+          attr?.text || attr?.value || attr?.name || `value-${index + 1}`;
+        return {
+          type: attr?.type || "text",
+          text: values[key] || key,
+        };
+      });
+    }
 
-  const curlJSON = {
-    to: "<sample-number-with-country-code>", // replace with real number
-    type: "template",
-    template: {
-      language: { policy: "deterministic", code: "en" },
-      name: template.templateName || template.name || "defaultTemplate",
-      components: [bodyComponent],
-    },
-  };
+    const curlJSON = {
+      to: "<sample-number-with-country-code>",
+      type: "template",
+      template: {
+        language: { policy: "deterministic", code: "en" },
+        name: template.templateName || template.name || "defaultTemplate",
+        components: [bodyComponent],
+      },
+    };
 
-  console.log("Generated cURL JSON 👉", curlJSON);
+    console.log("Generated cURL JSON 👉", curlJSON);
 
-  // Optional: open modal with cURL command
-  const curlCommand = `curl --location 'http://localhost/whatsapp?token=<sample-token>' \\
+    const curlCommand = `curl --location 'http://localhost/whatsapp?token=<sample-token>' \\
 --header 'Content-Type: application/json' \\
 --data '${JSON.stringify(curlJSON, null, 2)}'`;
 
-  setCurlModal({ open: true, data: curlCommand });
-};
+    setCurlModal({ open: true, data: curlCommand });
+  };
 
-
-  // Close modal
   const closeModal = () => {
     setModal({ type: null, data: null });
   };
 
-  // Filter templates
   const filteredTemplates = templates.filter((template) => {
     const matchesSearch =
       template.templateName &&
@@ -196,7 +176,6 @@ const handleShowCurl = (template, values = {}) => {
     return matchesSearch && matchesCategory && matchesType;
   });
 
-  // Pagination logic
   const indexOfLastTemplate = currentPage * templatesPerPage;
   const indexOfFirstTemplate = indexOfLastTemplate - templatesPerPage;
   const currentTemplates = filteredTemplates.slice(
@@ -217,7 +196,6 @@ const handleShowCurl = (template, values = {}) => {
     }
   };
 
-  // Extract unique categories and types
   const categories = [
     ...new Set(templates.map((template) => template.category)),
   ];
@@ -248,24 +226,27 @@ const handleShowCurl = (template, values = {}) => {
       </div>
     );
   }
+
   return (
-    <div className="p-6 bg-gray-100" style={{ fontFamily: "Montserrat" }}>
+    <div
+      className="p-6 bg-gray-100 xl:w-full lg:w-2xl md:w-md"
+      style={{ fontFamily: "Montserrat" }}
+    >
       {/* Header */}
-      <div className="flex items-center mb-4">
-        <h2 className="text-3xl font-semibold text-gray-700">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center mb-4 gap-2">
+        <h2 className="text-3xl font-semibold text-gray-700 whitespace-wrap">
           Manage Template
         </h2>
-        <div className="h-5 w-[2px] bg-gray-300 mx-2"></div>
-        <div className="text-yellow-600 text-md flex items-center">
-          <span>Home</span>
+        <div className="flex items-center flex-nowrap text-yellow-600 text-md gap-1">
+          <span className="whitespace-nowrap">Home</span>
           <HiChevronRight className="mx-1 text-black text-md" />
-          <span className="text-yellow-600">Manage Template</span>
+          <span className="whitespace-nowrap">Manage Template</span>
         </div>
       </div>
 
       {/* Table and Filters */}
       <div className="bg-white p-4 shadow rounded-lg border border-gray-300">
-        <div className="flex justify-end items-center pb-4 flex-wrap gap-2">
+        <div className="flex justify-start items-center pb-4 flex-wrap gap-2">
           <div className="flex gap-2 flex-wrap">
             <input
               type="text"
@@ -311,102 +292,133 @@ const handleShowCurl = (template, values = {}) => {
         </div>
 
         {/* Table */}
-        <table className="w-full mt-4 border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-gray-200 text-left">
-              <th className="p-3 text-gray-600 font-medium">S.No.</th>
-              <th className="p-3 text-gray-600 font-medium">Template Name</th>
-              <th className="p-3 text-gray-600 font-medium">Category</th>
-              <th className="p-3 text-gray-600 font-medium">Status</th>
-              <th className="p-3 text-gray-600 font-medium">Type</th>
-              <th className="p-3 text-gray-600 font-medium">Created On</th>
-              <th className="p-3 text-gray-600 font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentTemplates.length > 0 ? (
-              currentTemplates.map((template, index) => (
-                <tr
-                  key={template.id}
-                  className="border border-gray-300 hover:bg-gray-50"
-                >
-                  <td className="p-3">{indexOfFirstTemplate + index + 1}</td>
-                  <td className="p-3">{template.templateName}</td>
-                  <td className="p-3">{template.category}</td>
-                  <td className="p-3">
-                    <span
-                      className={`px-2 py-1 rounded text-sm ${
-                        template.status === "Approved"
-                          ? "bg-green-500 text-white"
-                          : template.status === "Pending"
-                          ? "bg-yellow-500 text-white"
-                          : "bg-red-500 text-white"
-                      }`}
-                    >
-                      {template.status}
-                    </span>
-                  </td>
-                  <td className="p-3">{template.type}</td>
-                  <td className="p-3">
-                    {new Date(template.createdOn).toLocaleString()}
-                  </td>
-                  <td className="p-3 flex space-x-2">
-                    <button
-                      className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
-                      onClick={() => handlePreview(template)}
-                      title="Preview"
-                    >
-                      <FontAwesomeIcon
-                        icon={faEye}
-                        className="text-yellow-600"
-                      />
-                    </button>
-                    <button
-                      className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
-                      onClick={() => handleCopy(template)}
-                      title="Copy"
-                    >
-                      <FontAwesomeIcon
-                        icon={faCopy}
-                        className="text-yellow-600"
-                      />
-                    </button>
-                    <button
-                      className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
-                      onClick={() => handleDelete(template.id)}
-                      title="Delete"
-                    >
-                      <FontAwesomeIcon
-                        icon={faTrash}
-                        className="text-yellow-600"
-                      />
-                    </button>
-                    <button
-                      className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
-                      title="Show cURL"
-                      onClick={() => handleShowCurl(template)}
-                    >
-                      <FontAwesomeIcon
-                        icon={faAngleLeft}
-                        className="text-yellow-600"
-                      />
-                      <FontAwesomeIcon
-                        icon={faAngleRight}
-                        className="text-yellow-600 ml-1"
-                      />
-                    </button>
+        <div className="w-full max-w-full overflow-x-auto mt-4">
+          <table className="min-w-[700px] w-full border-collapse border border-gray-300">
+            <thead>
+              <tr className="bg-gray-200 text-left">
+                <th className="p-3 text-gray-600 font-medium whitespace-nowrap">
+                  S.No.
+                </th>
+                <th className="p-3 text-gray-600 font-medium whitespace-nowrap">
+                  Template Name
+                </th>
+                <th className="p-3 text-gray-600 font-medium whitespace-nowrap">
+                  Category
+                </th>
+                <th className="p-3 text-gray-600 font-medium whitespace-nowrap">
+                  Status
+                </th>
+                <th className="p-3 text-gray-600 font-medium whitespace-nowrap">
+                  Type
+                </th>
+                <th className="p-3 text-gray-600 font-medium whitespace-nowrap">
+                  Created On
+                </th>
+                <th className="p-3 text-gray-600 font-medium whitespace-nowrap">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentTemplates.length > 0 ? (
+                currentTemplates.map((template, index) => (
+                  <tr
+                    key={template.id}
+                    className="border border-gray-300 hover:bg-gray-50 text-sm md:text-base"
+                  >
+                    <td className="p-3">{indexOfFirstTemplate + index + 1}</td>
+                    <td className="p-3">{template.templateName}</td>
+                    <td className="p-3">{template.category}</td>
+                    <td className="p-3">
+                      <span
+                        className={`px-2 py-1 rounded text-xs md:text-sm ${
+                          template.status === "Approved"
+                            ? "bg-green-500 text-white"
+                            : template.status === "Pending"
+                            ? "bg-yellow-500 text-white"
+                            : "bg-red-500 text-white"
+                        }`}
+                      >
+                        {template.status}
+                      </span>
+                    </td>
+                    <td className="p-3">{template.type}</td>
+                    <td className="p-3">
+                      {new Date(template.createdOn).toLocaleString()}
+                    </td>
+                    <td className="p-3">
+                      {/* Desktop: show buttons only on large screens */}
+                      <div className="hidden lg:flex space-x-2">
+                        <button
+                          className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
+                          onClick={() => handlePreview(template)}
+                          title="Preview"
+                        >
+                          <FontAwesomeIcon
+                            icon={faEye}
+                            className="text-yellow-600"
+                          />
+                        </button>
+                        <button
+                          className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
+                          onClick={() => handleCopy(template)}
+                          title="Copy"
+                        >
+                          <FontAwesomeIcon
+                            icon={faCopy}
+                            className="text-yellow-600"
+                          />
+                        </button>
+                        <button
+                          className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
+                          onClick={() => handleDelete(template.id)}
+                          title="Delete"
+                        >
+                          <FontAwesomeIcon
+                            icon={faTrash}
+                            className="text-yellow-600"
+                          />
+                        </button>
+                        <button
+                          className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
+                          onClick={() => handleShowCurl(template)}
+                          title="Show cURL"
+                        >
+                          <FontAwesomeIcon
+                            icon={faAngleLeft}
+                            className="text-yellow-600"
+                          />
+                          <FontAwesomeIcon
+                            icon={faAngleRight}
+                            className="text-yellow-600 ml-1"
+                          />
+                        </button>
+                      </div>
+
+                      {/* Mobile/Tablet: three dots dropdown */}
+                      <div className="relative lg:hidden">
+                        <button
+                          className="p-2 border border-gray-300 rounded hover:bg-gray-100"
+                          onClick={() =>
+                            setModal({ type: "actions", data: template })
+                          }
+                        >
+                          &#x22EE;
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="7" className="p-4 text-center text-gray-500">
+                    No templates found
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="7" className="p-4 text-center text-gray-500">
-                  No templates found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        </div>
 
         {/* Pagination */}
         <div className="flex justify-between items-center mt-4">
@@ -436,6 +448,56 @@ const handleShowCurl = (template, values = {}) => {
           </div>
         </div>
       </div>
+
+      {/* Actions Modal */}
+      {modal.type === "actions" && modal.data && (
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.3)] flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-4 w-64 border border-gray-300">
+            <button
+              className="mb-2 w-full text-left hover:bg-gray-100 p-2 rounded"
+              onClick={() => {
+                handlePreview(modal.data);
+                closeModal();
+              }}
+            >
+              Preview
+            </button>
+            <button
+              className="mb-2 w-full text-left hover:bg-gray-100 p-2 rounded"
+              onClick={() => {
+                handleCopy(modal.data);
+                closeModal();
+              }}
+            >
+              Duplicate
+            </button>
+            <button
+              className="mb-2 w-full text-left hover:bg-gray-100 p-2 rounded"
+              onClick={() => {
+                handleDelete(modal.data.id);
+                closeModal();
+              }}
+            >
+              Delete
+            </button>
+            <button
+              className="w-full text-left hover:bg-gray-100 p-2 rounded"
+              onClick={() => {
+                handleShowCurl(modal.data);
+                closeModal();
+              }}
+            >
+              Show cURL
+            </button>
+            <button
+              onClick={closeModal}
+              className="mt-2 w-full text-left text-red-500 hover:text-red-700"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Preview Modal */}
       {modal.type === "preview" && (

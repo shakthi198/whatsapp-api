@@ -1,11 +1,24 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, TextField, Button, Grid, MenuItem } from "@mui/material";
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Grid,
+  MenuItem,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import axios from "axios";
+import apiEndpoints from "../apiconfig";
 import apiEndpoints from "../apiconfig";
 
 const ReminderPopup = ({ token, onClose }) => {
   const yellow600 = "#d08700";
   const gray600 = "#4b5563";
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [formData, setFormData] = useState({
     legal_business_name: "",
@@ -19,21 +32,18 @@ const ReminderPopup = ({ token, onClose }) => {
     gstno: "",
   });
 
-  // Fetch existing profile data and autofill
   useEffect(() => {
     if (!token) return;
 
     axios
       .post(
-        apiEndpoints.getProfile,
+        `${apiEndpoints.getProfile}`,
         { action: "getProfile" },
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then((res) => {
         if (res.data.status === "success") {
           const user = res.data.user;
-
-          // Pre-fill only existing fields
           setFormData((prev) => ({
             ...prev,
             legal_business_name: user.legal_business_name || "",
@@ -59,7 +69,7 @@ const ReminderPopup = ({ token, onClose }) => {
   const handleSubmit = () => {
     axios
       .post(
-       apiEndpoints.getProfile,
+        `${apiEndpoints.getProfile}`,
         { ...formData, action: "update" },
         { headers: { Authorization: `Bearer ${token}` } }
       )
@@ -75,7 +85,7 @@ const ReminderPopup = ({ token, onClose }) => {
   };
 
   const requiredLabel = (label) => (
-    <Typography sx={{ fontWeight: "medium", color: "#000", mb: 1 }}>
+    <Typography sx={{ fontWeight: "medium", color: "#000", mb: 1, fontSize: isMobile ? "0.85rem" : "1rem" }}>
       {label} <span style={{ color: "red" }}>*</span>
     </Typography>
   );
@@ -99,42 +109,49 @@ const ReminderPopup = ({ token, onClose }) => {
       <Box
         sx={{
           backgroundColor: "white",
-          p: 4,
+          p: isMobile ? 2 : 4,
           borderRadius: "8px",
           width: "100%",
-          maxWidth: "800px",
+          maxWidth: isMobile ? "95%" : "800px",
+          maxHeight: "90vh",
+          overflowY: "auto",
           boxShadow: "0px 4px 20px rgba(0,0,0,0.3)",
           color: gray600,
           position: "relative",
         }}
       >
-        <Typography variant="h5" sx={{ fontWeight: "bold", mb: 3 }}>
+        <Typography
+          variant={isMobile ? "h6" : "h5"}
+          sx={{ fontWeight: "bold", mb: 3, textAlign: isMobile ? "center" : "left" }}
+        >
           Complete your profile
         </Typography>
 
+        {/* Close Button */}
         <Button
           onClick={onClose}
           sx={{
             position: "absolute",
-            top: 16,
-            right: 16,
+            top: 12,
+            right: 12,
             minWidth: "auto",
             color: gray600,
-            fontSize: "1.5rem",
+            fontSize: isMobile ? "1.25rem" : "1.5rem",
             p: 0.5,
           }}
         >
           ×
         </Button>
 
-        <Grid container spacing={3}>
+        {/* Form Fields */}
+        <Grid container spacing={2}>
           {[
             { label: "Legal Business Name", name: "legal_business_name" },
             { label: "Legal Business Address", name: "legal_business_address", multiline: true, rows: 4 },
             { label: "Street Name", name: "streetName" },
             { label: "City", name: "city" },
             { label: "State", name: "state" },
-            { label: "Country", name: "country", select: true, options: ["India", "USA"] },
+            { label: "Country", name: "country"},
             { label: "Zip", name: "pincode" },
             { label: "Company Website", name: "company_website" },
             { label: "GST NO", name: "gstno" },
@@ -151,6 +168,7 @@ const ReminderPopup = ({ token, onClose }) => {
                 multiline={field.multiline || false}
                 rows={field.rows || 1}
                 select={field.select || false}
+                size={isMobile ? "small" : "medium"}
               >
                 {field.select &&
                   field.options.map((opt) => (
@@ -163,14 +181,39 @@ const ReminderPopup = ({ token, onClose }) => {
           ))}
         </Grid>
 
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 4, gap: 2 }}>
-          <Button variant="text" onClick={onClose} sx={{ color: gray600, textTransform: "none" }}>
+        {/* Buttons */}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: isMobile ? "column" : "row",
+            justifyContent: "flex-end",
+            mt: 4,
+            gap: 2,
+          }}
+        >
+          <Button
+            variant="text"
+            onClick={onClose}
+            sx={{
+              color: gray600,
+              textTransform: "none",
+              fontSize: isMobile ? "0.85rem" : "1rem",
+              width: isMobile ? "100%" : "auto",
+            }}
+          >
             Remind me later
           </Button>
           <Button
             variant="contained"
             onClick={handleSubmit}
-            sx={{ bgcolor: yellow600, color: "white", textTransform: "none", "&:hover": { bgcolor: yellow600 } }}
+            sx={{
+              bgcolor: yellow600,
+              color: "white",
+              textTransform: "none",
+              "&:hover": { bgcolor: yellow600 },
+              fontSize: isMobile ? "0.85rem" : "1rem",
+              width: isMobile ? "100%" : "auto",
+            }}
           >
             Submit
           </Button>

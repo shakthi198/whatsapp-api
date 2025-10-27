@@ -12,30 +12,109 @@ import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 const LiveChatUI = () => {
   const [activeFilter, setActiveFilter] = useState("all");
   const [selectedChat, setSelectedChat] = useState(null);
+const [searchQuery, setSearchQuery] = useState("");
 
   const chats = [
-    { id: 1, name: "John Doe", lastMessage: "Hello, I need help with...", time: "10:30 AM", unread: true },
-    { id: 2, name: "Amazon Support", lastMessage: "Your order has been shipped", time: "Yesterday", unread: false },
-    { id: 3, name: "Sarah Smith", lastMessage: "Thanks for your response!", time: "2 days ago", unread: false },
+    {
+      id: 1,
+      name: "John Doe",
+      lastMessage: "Hello, I need help with...",
+      time: "10:30 AM",
+      unread: true,
+      messages: [
+        {
+          from: "customer",
+          text: "Hello, I need help with my order.",
+          time: "10:30 AM",
+        },
+        {
+          from: "agent",
+          text: "Sure! Can you provide the order ID?",
+          time: "10:32 AM",
+        },
+        { from: "customer", text: "Order ID is 12345.", time: "10:35 AM" },
+      ],
+    },
+    {
+      id: 2,
+      name: "Amazon Support",
+      lastMessage: "Your order has been shipped",
+      time: "Yesterday",
+      unread: false,
+      messages: [
+        {
+          from: "agent",
+          text: "hii",
+          time: "Yesterday 2:15 PM",
+        },
+        {
+          from: "customer",
+          text: "Your order has been shipped",
+          time: "Yesterday 2:20 PM",
+        },
+      ],
+    },
+    {
+      id: 3,
+      name: "Sarah Smith",
+      lastMessage: "Thanks for your response!",
+      time: "2 days ago",
+      unread: false,
+      messages: [
+        {
+          from: "customer",
+          text: "Can you check my invoice?",
+          time: "2 days ago 9:10 AM",
+        },
+        {
+          from: "agent",
+          text: "Sure, sending it now.",
+          time: "2 days ago 9:15 AM",
+        },
+        {
+          from: "customer",
+          text: "Thanks for your response!",
+          time: "2 days ago 9:20 AM",
+        },
+      ],
+    },
   ];
+  // Filter chats based on activeFilter
+ const filteredChats = chats
+   .filter((chat) => {
+     if (activeFilter === "all") return true;
+     if (activeFilter === "unread") return chat.unread;
+     if (activeFilter === "read") return !chat.unread;
+     if (activeFilter === "intervened") return chat.intervened; // optional
+     return true;
+   })
+   .filter((chat) =>
+     chat.name.toLowerCase().includes(searchQuery.toLowerCase())
+   );
+
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-[#f5f5f5] font-['Montserrat']">
+    <div className="flex flex-col lg:flex-row h-screen bg-[#f5f5f5] font-['Montserrat']">
       {/* Sidebar */}
-      <div className="w-full md:w-80 bg-white border-r border-gray-200 flex flex-col">
+      <div className="w-full xl:w-96 lg:w-70 bg-white border-r border-gray-200 flex flex-col min-h-[300px]">
         {/* Header */}
         <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-lg font-semibold text-gray-800">WhatsApp Inbox</h2>
-            <div className="flex items-center text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+          <div className="flex items-center justify-between mb-2 flex-wrap">
+            <h2 className="text-lg font-semibold text-gray-800 truncate">
+              WhatsApp Inbox
+            </h2>
+            <div className="flex items-center text-xs bg-green-100 text-green-800 px-2 py-1 rounded mt-1 md:mt-0">
               <span className="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
               Live
             </div>
           </div>
-          <div className="text-xs text-gray-500">
-            WABA: 919383013413 • Quality: <span className="text-green-600 font-medium">@GREEN</span>
+          <div className="text-xs text-gray-500 truncate">
+            WABA: 919383013413 • Quality:{" "}
+            <span className="text-green-600 font-medium">@GREEN</span>
           </div>
-          <div className="text-xs text-gray-500 mt-1">file_1: MSO_1000 LIMIT</div>
+          <div className="text-xs text-gray-500 mt-1 truncate">
+            file_1: MSO_1000 LIMIT
+          </div>
         </div>
 
         {/* Search */}
@@ -45,8 +124,11 @@ const LiveChatUI = () => {
             <input
               type="text"
               placeholder="Search chat"
-              className="w-full pl-9 pr-3 py-2 bg-gray-50 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-yellow-500"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-9 py-2 bg-gray-50 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-yellow-500"
             />
+
             <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
               <FaFilter className="text-sm" />
             </button>
@@ -54,12 +136,24 @@ const LiveChatUI = () => {
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex px-3 pt-2 pb-1 border-b border-gray-200 gap-1">
+        <div className="flex flex-wrap px-3 pt-2 pb-1 border-b border-gray-200 gap-1">
           {[
             { id: "all", label: "All" },
-            { id: "unread", label: "Unread", icon: <FaRegEye className="mr-1" /> },
-            { id: "read", label: "Read", icon: <FaRegCheckCircle className="mr-1" /> },
-            { id: "intervened", label: "Intervened", icon: <FaRegHandPaper className="mr-1" /> },
+            {
+              id: "unread",
+              label: "Unread",
+              icon: <FaRegEye className="mr-1" />,
+            },
+            {
+              id: "read",
+              label: "Read",
+              icon: <FaRegCheckCircle className="mr-1" />,
+            },
+            {
+              id: "intervened",
+              label: "Intervened",
+              icon: <FaRegHandPaper className="mr-1" />,
+            },
           ].map(({ id, label, icon }) => (
             <button
               key={id}
@@ -83,8 +177,8 @@ const LiveChatUI = () => {
         </div>
 
         {/* Chat List */}
-        <div className="flex-1 overflow-y-auto">
-          {chats.map((chat) => (
+        <div className="flex-1 overflow-y-auto min-h-0">
+          {filteredChats.map((chat) => (
             <div
               key={chat.id}
               onClick={() => setSelectedChat(chat)}
@@ -93,12 +187,14 @@ const LiveChatUI = () => {
               } ${chat.unread ? "font-semibold" : ""}`}
             >
               <div className="flex justify-between items-start">
-                <h3 className="text-sm text-gray-800">{chat.name}</h3>
+                <h3 className="text-sm text-gray-800 truncate">{chat.name}</h3>
                 <span className="text-xs text-gray-400">{chat.time}</span>
               </div>
-              <p className={`text-xs mt-1 truncate ${
-                chat.unread ? "text-gray-800" : "text-gray-500"
-              }`}>
+              <p
+                className={`text-xs mt-1 truncate ${
+                  chat.unread ? "text-gray-800" : "text-gray-500"
+                }`}
+              >
                 {chat.lastMessage}
               </p>
               {chat.unread && (
@@ -109,7 +205,7 @@ const LiveChatUI = () => {
         </div>
 
         {/* Footer */}
-        <div className="p-3 border-t border-gray-200 flex justify-between items-center">
+        <div className="p-3 border-t border-gray-200 flex justify-between items-center flex-wrap gap-2">
           <div className="text-xs text-gray-500">Eicodamics</div>
           <div className="flex items-center text-xs text-gray-500">
             <button className="p-1 rounded hover:bg-gray-100">
@@ -124,26 +220,41 @@ const LiveChatUI = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         {selectedChat ? (
           <>
             {/* Chat Header */}
-            <div className="p-3 border-b border-gray-200 bg-white flex items-center">
-              <div className="w-8 h-8 rounded-full bg-gray-300 mr-2"></div>
-              <div>
-                <h3 className="text-sm font-semibold">{selectedChat.name}</h3>
-                <p className="text-xs text-gray-500">Online</p>
+            <div className="p-3 border-b border-gray-200 bg-white flex items-center flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-gray-300 mr-2 flex-shrink-0"></div>
+              <div className="truncate">
+                <h3 className="text-sm font-semibold truncate">
+                  {selectedChat.name}
+                </h3>
+                <p className="text-xs text-gray-500 truncate">Online</p>
               </div>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 p-4 overflow-y-auto bg-[#e5ddd5]">
-              {/* Sample messages */}
-              <div className="text-sm text-gray-700">No messages yet.</div>
+            <div className="flex-1 p-4 overflow-y-auto bg-[#e5ddd5] min-h-0 space-y-2">
+              {selectedChat.messages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={`max-w-[70%] p-2 rounded-md text-sm ${
+                    msg.from === "customer"
+                      ? "bg-white self-start"
+                      : "bg-green-200 self-end"
+                  }`}
+                >
+                  <div className="text-gray-800">{msg.text}</div>
+                  <div className="text-gray-500 text-xs text-right">
+                    {msg.time}
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Message Input */}
-            <div className="p-3 border-t border-gray-200 bg-white">
+            <div className="p-3 border-t border-gray-200 bg-white flex-shrink-0">
               <div className="flex items-center">
                 <input
                   type="text"
@@ -165,7 +276,7 @@ const LiveChatUI = () => {
             <h2 className="text-xl font-semibold text-gray-800 mb-1">
               WhatsApp Communication Platform
             </h2>
-            <p className="text-gray-500 text-sm mb-6">
+            <p className="text-gray-500 text-sm mb-6 truncate">
               Select a chat to start messaging
             </p>
             <button className="px-6 py-3 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 shadow-sm transition-colors">
