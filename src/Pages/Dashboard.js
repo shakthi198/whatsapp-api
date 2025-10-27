@@ -278,7 +278,7 @@ const Dashboard = () => {
               <LinearProgress
                 variant="determinate"
                 value={usagePercentage}
-                sx={{ height: "10px", borderRadius: "5px", marginTop: "10px" }}
+                sx={{ height: "10px", borderRadius: "5px", marginTop: "10px" ,position:"relative" }}
               />
               <Typography
                 sx={{ marginTop: "10px", color: "#666", textAlign: "center", fontFamily: "Montserrat, sans-serif" }}
