@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { MdOutlineInbox } from "react-icons/md";
 import axios from "axios";
+import apiEndpoints from "../../apiconfig";
 
 const TransactionsUI = () => {
   const [transactions, setTransactions] = useState([]);
@@ -8,7 +9,7 @@ const TransactionsUI = () => {
   // Fetch transactions from backend
   const fetchTransactions = async () => {
     try {
-      const res = await axios.get("http://localhost/whatsapp_admin/add_transaction.php");
+      const res = await axios.get(apiEndpoints.getTransactions);
       if (res.data.status === "success") {
         setTransactions(res.data.transactions);
       }

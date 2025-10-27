@@ -7,6 +7,7 @@ const apiEndpoints = {
     Category: `${API_BASE_URL}/category.php`,
     transaction: `${API_BASE_URL}/add_transaction.php`,
     getProfile: `${API_BASE_URL}/register.php`,
+     whatsappLog: `${API_BASE_URL}/whatsapp_log.php`,
 };
 
 export default apiEndpoints;

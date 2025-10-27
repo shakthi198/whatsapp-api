@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Apilogoschartui from "../../Dynamic Components/Apilogochartui";
 import ReusableTable from "../../Dynamic Components/ReusableTable";
-
+import apiEndpoints from "../../apiconfig";
 const ApiLogoui = () => {
   const [data, setData] = useState([]);
   const [phone, setPhone] = useState(localStorage.getItem("waba_number") || ""); // auto from login
@@ -12,7 +12,8 @@ const ApiLogoui = () => {
   // Fetch WhatsApp message statuses by phone number
   const fetchLogs = () => {
     if (!phone) return; // prevent empty fetch
-    fetch(`http://localhost/whatsapp_admin/whatsapp_log.php?phone=${encodeURIComponent(phone)}`)
+     const url = `${apiEndpoints.whatsappLog}?phone=${encodeURIComponent(phone)}`;
+    fetch(url)
       .then((res) => res.json())
       .then((res) => {
         if (res.status) {

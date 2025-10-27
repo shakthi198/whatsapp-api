@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Box, Typography, TextField, Button, Grid, MenuItem } from "@mui/material";
 import axios from "axios";
+import apiEndpoints from "../apiconfig";
 
 const ReminderPopup = ({ token, onClose }) => {
   const yellow600 = "#d08700";
@@ -24,7 +25,7 @@ const ReminderPopup = ({ token, onClose }) => {
 
     axios
       .post(
-        "http://localhost/whatsapp_admin/register.php",
+        apiEndpoints.getProfile,
         { action: "getProfile" },
         { headers: { Authorization: `Bearer ${token}` } }
       )
@@ -58,7 +59,7 @@ const ReminderPopup = ({ token, onClose }) => {
   const handleSubmit = () => {
     axios
       .post(
-        "http://localhost/whatsapp_admin/register.php",
+       apiEndpoints.getProfile,
         { ...formData, action: "update" },
         { headers: { Authorization: `Bearer ${token}` } }
       )
