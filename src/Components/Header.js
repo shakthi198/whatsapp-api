@@ -34,8 +34,8 @@ const Header = () => {
   const [wabaData, setWabaData] = useState({
     number: "919876543210",
     status: "Live",
-    quality: "GREEN",
-    tier: "MSG_1000 LIMIT",
+    // quality: "GREEN",
+    // tier: "MSG_1000 LIMIT",
   });
 
   const handleLogout = () => {
@@ -145,7 +145,7 @@ const Header = () => {
             </Box>
 
             {/* Quality */}
-            <Box sx={{ display: "flex", flexDirection: "column" }}>
+            {/* <Box sx={{ display: "flex", flexDirection: "column" }}>
               <Typography
                 sx={{
                   fontWeight: "bold",
@@ -167,10 +167,10 @@ const Header = () => {
                   {wabaData.quality}
                 </Typography>
               </Typography>
-            </Box>
+            </Box> */}
 
             {/* Tier */}
-            <Box sx={{ display: "flex", flexDirection: "column" }}>
+            {/* <Box sx={{ display: "flex", flexDirection: "column" }}>
               <Typography
                 sx={{
                   fontWeight: "bold",
@@ -191,7 +191,7 @@ const Header = () => {
                   {wabaData.tier}
                 </Typography>
               </Typography>
-            </Box>
+            </Box> */}
           </Box>
         )}
       </Box>

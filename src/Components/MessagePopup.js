@@ -69,112 +69,129 @@ const MessagePopup = ({ templates = [], onClose, onSelectTemplate }) => {
     }
   };
 
-  return (
-    <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center transition-opacity duration-300 p-4"  style={{ fontFamily: "Montserrat" }}>
-      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-4xl border border-gray-300 relative">
-        {/* Header */}
-        <div className="pb-2 border-b border-gray-400 flex justify-between items-center">
-          <div className="flex space-x-4">
-            <button
-              className="flex items-center gap-1 hover:text-gray-700"
-              onClick={() => setSelectedType("all")}
-            >
-              <LayoutGrid size={16} /> All
-            </button>
-            <button
-              className="flex items-center gap-1 hover:text-gray-700"
-              onClick={() => setSelectedType("text")}
-            >
-              <FileText size={16} /> Text
-            </button>
-            <button
-              className="flex items-center gap-1 hover:text-gray-700"
-              onClick={() => setSelectedType("image")}
-            >
-              <Image size={16} /> Image
-            </button>
-            <button
-              className="flex items-center gap-1 hover:text-gray-700"
-              onClick={() => setSelectedType("file")}
-            >
-              <FileText size={16} /> File
-            </button>
-            <button
-              className="flex items-center gap-1 hover:text-gray-700"
-              onClick={() => setSelectedType("video")}
-            >
-              <Video size={16} /> Video
-            </button>
-            <button
-              className="flex items-center gap-1 hover:text-gray-700"
-              onClick={() => setSelectedType("carousel")}
-            >
-              <FiLayout  size={16} /> Carousel
-            </button>
-          </div>
-
-          {/* Search Box */}
-          <div className="relative w-64">
-            <input
-              type="text"
-              placeholder="Search Template"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="border border-gray-400 rounded-md pl-3 ml-20 pr-2 py-1 focus:outline-none focus:ring-1 focus:ring-gray-500 w-full"
-            />
-          </div>
-
-          {/* Close Button */}
+return (
+  <div
+    className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center p-2 sm:p-4 md:p-6"
+    style={{ fontFamily: "Montserrat" }}
+  >
+    {/* Popup Container */}
+    <div className="bg-white w-full max-w-[95vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl rounded-lg shadow-lg border border-gray-300 flex flex-col max-h-[90vh]">
+      
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between rounded-t-lg gap-3 border-b border-gray-400 p-3 sticky top-0 bg-white z-10">
+        {/* Filter Buttons */}
+        <div className="flex flex-wrap items-center gap-2 text-sm">
           <button
+            className={`flex items-center gap-1 px-2 py-1 rounded-md ${
+              selectedType === "all" ? "bg-yellow-100 text-yellow-700" : "hover:bg-gray-100"
+            }`}
+            onClick={() => setSelectedType("all")}
+          >
+            <LayoutGrid size={16} /> All
+          </button>
+          <button
+            className={`flex items-center gap-1 px-2 py-1 rounded-md ${
+              selectedType === "text" ? "bg-yellow-100 text-yellow-700" : "hover:bg-gray-100"
+            }`}
+            onClick={() => setSelectedType("text")}
+          >
+            <FileText size={16} /> Text
+          </button>
+          <button
+            className={`flex items-center gap-1 px-2 py-1 rounded-md ${
+              selectedType === "image" ? "bg-yellow-100 text-yellow-700" : "hover:bg-gray-100"
+            }`}
+            onClick={() => setSelectedType("image")}
+          >
+            <Image size={16} /> Image
+          </button>
+          <button
+            className={`flex items-center gap-1 px-2 py-1 rounded-md ${
+              selectedType === "file" ? "bg-yellow-100 text-yellow-700" : "hover:bg-gray-100"
+            }`}
+            onClick={() => setSelectedType("file")}
+          >
+            <FileText size={16} /> File
+          </button>
+          <button
+            className={`flex items-center gap-1 px-2 py-1 rounded-md ${
+              selectedType === "video" ? "bg-yellow-100 text-yellow-700" : "hover:bg-gray-100"
+            }`}
+            onClick={() => setSelectedType("video")}
+          >
+            <Video size={16} /> Video
+          </button>
+          <button
+            className={`flex items-center gap-1 px-2 py-1 rounded-md ${
+              selectedType === "carousel" ? "bg-yellow-100 text-yellow-700" : "hover:bg-gray-100"
+            }`}
+            onClick={() => setSelectedType("carousel")}
+          >
+            <FiLayout size={16} /> Carousel
+          </button>
+        </div>
+
+        {/* Search + Close */}
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <input
+            type="text"
+            placeholder="Search Template"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="border border-gray-400 rounded-md pl-3 pr-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-gray-500 w-full sm:w-52"
+          />
+          {/* <button
             onClick={onClose}
-            className="text-gray-500 text-lg hover:text-red-600"
+            className="text-gray-500 text-xl hover:text-red-600"
           >
             &times;
-          </button>
-        </div>
-
-        {/* Template List */}
-        <div className="mt-4 max-h-96 overflow-y-auto">
-          {filteredTemplates.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredTemplates.map((template, index) => (
-                <div
-                  key={index}
-                  className="border border-gray-300 rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => onSelectTemplate(template)}
-                >
-                  <div className="bg-gray-200 h-32 flex items-center justify-center rounded-t-lg">
-                    {renderIcon(template.templateType)} {/* Render the appropriate icon */}
-                  </div>
-                  <p className="text-gray-700 mt-2 font-semibold">
-                    {template.templateName || "No Name"}
-                  </p>
-                  <p className="text-gray-700 mt-2 text-sm">
-                    {template.templateBody || "No Body Content"}
-                  </p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-center text-gray-500">No templates found</p>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="flex justify-end mt-4 pt-2">
-          <button
-            className="px-4 py-2 bg-gray-300 rounded-lg mr-2 hover:bg-gray-400 transition-all"
-            onClick={onClose}
-          >
-            Cancel
-          </button>
-          <button className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-all">
-            OK
-          </button>
+          </button> */}
         </div>
       </div>
+
+      {/* Scrollable Body */}
+      <div className="p-3 overflow-y-auto flex-1">
+        {filteredTemplates.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            {filteredTemplates.map((template, index) => (
+              <div
+                key={index}
+                className="border border-gray-300 rounded-lg p-3 bg-white shadow-sm hover:shadow-md transition cursor-pointer"
+                onClick={() => onSelectTemplate(template)}
+              >
+                <div className="bg-gray-200 h-28 sm:h-32 flex items-center justify-center rounded-md">
+                  {renderIcon(template.templateType)}
+                </div>
+                <p className="text-gray-800 mt-2 font-semibold text-sm sm:text-base truncate">
+                  {template.templateName || "No Name"}
+                </p>
+                <p className="text-gray-600 mt-1 text-xs sm:text-sm line-clamp-2">
+                  {template.templateBody || "No Body Content"}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-center text-gray-500 mt-10">No templates found</p>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="flex justify-end gap-2 rounded-b-lg border-t border-gray-300 p-3 sticky bottom-0 bg-white">
+        <button
+          className="px-4 py-2 bg-gray-300  hover:bg-gray-400 transition"
+          onClick={onClose}
+        >
+          Cancel
+        </button>
+        <button className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition">
+          OK
+        </button>
+      </div>
     </div>
-  );
+  </div>
+);
+
 };
 
 export default MessagePopup;
