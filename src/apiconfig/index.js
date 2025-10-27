@@ -1,6 +1,6 @@
 import { register } from "react-refresh";
 
-const API_BASE_URL = "http://localhost/phpValidation/whatsapp";
+const API_BASE_URL = "http://localhost/whatsapp_admin/";
 
 const apiEndpoints = {
     addContact: `${API_BASE_URL}/add_contact.php`,
