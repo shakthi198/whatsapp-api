@@ -99,15 +99,10 @@ const Sidebar = ({ darkMode }) => {
             closeSidebar={closeSidebar}
           />
 
-          <DropdownItem
-            icon={<Users size={20} />}
+          <NavItem
+            icon={<FileText size={20} />}
             label="Contacts"
-            isOpen={dropdowns.contacts}
-            toggleDropdown={() => toggleDropdown("contacts")}
-            subItems={[
-              { label: "Contacts", path: "/allcontacts" },
-              // Add more if needed
-            ]}
+            path="/allcontacts"
             closeSidebar={closeSidebar}
           />
 
