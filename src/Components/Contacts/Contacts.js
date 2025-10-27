@@ -1,4 +1,4 @@
-import { HiChevronRight } from "react-icons/hi";
+import { HiChevronRight,HiChevronLeft } from "react-icons/hi";
 import { LuUsers, LuSquarePlus } from "react-icons/lu";
 import { MdOutlineInbox } from "react-icons/md";
 import { TbDownload, TbUpload } from "react-icons/tb";
@@ -101,16 +101,19 @@ const Contacts = () => {
   };
 
   return (
-    <div className="xl:w-7xl lg:w-2xl md:w-md mx-auto p-4 md:p-6">
+    <div className="xl:w-full lg:w-2xl md:w-md mx-auto p-4 md:p-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 md:mb-6">
-        <div className="flex flex-col md:flex-row md:items-center mb-3 md:mb-0">
-          <h2 className="text-xl md:text-2xl font-medium mb-2 md:mb-0 md:mr-4">Contacts</h2>
-          <div className="flex flex-wrap items-center text-xs md:text-sm text-gray-600 gap-x-1">
-            <span className="text-yellow-600">Home</span>
-            <HiChevronRight className="hidden md:inline" />
-            <span className="text-yellow-600">contacts</span>
+      <div className="flex flex-col lg:flex-row items-start lg:items-center mb-4 gap-2">
+        <h2 className="text-3xl font-semibold text-gray-700 whitespace-wrap">
+          Contacts
+        </h2>
+        <div className="flex items-center flex-nowrap text-yellow-600 text-md gap-1">
+          <div className="flex items-center text-lg text-gray-600 flex-wrap gap-1">
+            <span className="hidden md:inline">|</span>
           </div>
+          <span className="whitespace-nowrap">Home</span>
+          <HiChevronRight className="mx-1 text-black text-md" />
+          <span className="whitespace-nowrap">Contacts</span>
         </div>
       </div>
 
@@ -136,28 +139,62 @@ const Contacts = () => {
       <hr />
 
       {/* Action Buttons */}
-      <div className="bg-white p-4 flex flex-wrap items-center justify-start space-x-2 gap-y-2 md:gap-y-0">
-        <button onClick={() => { setIsAddModalOpen(true); setEditingContact(null); }} className="text-gray-600 text-2xl">
+      <div className="bg-white rounded-b-md p-4 flex flex-wrap items-center justify-start space-x-2 gap-y-2 md:gap-y-0">
+        <button
+          onClick={() => {
+            setIsAddModalOpen(true);
+            setEditingContact(null);
+          }}
+          className="text-gray-600 text-2xl"
+        >
           <LuSquarePlus />
         </button>
-        <button onClick={handleBulkDelete} className="px-4 py-2 text-gray-600 text-2xl"><RiDeleteBinLine /></button>
-        <button onClick={() => setIsImportModalOpen(true)} className="px-3 py-2 text-gray-600 text-2xl"><TbUpload /></button>
-        <button onClick={handleExport} className="px-3 py-2 text-gray-600 text-2xl"><TbDownload /></button>
-        <button onClick={() => navigate("/manage-groups")} className="bg-yellow-600 text-white px-4 py-2 rounded flex items-center whitespace-nowrap">
+        <button
+          onClick={handleBulkDelete}
+          className="px-4 py-2 text-gray-600 text-2xl"
+        >
+          <RiDeleteBinLine />
+        </button>
+        <button
+          onClick={() => setIsImportModalOpen(true)}
+          className="px-3 py-2 text-gray-600 text-2xl"
+        >
+          <TbUpload />
+        </button>
+        <button
+          onClick={handleExport}
+          className="px-3 py-2 text-gray-600 text-2xl"
+        >
+          <TbDownload />
+        </button>
+        <button
+          onClick={() => navigate("/manage-groups")}
+          className="bg-yellow-600 text-white px-4 py-2 rounded flex items-center whitespace-nowrap"
+        >
           <LuUsers className="mr-2" /> Manage Groups
         </button>
-        <button onClick={handleSampleCSV} className="bg-yellow-600 text-white px-4 py-2 rounded flex items-center whitespace-nowrap">
+        <button
+          onClick={handleSampleCSV}
+          className="bg-yellow-600 text-white px-4 py-2 rounded flex items-center whitespace-nowrap"
+        >
           <TbDownload className="mr-2" /> Sample CSV
         </button>
       </div>
 
       {/* Table */}
-      <div className="bg-white p-4 rounded-b-md overflow-x-auto shadow mt-3">
+      <div className="bg-white p-4 rounded-md overflow-x-auto shadow mt-3">
         <table className="min-w-full divide-y divide-gray-200 text-sm">
           <thead className="bg-gray-100 text-left font-semibold text-gray-800">
             <tr>
               <th className="px-4 py-2">
-                <input type="checkbox" checked={selectedContacts.length === contacts.length && contacts.length > 0} onChange={toggleSelectAll} />
+                <input
+                  type="checkbox"
+                  checked={
+                    selectedContacts.length === contacts.length &&
+                    contacts.length > 0
+                  }
+                  onChange={toggleSelectAll}
+                />
               </th>
               <th className="px-4 py-2">S.No.</th>
               <th className="px-4 py-2">Contact Name</th>
@@ -171,43 +208,84 @@ const Contacts = () => {
             {contacts.length === 0 ? (
               <tr>
                 <td colSpan={7} className="text-center py-8 text-gray-500">
-                  <MdOutlineInbox className="mx-auto text-gray-400 mt-6" size={72} />
+                  <MdOutlineInbox
+                    className="mx-auto text-gray-400 mt-6"
+                    size={72}
+                  />
                   <p>No data</p>
                 </td>
               </tr>
-            ) : contacts.map((contact, i) => (
-              <tr key={contact.id} className="hover:bg-gray-50">
-                <td className="px-4 py-2">
-                  <input type="checkbox" checked={selectedContacts.includes(contact.id)} onChange={(e) => toggleSelectContact(contact.id, e.target.checked)} />
-                </td>
-                <td className="px-4 py-2">{i + 1}</td>
-                <td className="px-4 py-2">{contact.contact_name}</td>
-                <td className="px-4 py-2">{contact.contact_group}</td>
-                <td className="px-4 py-2">{contact.tags}</td>
-                <td className="px-4 py-2">{contact.mobile_number}</td>
-                <td className="px-4 py-2 flex space-x-2 flex-wrap">
-                  <button className="bg-yellow-600 hover:bg-[#c79b45] text-white rounded-full p-2" onClick={() => { setIsAddModalOpen(true); setEditingContact(contact); }}>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 11l6.293-6.293a1 1 0 011.414 0l2.586 2.586a1 1 0 010 1.414L13 15l-4 1 1-4z"/>
-                    </svg>
-                  </button>
-                  <button className="bg-red-500 hover:bg-red-600 text-white rounded-full p-2" onClick={() => handleDelete(contact.id)}><RiDeleteBinLine className="h-4 w-4" /></button>
-                </td>
-              </tr>
-            ))}
+            ) : (
+              contacts.map((contact, i) => (
+                <tr key={contact.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedContacts.includes(contact.id)}
+                      onChange={(e) =>
+                        toggleSelectContact(contact.id, e.target.checked)
+                      }
+                    />
+                  </td>
+                  <td className="px-4 py-2">{i + 1}</td>
+                  <td className="px-4 py-2">{contact.contact_name}</td>
+                  <td className="px-4 py-2">{contact.contact_group}</td>
+                  <td className="px-4 py-2">{contact.tags}</td>
+                  <td className="px-4 py-2">{contact.mobile_number}</td>
+                  <td className="px-4 py-2 flex space-x-2 flex-wrap">
+                    <button
+                      className="bg-yellow-600 hover:bg-[#c79b45] text-white rounded-full p-2"
+                      onClick={() => {
+                        setIsAddModalOpen(true);
+                        setEditingContact(contact);
+                      }}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15.232 5.232l3.536 3.536M9 11l6.293-6.293a1 1 0 011.414 0l2.586 2.586a1 1 0 010 1.414L13 15l-4 1 1-4z"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      className="bg-red-500 hover:bg-red-600 text-white rounded-full p-2"
+                      onClick={() => handleDelete(contact.id)}
+                    >
+                      <RiDeleteBinLine className="h-4 w-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
       {/* Modals */}
       {isAddModalOpen && (
-        <AddContactModal 
-          onClose={() => { setIsAddModalOpen(false); setEditingContact(null); }} 
-          refreshContacts={fetchContacts} 
-          contactToEdit={editingContact} 
+        <AddContactModal
+          onClose={() => {
+            setIsAddModalOpen(false);
+            setEditingContact(null);
+          }}
+          refreshContacts={fetchContacts}
+          contactToEdit={editingContact}
         />
       )}
-      {isImportModalOpen && <ImportContactModal onClose={() => setIsImportModalOpen(false)} onImport={handleImport} />}
+      {isImportModalOpen && (
+        <ImportContactModal
+          onClose={() => setIsImportModalOpen(false)}
+          onImport={handleImport}
+        />
+      )}
     </div>
   );
 };

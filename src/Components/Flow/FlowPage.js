@@ -46,21 +46,24 @@ const FlowPage = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-4 md:p-6 font-montserrat">
+    <div className="max-w-7xl xl:w-full lg:w-2xl md:w-md mx-auto p-4 md:p-6 font-montserrat">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 md:mb-6 gap-2 md:gap-0">
-        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-          <h2 className="text-xl md:text-2xl font-medium">Flow</h2>
-          <div className="flex items-center text-xs md:text-sm text-gray-600 flex-wrap">
-            <span className="text-yellow-600">Home</span>
-            <span className="mx-1 md:mx-2">›</span>
-            <span className="text-yellow-600">Flow</span>
-          </div>
+      <div className="flex flex-col lg:flex-row items-start lg:items-center mb-4 gap-2">
+        <h2 className="text-3xl font-semibold text-gray-700 whitespace-wrap">
+          Flow
+        </h2>
+        <div className="flex items-center flex-nowrap text-yellow-600 text-md gap-1">
+      <div className="flex items-center text-lg text-gray-600 flex-wrap gap-1">
+            <span className="hidden md:inline">|</span>
+            </div>
+          <span className="whitespace-nowrap">Home</span>
+          <HiChevronRight className="mx-1 text-black text-md" />
+          <span className="whitespace-nowrap">Flow</span>
         </div>
       </div>
 
       {/* Controls Section */}
-      <div className="bg-white p-4 shadow-md rounded-t-md flex flex-col md:flex-row md:justify-between gap-3 md:gap-0 items-start md:items-center flex-wrap">
+      <div className="bg-white p-4 shadow-md rounded-lg flex flex-col md:flex-row md:justify-between gap-3 md:gap-0 items-start md:items-center flex-wrap">
         <div className="flex items-center gap-3 flex-wrap w-full md:w-auto">
           <label className="text-gray-600 font-medium">Matching Type:</label>
           <select className="border border-gray-300 rounded-md px-3 py-1 text-gray-700 font-medium w-full md:w-48">
@@ -73,7 +76,11 @@ const FlowPage = () => {
           >
             + Create Flow
           </button>
-          <CreateFlowModal isOpen={isCreateFlowOpen} onClose={() => setIsCreateFlowOpen(false)} addFlow={addFlow} />
+          <CreateFlowModal
+            isOpen={isCreateFlowOpen}
+            onClose={() => setIsCreateFlowOpen(false)}
+            addFlow={addFlow}
+          />
 
           <button
             className="bg-yellow-600 text-white px-4 py-2 rounded-md font-medium shadow-md w-full md:w-auto"
@@ -81,36 +88,62 @@ const FlowPage = () => {
           >
             Unsubscribe Keys
           </button>
-          <UnsubscribeModal isOpen={isUnsubscribeOpen} onClose={() => setIsUnsubscribeOpen(false)} />
+          <UnsubscribeModal
+            isOpen={isUnsubscribeOpen}
+            onClose={() => setIsUnsubscribeOpen(false)}
+          />
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-white p-4 rounded-b-md overflow-x-auto mt-2">
+      <div className="bg-white p-4 rounded-lg overflow-x-auto mt-2">
         <table className="w-full min-w-[700px] border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gray-200 text-gray-700 border border-gray-300 text-left text-sm md:text-base">
-              <th className="p-2 border-r border-gray-300 font-medium">S.No.</th>
-              <th className="p-2 border-r border-gray-300 font-medium">Flow Name</th>
-              <th className="p-2 border-r border-gray-300 font-medium">Flow Type</th>
-              <th className="p-2 border-r border-gray-300 font-medium text-center">Status of Flow</th>
-              <th className="p-2 border-r border-gray-300 font-medium text-center">Default</th>
-              <th className="p-2 border-r border-gray-300 font-medium text-center">Key Words</th>
-              <th className="p-2 border-r border-gray-300 font-medium text-center">Flow Explanation</th>
+              <th className="p-2 border-r border-gray-300 font-medium">
+                S.No.
+              </th>
+              <th className="p-2 border-r border-gray-300 font-medium">
+                Flow Name
+              </th>
+              <th className="p-2 border-r border-gray-300 font-medium">
+                Flow Type
+              </th>
+              <th className="p-2 border-r border-gray-300 font-medium text-center">
+                Status of Flow
+              </th>
+              <th className="p-2 border-r border-gray-300 font-medium text-center">
+                Default
+              </th>
+              <th className="p-2 border-r border-gray-300 font-medium text-center">
+                Key Words
+              </th>
+              <th className="p-2 border-r border-gray-300 font-medium text-center">
+                Flow Explanation
+              </th>
               <th className="p-2 font-medium text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
             {flowData.map((flow, index) => (
-              <tr key={flow.id} className="border border-gray-300 text-sm md:text-base">
+              <tr
+                key={flow.id}
+                className="border border-gray-300 text-sm md:text-base"
+              >
                 <td className="p-2 font-medium">{index + 1}</td>
                 <td className="p-2 font-medium">{flow.name}</td>
                 <td className="p-2 font-medium">{flow.type}</td>
                 <td className="p-2 text-center">
-                  <ToggleSwitch isOn={flow.status} onToggle={() => toggleStatus(flow.id)} />
+                  <ToggleSwitch
+                    isOn={flow.status}
+                    onToggle={() => toggleStatus(flow.id)}
+                  />
                 </td>
                 <td className="p-2 text-center">
-                  <ToggleSwitch isOn={flow.default} onToggle={() => toggleDefault(flow.id)} />
+                  <ToggleSwitch
+                    isOn={flow.default}
+                    onToggle={() => toggleDefault(flow.id)}
+                  />
                 </td>
                 <td className="p-2 text-center">
                   <input
@@ -125,7 +158,9 @@ const FlowPage = () => {
                   <input
                     type="text"
                     value={flow.explanation}
-                    onChange={(e) => handleEditField(flow.id, "explanation", e.target.value)}
+                    onChange={(e) =>
+                      handleEditField(flow.id, "explanation", e.target.value)
+                    }
                     className="border rounded p-1 w-full md:w-32 bg-white font-medium"
                   />
                 </td>
@@ -138,7 +173,11 @@ const FlowPage = () => {
         </table>
       </div>
 
-      <FlowTypeModal isOpen={isFlowTypeModalOpen} onClose={() => setIsFlowTypeModalOpen(false)} onSave={handleSaveKeywords} />
+      <FlowTypeModal
+        isOpen={isFlowTypeModalOpen}
+        onClose={() => setIsFlowTypeModalOpen(false)}
+        onSave={handleSaveKeywords}
+      />
 
       {/* Pagination */}
       <div className="flex justify-end mt-4 items-center gap-2 flex-wrap">

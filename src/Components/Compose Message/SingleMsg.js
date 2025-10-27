@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronDown, X } from "lucide-react";
 import MessagePopup from "../MessagePopup";
-
+import { HiChevronRight, HiChevronLeft } from "react-icons/hi";
 export default function SingleMsg() {
   const [campaignName, setCampaignName] = useState(`CAMP-${Math.floor(Math.random() * 100000)}`);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -66,17 +66,22 @@ export default function SingleMsg() {
   };
 
   return (
-     <div className="max-w-7xl mx-auto p-4 md:p-6" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+    <div
+      className="max-w-7xl mx-auto p-4 md:p-6"
+      style={{ fontFamily: "'Montserrat', sans-serif" }}
+    >
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 md:mb-6">
-        <div className="flex flex-col md:flex-row md:items-center mb-3 md:mb-0">
-          <h1 className="text-xl md:text-2xl font-medium mb-2 md:mb-0 md:mr-4">Compose Message</h1>
-          <div className="flex items-center text-xs md:text-sm text-gray-600">
-            <span className="mr-2 hidden md:inline">|</span>
-            <span className="text-yellow-600">Home</span>
-            <span className="mx-1 md:mx-2">›</span>
-            <span className="text-yellow-600">Compose Message</span>
+      <div className="flex flex-col lg:flex-row items-start lg:items-center mb-4 gap-2">
+        <h2 className="text-3xl font-semibold text-gray-700 whitespace-wrap">
+          Compose Message
+        </h2>
+        <div className="flex items-center flex-nowrap text-yellow-600 text-md gap-1">
+          <div className="flex items-center text-lg text-gray-600 flex-wrap gap-1">
+            <span className="hidden md:inline">|</span>
           </div>
+          <span className="whitespace-nowrap">Home</span>
+          <HiChevronRight className="mx-1 text-black text-md" />
+          <span className="whitespace-nowrap">Compose Message</span>
         </div>
       </div>
       {/* Navigation Tabs */}
@@ -108,7 +113,7 @@ export default function SingleMsg() {
                 Country Code
                 <span className="text-red-500 ml-1">*</span>
               </label>
-              <select 
+              <select
                 className="w-full p-2 md:p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm md:text-base"
                 value={countryCode}
                 onChange={(e) => setCountryCode(e.target.value)}
@@ -158,7 +163,7 @@ export default function SingleMsg() {
                 <span className="text-red-500 ml-1">*</span>
               </label>
               {messageContent && (
-                <button 
+                <button
                   onClick={() => setMessageContent("")}
                   className="text-gray-400 hover:text-gray-600"
                 >
@@ -196,7 +201,7 @@ export default function SingleMsg() {
 
           {/* Action Buttons */}
           <div className="flex flex-col-reverse md:flex-row justify-end gap-3 md:gap-4 pt-4">
-            <button 
+            <button
               onClick={handleClear}
               className="px-4 py-2 md:px-6 md:py-2 bg-white text-gray-700 rounded-md border border-gray-300 hover:bg-gray-50 transition-colors"
             >

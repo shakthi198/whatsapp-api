@@ -238,6 +238,9 @@ const ManageTemplates = () => {
           Manage Template
         </h2>
         <div className="flex items-center flex-nowrap text-yellow-600 text-md gap-1">
+          <div className="flex items-center text-lg text-gray-600 flex-wrap gap-1">
+            <span className="hidden md:inline">|</span>
+          </div>
           <span className="whitespace-nowrap">Home</span>
           <HiChevronRight className="mx-1 text-black text-md" />
           <span className="whitespace-nowrap">Manage Template</span>
