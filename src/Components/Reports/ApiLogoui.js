@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, Typography, LinearProgress, Grid, Box } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  Typography,
+  LinearProgress,
+  Grid,
+  Box,
+  Divider,
+} from "@mui/material";
+import { HiChevronRight, HiChevronLeft } from "react-icons/hi";
 import Apilogoschartui from "../../Dynamic Components/Apilogochartui";
 import ReusableTable from "../../Dynamic Components/ReusableTable";
 import apiEndpoints from "../../apiconfig";
@@ -10,39 +19,39 @@ const UserApiReport = () => {
   const [usage, setUsage] = useState({ used: 0, total: 1000 });
   const [phone, setPhone] = useState(localStorage.getItem("waba_number") || "");
 
-  const columns = ["S.No", "Message ID", "Message", "Recipient Number", "Status", "Timestamp"];
+  const columns = [
+    "S.No",
+    "Message ID",
+    "Message",
+    "Recipient Number",
+    "Status",
+    "Timestamp",
+  ];
 
   // Fetch API Logs
   const fetchLogs = async () => {
     if (!phone) return;
     try {
       const res = await fetch(
-        `${apiEndpoints.whatsapplogapi}?phone=${encodeURIComponent(phone)}`
+        `${apiEndpoints.whatsappLog}?phone=${encodeURIComponent(phone)}`
       );
       const json = await res.json();
-      if (json.status) setData(json.data);
-      else setData([]);
+      console.log("Fetched data:", json);
+
+      if (json.status) {
+        setData(json.data || []);
+        setUserInfo(json.customer || null);
+      } else {
+        setData([]);
+        setUserInfo(json.customer || null);
+      }
     } catch (err) {
       console.error("Failed to fetch logs:", err);
     }
   };
 
-  // Fetch user info (from DB or API)
-  const fetchUserInfo = async () => {
-    try {
-      const res = await fetch(
-        `${apiEndpoints.getinfophp}?phone=${encodeURIComponent(phone)}`
-      );
-      const json = await res.json();
-      if (json.status) setUserInfo(json.data);
-    } catch (err) {
-      console.error("Failed to fetch user info:", err);
-    }
-  };
-
   useEffect(() => {
     fetchLogs();
-    fetchUserInfo();
   }, [phone]);
 
   // Calculate usage percentage
@@ -52,71 +61,157 @@ const UserApiReport = () => {
   const chartData = Object.values(
     data.reduce((acc, item) => {
       const date = new Date(item.timestamp * 1000).toISOString().split("T")[0];
-      if (!acc[date]) acc[date] = { date, sent: 0, delivered: 0, read: 0, failed: 0 };
+      if (!acc[date])
+        acc[date] = { date, sent: 0, delivered: 0, read: 0, failed: 0 };
       acc[date][item.status] = (acc[date][item.status] || 0) + 1;
       return acc;
     }, {})
   );
 
   // Prepare Table Data
-  const modifiedData = data.map((item, index) => ({
-    "S.No": index + 1,
-    "Message ID": item.message_id,
-    "Message": item.message_text || "-",
-    "Recipient Number": item.recipient_id,
-    "Status": (
-      <span
-        className={`px-2 py-1 text-white font-semibold rounded ${
-          item.status === "delivered"
-            ? "bg-green-500"
-            : item.status === "read"
-            ? "bg-blue-500"
-            : item.status === "sent"
-            ? "bg-yellow-500"
-            : "bg-red-500"
-        }`}
-      >
-        {item.status}
-      </span>
-    ),
-    "Timestamp": new Date(item.timestamp * 1000).toLocaleString(),
-  }));
+  const modifiedData = data.map((item, index) => {
+    const formattedTime = new Date(
+      item.timestamp.toString().length === 10
+        ? item.timestamp * 1000
+        : item.timestamp
+    ).toLocaleString();
+
+    return {
+      "S.No": index + 1,
+      "Message ID": item.message_id,
+      Message: item.message_text || "-",
+      "Recipient Number": item.recipient_id,
+      Status: (
+        <span
+          className={`px-2 py-1 text-white font-semibold rounded ${
+            item.status === "delivered"
+              ? "bg-green-500"
+              : item.status === "read"
+              ? "bg-blue-500"
+              : item.status === "sent"
+              ? "bg-yellow-500"
+              : "bg-red-500"
+          }`}
+        >
+          {item.status}
+        </span>
+      ),
+      Timestamp: formattedTime,
+    };
+  });
 
   return (
     <div
-      className="max-w-full sm:max-w-7xl mx-auto p-4"
-      style={{ fontFamily: "'Montserrat', sans-serif" }}
+      className="p-6 bg-gray-100 xl:w-full lg:w-2xl md:w-md"
+      style={{ fontFamily: "Montserrat" }}
     >
-      {/* Header Section */}
-      <Card sx={{ mb: 3, boxShadow: 3 }}>
+      {/* Header*/}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center mb-4 gap-2">
+        <h2 className="text-3xl font-semibold text-gray-700 whitespace-wrap">
+          Reports
+        </h2>
+        <div className="flex items-center flex-nowrap text-yellow-600 text-md gap-1">
+          <div className="flex items-center text-lg text-gray-600 flex-wrap gap-1">
+            <span className="hidden md:inline">|</span>
+          </div>
+          <span className="whitespace-nowrap">Home</span>
+          <HiChevronRight className="mx-1 text-black text-md" />
+          <span className="whitespace-nowrap">Reports</span>
+        </div>
+      </div>
+      {/* <Card
+        sx={{
+          mb: 4,
+          boxShadow: 4,
+          borderRadius: 3,
+        }}
+      >
         <CardContent>
-          <Typography variant="h5" fontWeight="bold" sx={{ color: "#333" }}>
+          <Typography
+            variant="h5"
+            fontWeight="bold"
+            style={{ fontFamily: "Montserrat" }}
+          >
             {userInfo?.companyName || "User"} — WhatsApp API Report
           </Typography>
-          <Typography sx={{ color: "#666" }}>
+          <Typography
+            variant="subtitle1"
+            sx={{ opacity: 0.9 }}
+            style={{ fontFamily: "Montserrat" }}
+          >
             Registered Number: <b>{phone || "-"}</b>
           </Typography>
         </CardContent>
-      </Card>
+      </Card>  */}
 
-      {/* Summary Cards */}
-      <Grid container spacing={2} mb={3}>
-        {["sent", "delivered", "read", "failed"].map((status) => {
-          const count = data.filter((d) => d.status === status).length;
-          const colorMap = {
-            sent: "#fbbf24",
-            delivered: "#22c55e",
-            read: "#3b82f6",
-            failed: "#ef4444",
-          };
+      {/* Summary + Usage Cards */}
+      {/* SUMMARY CARDS */}
+      {/* SUMMARY CARDS */}
+      <Grid container spacing={2} mb={4}>
+        {[
+          {
+            label: "Sent",
+            key: "sent",
+            color: "#fbbf24",
+            bg: "rgba(251,191,36,0.1)",
+          },
+          {
+            label: "Delivered",
+            key: "delivered",
+            color: "#22c55e",
+            bg: "rgba(34,197,94,0.1)",
+          },
+          {
+            label: "Read",
+            key: "read",
+            color: "#3b82f6",
+            bg: "rgba(59,130,246,0.1)",
+          },
+          {
+            label: "Failed",
+            key: "failed",
+            color: "#ef4444",
+            bg: "rgba(239,68,68,0.1)",
+          },
+          {
+            label: "Usage",
+            key: "usage",
+            color: "#8b5cf6",
+            bg: "rgba(139,92,246,0.1)",
+          },
+        ].map(({ label, key, color, bg }) => {
+          let value = 0;
+          if (key === "usage") value = `${usage.used} / ${usage.total}`;
+          else value = data.filter((d) => d.status === key).length;
+
           return (
-            <Grid item xs={6} md={3} key={status}>
-              <Card sx={{ textAlign: "center", boxShadow: 2 }}>
-                <CardContent>
-                  <Typography variant="h6" sx={{ color: colorMap[status], fontWeight: "bold" }}>
-                    {count}
+            <Grid item xs={6} sm={4} md={2.4} key={key}>
+              <Card
+                sx={{
+                  textAlign: "center",
+                  borderRadius: 3,
+                  backgroundColor: bg,
+                  boxShadow: 2,
+                  p: 1,
+                  height: "100%",
+                  "&:hover": { transform: "scale(1.03)" },
+                  transition: "all 0.2s ease",
+                }}
+              >
+                <CardContent sx={{ p: "12px !important" }}>
+                  <Typography
+                    variant="subtitle1"
+                    sx={{
+                      color: "#333",
+                      fontWeight: "bold",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {label}
                   </Typography>
-                  <Typography sx={{ color: "#555" }}>{status.toUpperCase()}</Typography>
+                  <Typography variant="h6" sx={{ color, fontWeight: "bold" }}>
+                    {value}
+                  </Typography>
                 </CardContent>
               </Card>
             </Grid>
@@ -124,39 +219,55 @@ const UserApiReport = () => {
         })}
       </Grid>
 
-      {/* Usage Progress */}
-      <Card sx={{ mb: 3, boxShadow: 2 }}>
+      {/* Usage Card
+      <Card sx={{ mb: 4, borderRadius: 3, boxShadow: 3 }}>
         <CardContent>
-          <Typography variant="h6" sx={{ fontWeight: "medium", color: "#333" }}>
-            Usage
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+            Usage Overview
           </Typography>
           <LinearProgress
             variant="determinate"
             value={usagePercentage}
-            sx={{ height: "10px", borderRadius: "5px", mt: 1.5 }}
+            sx={{
+              height: 10,
+              borderRadius: 5,
+              backgroundColor: "#e2e8f0",
+              "& .MuiLinearProgress-bar": { backgroundColor: "#3b82f6" },
+            }}
           />
-          <Typography sx={{ mt: 1, color: "#666", textAlign: "center" }}>
-            {usage.used} out of {usage.total} ({usagePercentage.toFixed(1)}%)
+          <Typography align="center" sx={{ mt: 1.5, color: "#555" }}>
+            {usage.used} / {usage.total} Messages Used (
+            {usagePercentage.toFixed(1)}%)
           </Typography>
         </CardContent>
-      </Card>
+      </Card> */}
 
-      {/* Delivery Chart */}
-      <Card sx={{ mb: 3, boxShadow: 2 }}>
+      {/* Chart */}
+      <Card sx={{ borderRadius: 3, boxShadow: 3, mb: 4 }}>
         <CardContent>
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: "medium" }}>
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: 600, mb: 2 }}
+            style={{ fontFamily: "Montserrat" }}
+          >
             Message Delivery Trends
           </Typography>
+          <Divider sx={{ mb: 2 }} />
           <Apilogoschartui data={chartData} tableData={modifiedData} />
         </CardContent>
       </Card>
 
-      {/* Table Component */}
-      <Card sx={{ boxShadow: 2 }}>
+      {/* Logs Table */}
+      <Card sx={{ borderRadius: 3, boxShadow: 3 }}>
         <CardContent>
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: "medium" }}>
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: 600, mb: 2 }}
+            style={{ fontFamily: "Montserrat" }}
+          >
             Detailed Message Logs
           </Typography>
+          <Divider sx={{ mb: 2 }} />
           <ReusableTable columns={columns} data={modifiedData} />
         </CardContent>
       </Card>

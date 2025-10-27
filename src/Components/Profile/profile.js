@@ -166,66 +166,89 @@ const ProfilePage = () => {
     }
 
     return (
-        <Box sx={{ bgcolor: "#f4f6f8", minHeight: "100vh", p: { xs: 2, md: 4 } }}>
+      <Box sx={{ bgcolor: "#f4f6f8", minHeight: "100vh", p: { xs: 2, md: 4 } }}>
+        {/* Header */}
+        <Typography variant="h5" fontWeight={700} sx={{ mb: 1 }}>
+          Hi, {mappedProfile?.username || "Customer"}!
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+          My Profile
+        </Typography>
 
-            {/* Header */}
-            <Typography variant="h5" fontWeight={700} sx={{ mb: 1 }}>
-                Hi, {mappedProfile?.username || 'Customer'}!
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
-                My Profile
-            </Typography>
-
-            {/* Profile Details Title */}
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    mb: 3,
-                }}
-            >
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    Profile Details
-                </Typography>
-                <Button
-                    variant="contained"
-                    sx={{
-                        bgcolor: "#2e7d32",
-                        "&:hover": { bgcolor: "#1b5e20" },
-                        textTransform: "none",
-                        px: 3,
-                        py: 1,
-                        borderRadius: 1,
-                    }}
-                >
-                    Change Password
-                </Button>
-            </Box>
-
-            <Divider sx={{ mb: 3 }} />
-
-            {/* Profile Grid */}
-            <Grid container spacing={3}>
-                {fields.map((item, index) => (
-                    <Grid item xs={12} sm={6} md={4} key={index}>
-                        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2, p: 2, bgcolor: 'white', borderRadius: 2, boxShadow: 1 }}>
-                            <Box sx={{ mt: 0.5 }}>
-                                {item.icon}
-                            </Box>
-                            <Box>
-                                <Typography variant="subtitle2" color="text.primary" fontWeight="bold">
-                                    {item.label}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                                    {item.value || "Not provided"}
-                                </Typography>
-                            </Box>
-                        </Box>
-                    </Grid>
-                ))}
-            </Grid>
+        {/* Profile Details Title */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 3,
+          }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Profile Details
+          </Typography>
+          <Button
+            variant="contained"
+            sx={{
+              bgcolor: "#2e7d32",
+              "&:hover": { bgcolor: "#1b5e20" },
+              textTransform: "none",
+              px: 3,
+              py: 1,
+              borderRadius: 1,
+            }}
+          >
+            Change Password
+          </Button>
         </Box>
+
+        <Divider sx={{ mb: 3 }} />
+
+        {/* Profile Grid */}
+        <Grid container spacing={3}>
+          {fields.map((item, index) => (
+            <Grid item xs={12} sm={6} md={4} key={index}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 2,
+                  p: 2,
+                  bgcolor: "white",
+                  borderRadius: 2,
+                  boxShadow: 1,
+                }}
+              >
+                <Box sx={{ mt: 0.5 }}>{item.icon}</Box>
+                <Box>
+                  <Typography
+                    variant="subtitle2"
+                    color="text.primary"
+                    fontWeight="bold"
+                  >
+                    {item.label}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      mt: 0.5,
+                      maxWidth: "150px", // 👈 adjust this width to your layout
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      display: "block",
+                    }}
+                    title={item.value} // full text on hover
+                  >
+                    {item.value || "Not provided"}
+                  </Typography>
+                </Box>
+              </Box>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
     );
 };
 
