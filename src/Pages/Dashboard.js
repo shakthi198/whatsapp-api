@@ -6,7 +6,7 @@ import { MdSupportAgent, MdAssignment, MdPendingActions, MdOutlineCancel } from 
 import CardComponent from "../Components/Card.js";
 import ClientOverview from "../Components/ClientOverview";
 import ReminderPopup from "../Components/ReminderPopup";
-
+import apiEndpoints from "../apiconfig";
 const Dashboard = () => {
   const navigate = useNavigate();
 
@@ -38,7 +38,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (!token) return;
 
-    fetch("http://localhost/whatsapp_admin/register.php", {
+    fetch(`${apiEndpoints.getProfile}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
