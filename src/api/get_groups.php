@@ -10,12 +10,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-$conn = new mysqli("localhost", "root", "", "whatsapp");
+require_once "config.php";
 
-if ($conn->connect_error) {
-    echo json_encode(["status" => false, "message" => "Database connection failed"]);
-    exit;
-}
+// $conn = new mysqli("localhost", "root", "", "whatsapp");
+
+// if ($conn->connect_error) {
+//     echo json_encode(["status" => false, "message" => "Database connection failed"]);
+//     exit;
+// }
 
 // Get POST data
 $input = json_decode(file_get_contents("php://input"), true);
