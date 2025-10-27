@@ -13,7 +13,7 @@ const Billing = () => {
 
   return (
     <div
-      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
+      className="xl:w-7xl lg:w-2xl md:w-md mx-auto px-4 sm:px-6 lg:px-8 py-6"
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
       {/* Header */}
@@ -81,13 +81,13 @@ const Billing = () => {
               <div className="flex flex-col sm:flex-row items-center justify-center border border-gray-300 bg-white px-3 py-2 rounded-md shadow-sm max-w-xs sm:max-w-md mx-auto">
                 <input
                   type="text"
-                  className="text-gray-500 p-2 outline-none border-none bg-transparent w-full sm:w-auto"
+                  className="text-gray-500 p-2 outline-none border-none bg-transparent w-full lg:w-auto"
                   placeholder="Start date"
                 />
                 <span className="hidden sm:inline text-gray-500 mx-2">→</span>
                 <input
                   type="text"
-                  className="text-gray-500 p-2 outline-none border-none bg-transparent w-full sm:w-auto"
+                  className="text-gray-500 p-2 outline-none border-none bg-transparent w-full lg:w-auto"
                   placeholder="End date"
                 />
                 <CiCalendar className="text-gray-400 ml-2" size={22} />
