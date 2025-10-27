@@ -4,17 +4,19 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET");
 header("Access-Control-Allow-Headers: Content-Type");
 
+require_once "config.php";
+
 // DB Config
-$host = "localhost";
-$user = "root";
-$password = "";
-$database = "whatsapp";
+// $host = "localhost";
+// $user = "root";
+// $password = "";
+// $database = "whatsapp";
 
-$conn = new mysqli($host, $user, $password, $database);
+// $conn = new mysqli($host, $user, $password, $database);
 
-if ($conn->connect_error) {
-    die(json_encode(["status" => false, "message" => "Database connection failed."]));
-}
+// if ($conn->connect_error) {
+//     die(json_encode(["status" => false, "message" => "Database connection failed."]));
+// }
 
 $method = $_SERVER['REQUEST_METHOD'];
 
