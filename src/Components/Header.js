@@ -42,13 +42,13 @@ const Header = ({ darkMode, toggleDarkMode }) => {
     tier: "MSG_1000 LIMIT",
   });
   const handleLogout = () => {
-  // Remove token and user info
-  localStorage.removeItem("token");
-  localStorage.removeItem("user"); // if you store user info
+    // Remove token and user info
+    localStorage.removeItem("token");
+    localStorage.removeItem("user"); // if you store user info
 
-  // Redirect to login
-  navigate("/login", { replace: true });
-};
+    // Redirect to login
+    navigate("/login", { replace: true });
+  };
 
 
   useEffect(() => {
@@ -66,6 +66,7 @@ const Header = ({ darkMode, toggleDarkMode }) => {
       sx={{
         position: "sticky",
         top: "16px",
+        zIndex: 10, // ✅ Add this line
         display: "flex",
         flexWrap: "wrap",
         alignItems: "center",
@@ -212,12 +213,12 @@ const Header = ({ darkMode, toggleDarkMode }) => {
         >
           {(isMobile || isTablet) && (
             <>
-              <Box borderRadius={"30px"}  sx={{ padding: "8px 16px"}}>
+              <Box borderRadius={"30px"} sx={{ padding: "8px 16px" }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: "bold", fontFamily: "montserrat" }}>
                   WABA Details
                 </Typography>
 
-                <Box sx={{padding: "4px 16px"}}>
+                <Box sx={{ padding: "4px 16px" }}>
 
                   <Box sx={{ display: "flex", mb: 1 }}>
                     <Typography variant="body2" sx={{ fontFamily: "montserrat", fontWeight: "bold", minWidth: "60px" }}>
@@ -268,10 +269,10 @@ const Header = ({ darkMode, toggleDarkMode }) => {
             <MdAccountCircle size={20} style={{ marginRight: "10px" }} />
             Profile
           </MenuItem>
-        <MenuItem onClick={handleLogout} sx={{ color: "red", fontSize: "16px", fontFamily: "montserrat" }}>
-  <MdLogout size={20} style={{ marginRight: "10px" }} />
-  Logout
-</MenuItem>
+          <MenuItem onClick={handleLogout} sx={{ color: "red", fontSize: "16px", fontFamily: "montserrat" }}>
+            <MdLogout size={20} style={{ marginRight: "10px" }} />
+            Logout
+          </MenuItem>
 
         </Menu>
       </Box>
