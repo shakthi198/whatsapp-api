@@ -14,7 +14,11 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Add this line (past date)
 
 require_once "config.php";
 
-
+$conn = new mysqli($servername, $username, $password, $dbname);
+if ($conn->connect_error) {
+    echo json_encode(["status" => "error", "message" => "DB Connection Failed"]);
+    exit;
+}
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -82,7 +86,7 @@ elseif ($method === 'GET') {
                 t.id as template_id,
                 t.name as template_name
             FROM category c
-            LEFT JOIN templates t ON t.categoryGuid = c.guid AND t.isDelete = 0
+            LEFT JOIN templates t ON t.categoryName = c.categoryName AND t.isDelete = 0
             WHERE c.isDelete = 0
             ORDER BY c.id";
 

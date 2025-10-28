@@ -101,7 +101,7 @@ const Contacts = () => {
   };
 
   return (
-    <div className="xl:w-full lg:w-2xl md:w-md mx-auto p-4 md:p-6">
+    <div className="width-full">
       {/* Header */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center mb-4 gap-2">
         <h2 className="text-3xl font-semibold text-gray-700 whitespace-wrap">

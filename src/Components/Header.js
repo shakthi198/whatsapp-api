@@ -14,6 +14,8 @@ import { FaRegFlag } from "react-icons/fa";
 import { MdAccountCircle, MdLogout } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
+import axios from "axios";
+import apiEndpoints from "../apiconfig";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -32,28 +34,68 @@ const Header = () => {
   });
 
   const [wabaData, setWabaData] = useState({
-    number: "919876543210",
+    number: "",
     status: "Live",
-    // quality: "GREEN",
-    // tier: "MSG_1000 LIMIT",
+    quality: "GREEN",
+    tier: "MSG_1000 LIMIT",
   });
+
+  useEffect(() => {
+    const token = localStorage.getItem("token") || "";
+    if (!token) return;
+
+    axios
+      .post(
+        apiEndpoints.getProfile,
+        { action: "getProfile" },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      .then((res) => {
+        const payload = res.data || {};
+        if (payload.status === "success" && payload.user) {
+          const u = payload.user;
+
+          const displayName = u.legal_business_name || u.name || "Elcodamics";
+          const profileImage = u.profile_image || u.profileImage || u.avatar || "https://via.placeholder.com/40";
+
+          // prefer known WABA/mobile fields (strip non-digits for safety)
+          const rawWaba =
+            u.wabaNumber ||
+            u.waba_number ||
+            u.mobile_number ||
+            u.mobile ||
+            u.phone ||
+            u.mobile_no ||
+            "";
+          const wabaNumber = String(rawWaba).replace(/\D/g, "");
+
+          setUser({ 
+            name: displayName, 
+            profileImage 
+          });
+
+          setWabaData((prev) => ({
+            ...prev,
+            number: wabaNumber || prev.number,
+            status: u.waba_status || prev.status,
+            quality: u.waba_quality || prev.quality,
+            tier: u.waba_tier || prev.tier,
+          }));
+        } else {
+          // non-fatal — keep defaults
+          console.warn("Profile fetch returned:", payload);
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching profile for header:", err);
+      });
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/login", { replace: true });
   };
-
-  useEffect(() => {
-    setTimeout(() => {
-      setWabaData({
-        number: "919363013413",
-        status: "Live",
-        quality: "GREEN",
-        tier: "MSG_1000 LIMIT",
-      });
-    }, 2000);
-  }, []);
 
   return (
     <Box
@@ -104,6 +146,7 @@ const Header = () => {
                 />
                 WABA:
                 <Typography
+                  component="span"
                   sx={{
                     fontSize: { xs: "14px", sm: "15px", md: "16px" },
                     marginLeft: "12px",
@@ -132,6 +175,7 @@ const Header = () => {
                 />
                 Status:
                 <Typography
+                  component="span"
                   sx={{
                     fontSize: { xs: "14px", sm: "15px", md: "16px" },
                     marginLeft: "12px",
@@ -157,6 +201,7 @@ const Header = () => {
               >
                 Quality:
                 <Typography
+                  component="span"
                   sx={{
                     fontSize: { xs: "14px", sm: "15px", md: "16px" },
                     marginLeft: "12px",
@@ -167,10 +212,9 @@ const Header = () => {
                   {wabaData.quality}
                 </Typography>
               </Typography>
-            </Box> */}
+            </Box>
 
-            {/* Tier */}
-            {/* <Box sx={{ display: "flex", flexDirection: "column" }}>
+=            <Box sx={{ display: "flex", flexDirection: "column" }}>
               <Typography
                 sx={{
                   fontWeight: "bold",
@@ -182,6 +226,7 @@ const Header = () => {
               >
                 Tier:
                 <Typography
+                  component="span"
                   sx={{
                     fontSize: { xs: "14px", sm: "15px", md: "16px" },
                     marginLeft: "12px",
@@ -346,7 +391,10 @@ const Header = () => {
           )}
 
           <MenuItem
-            onClick={() => navigate("/profile")}
+            onClick={() => {
+              handleClose();
+              navigate("/profile");
+            }}
             sx={{ fontSize: "16px", fontFamily: "montserrat" }}
           >
             <MdAccountCircle size={20} style={{ marginRight: "10px" }} />
@@ -354,7 +402,10 @@ const Header = () => {
           </MenuItem>
 
           <MenuItem
-            onClick={handleLogout}
+            onClick={() => {
+              handleClose();
+              handleLogout();
+            }}
             sx={{ color: "red", fontSize: "16px", fontFamily: "montserrat" }}
           >
             <MdLogout size={20} style={{ marginRight: "10px" }} />
