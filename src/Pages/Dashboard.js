@@ -117,7 +117,7 @@ const Dashboard = () => {
           title: "Authentication",
           value: cardData.authentication,
           backgroundColor: "#FFCDD2",
-          path: "/notifications",
+          path: "/dashboard",
         },
         {
           icon: <FiTool size={50} color="#6C757D" />,

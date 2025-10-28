@@ -133,14 +133,14 @@ const Sidebar = ({ darkMode }) => {
             closeSidebar={closeSidebar}
           />
 
-          <DropdownItem
+          {/* <DropdownItem
             icon={<Settings size={20} />}
             label="Settings"
             isOpen={dropdowns.settings}
             toggleDropdown={() => toggleDropdown("settings")}
             subItems={[{ label: "API Settings", path: "/api-settings" }]}
             closeSidebar={closeSidebar}
-          />
+          /> */}
         </nav>
       </div>
 
