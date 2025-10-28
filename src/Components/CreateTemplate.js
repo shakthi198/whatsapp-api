@@ -1,4 +1,4 @@
-import { useState,useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -6,7 +6,6 @@ import apiEndpoints from "../apiconfig";
 import WhatsAppPreview from "./whatsapppreview";
 import { Box, Typography, Button, Stack } from "@mui/material";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
-
 
 const CreateTemplate = () => {
   const navigate = useNavigate();
@@ -19,10 +18,12 @@ const CreateTemplate = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [attributes, setAttributes] = useState([]);
   const [newAttribute, setNewAttribute] = useState({ name: "", value: "" });
+  const [quickReplies, setQuickReplies] = useState([]);
+  const [newQuickReply, setNewQuickReply] = useState("");
 
   const [formData, setFormData] = useState({
     templateName: "",
-    categoryGuid: "", // Changed from 'category'
+    categoryName: "", // Changed from categoryGuid to categoryName
     languageGuid: "",
     type: "",
     erpCategory: "",
@@ -87,20 +88,63 @@ const CreateTemplate = () => {
   useEffect(() => {
     if (location.state?.template) {
       const { template } = location.state;
-      setFormData({
-        templateName: template.templateName,
-        category: template.category,
-        language: template.language,
-        type: template.type,
-        erpCategory: template.erpCategory,
-        status: template.status,
-        createdOn: template.createdOn || new Date().toLocaleString(),
-        headerType: template.headerType || "text",
-        headerText: template.headerText || "",
-      });
-      setTemplateBody(template.templateBody);
-      setTemplateFooter(template.templateFooter);
-      // setAttributes(template.attributes || []);
+
+      // If template has template_json, use that
+      if (template.template_json) {
+        const templateJson = template.template_json;
+
+        // Extract components from JSON
+        templateJson.components.forEach(component => {
+          switch (component.type) {
+            case 'BODY':
+              setTemplateBody(component.text || '');
+              break;
+            case 'FOOTER':
+              setTemplateFooter(component.text || '');
+              break;
+            case 'HEADER':
+              if (component.format === 'TEXT') {
+                setFormData(prev => ({
+                  ...prev,
+                  headerText: component.text || '',
+                  headerType: 'text'
+                }));
+              }
+              break;
+            case 'BUTTONS':
+              if (component.buttons) {
+                const replies = component.buttons
+                  .filter(btn => btn.type === 'QUICK_REPLY')
+                  .map(btn => ({ text: btn.text }));
+                setQuickReplies(replies);
+              }
+              break;
+          }
+        });
+
+        setFormData(prev => ({
+          ...prev,
+          templateName: templateJson.name || template.template_name,
+          type: templateJson.category === 'TRANSACTIONAL' ? 'TEXT' : 'MEDIA'
+        }));
+      } else {
+        // Fallback to legacy fields - UPDATED for categoryName
+        setFormData({
+          templateName: template.template_name,
+          categoryName: template.categoryName || "", // Use categoryName instead of categoryGuid
+          languageGuid: template.languageGuid,
+          type: template.template_type === 1 ? 'TEXT' : 'MEDIA',
+          erpCategory: template.erpCategoryGuid,
+          status: "Approved",
+          createdOn: template.createdOn,
+          headerType: "text",
+          headerText: "",
+        });
+        setTemplateBody(template.body);
+        setTemplateFooter(template.template_footer);
+      }
+
+      // Parse attributes
       let attrs = [];
       try {
         attrs =
@@ -111,7 +155,6 @@ const CreateTemplate = () => {
         console.error("Failed to parse attributes:", err);
         attrs = [];
       }
-
       setAttributes(Array.isArray(attrs) ? attrs : []);
     }
   }, [location.state]);
@@ -126,39 +169,47 @@ const CreateTemplate = () => {
   const handleSaveAttribute = () => {
     if (newAttribute.name && newAttribute.value) {
       setAttributes([...attributes, newAttribute]);
-
-      // insert value with curly braces
       insertPlaceholderValue(newAttribute.value);
-
       setShowAddAttributePopup(false);
     }
   };
 
- const insertPlaceholderValue = (value) => {
-   const placeholder = `{{${value}}}`;
-   const textarea = textareaRef.current;
+  const insertPlaceholderValue = (value) => {
+    const placeholder = `{{${value}}}`;
+    const textarea = textareaRef.current;
 
-   if (textarea) {
-     const start = textarea.selectionStart;
-     const end = textarea.selectionEnd;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
 
-     const updatedText =
-       templateBody.substring(0, start) +
-       placeholder +
-       templateBody.substring(end);
+      const updatedText =
+        templateBody.substring(0, start) +
+        placeholder +
+        templateBody.substring(end);
 
-     setTemplateBody(updatedText);
+      setTemplateBody(updatedText);
 
-     setTimeout(() => {
-       textarea.selectionStart = textarea.selectionEnd =
-         start + placeholder.length;
-       textarea.focus();
-     }, 0);
-   }
- };
+      setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd =
+          start + placeholder.length;
+        textarea.focus();
+      }, 0);
+    }
+  };
 
   const handleDelete = (index) => {
     setAttributes(attributes.filter((_, i) => i !== index));
+  };
+
+  const handleAddQuickReply = () => {
+    if (newQuickReply.trim() && quickReplies.length < 3) {
+      setQuickReplies([...quickReplies, { text: newQuickReply.trim() }]);
+      setNewQuickReply("");
+    }
+  };
+
+  const handleRemoveQuickReply = (index) => {
+    setQuickReplies(quickReplies.filter((_, i) => i !== index));
   };
 
   const handleChange = (e) => {
@@ -167,13 +218,12 @@ const CreateTemplate = () => {
   };
 
   const handleSubmit = async (e) => {
-    // debugger;
     e.preventDefault();
 
     // Validate required fields
     const requiredFields = [
       "templateName",
-      "categoryGuid",
+      "categoryName", // Updated field name
       "languageGuid",
       "type",
     ];
@@ -183,31 +233,50 @@ const CreateTemplate = () => {
       return;
     }
 
-    // Prepare data matching backend structure
+    // Prepare data - NO HEADERS since not in target format
     const templateData = {
       name: formData.templateName,
-      categoryGuid: formData.categoryGuid,
+      categoryName: formData.categoryName, // Send category name instead of GUID
       languageGuid: formData.languageGuid,
       typeId: formData.type === "TEXT" ? 1 : 2,
       isFile: formData.type === "MEDIA" ? 1 : 0,
       body: templateBody,
       templateFooter: templateFooter,
-      templateHeaders: JSON.stringify({
-        // Stringify the headers object
-        type: formData.headerType,
-        text: formData.headerText,
-      }),
+      templateHeaders: JSON.stringify({}), // Empty headers
       erpCategoryGuid: formData.erpCategory || null,
       isVariable: attributes.length > 0 ? 1 : 0,
       bodyStyle: "",
       actionId: null,
       actionGuid: null,
-      fileGuids: JSON.stringify([]), // Stringify empty array
+      fileGuids: JSON.stringify([]),
       status: formData.status,
-      attributes: JSON.stringify(attributes), // Stringify attributes array
+      attributes: JSON.stringify(attributes),
+      quickReplies: JSON.stringify(quickReplies),
     };
 
-    console.log("Submitting data:", templateData); // Debug log
+    console.log("Submitting data to backend:", templateData);
+    console.log("This will be sent to Meta as:", {
+      name: templateData.name.toLowerCase().replace(/[^a-zA-Z0-9_]/g, '_') + '_' + Date.now(),
+      category: "UTILITY", // Always UTILITY as per requirement
+      language: "en",
+      components: [
+        {
+          type: "BODY",
+          text: templateData.body // With variables transformed to {{1}}, {{2}}
+        },
+        ...(templateData.templateFooter ? [{
+          type: "FOOTER",
+          text: templateData.templateFooter
+        }] : []),
+        ...(quickReplies.length > 0 ? [{
+          type: "BUTTONS",
+          buttons: quickReplies.map(reply => ({
+            type: "QUICK_REPLY",
+            text: reply.text
+          }))
+        }] : [])
+      ]
+    });
 
     try {
       const response = await fetch(apiEndpoints.managetemplate, {
@@ -230,7 +299,7 @@ const CreateTemplate = () => {
       console.error("Submission error:", error);
       toast.error(
         error.message ||
-          "Failed to save template. Please check console for details."
+        "Failed to save template. Please check console for details."
       );
     }
   };
@@ -240,6 +309,7 @@ const CreateTemplate = () => {
     headerText: formData.headerText,
     body: templateBody,
     footer: templateFooter,
+    quickReplies: quickReplies,
   };
 
   return (
@@ -248,7 +318,7 @@ const CreateTemplate = () => {
       style={{ fontFamily: "Montserrat" }}
     >
       <Box display="flex" gap={2}>
-        {/* Left: Form Section - flex grows to occupy available space */}
+        {/* Left: Form Section */}
         <Box sx={{ flex: 1 }}>
           <div className="bg-white shadow-md rounded-lg p-6 w-full">
             <h1 className="text-2xl font-bold mb-6 text-gray-800">
@@ -277,34 +347,46 @@ const CreateTemplate = () => {
                 )}
               </div>
 
-              <select
-                className="border border-gray-300 p-2 rounded w-full"
-                name="categoryGuid"
-                value={formData.categoryGuid}
-                onChange={handleChange}
-              >
-                <option value="">Select category</option>
-                {categories.map((cat) => (
-                  <option key={cat.category_guid} value={cat.category_guid}>
-                    {cat.categoryName}
-                  </option>
-                ))}
-              </select>
+              {/* Category Select - Updated to use categoryName */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Category
+                </label>
+                <select
+                  className="border border-gray-300 p-2 rounded w-full"
+                  name="categoryName"
+                  value={formData.categoryName}
+                  onChange={handleChange}
+                >
+                  <option value="">Select category</option>
+                  {categories.map((cat) => (
+                    <option key={cat.category_guid} value={cat.categoryName}>
+                      {cat.categoryName}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               {/* Language Select */}
-              <select
-                className="border border-gray-300 p-2 rounded w-full"
-                name="languageGuid"
-                value={formData.languageGuid}
-                onChange={handleChange}
-              >
-                <option value="">Select language</option>
-                {languages.map((lang) => (
-                  <option key={lang.guid} value={lang.guid}>
-                    {lang.name}
-                  </option>
-                ))}
-              </select>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Language
+                </label>
+                <select
+                  className="border border-gray-300 p-2 rounded w-full"
+                  name="languageGuid"
+                  value={formData.languageGuid}
+                  onChange={handleChange}
+                >
+                  <option value="">Select language</option>
+                  {languages.map((lang) => (
+                    <option key={lang.guid} value={lang.guid}>
+                      {lang.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Template Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -323,12 +405,46 @@ const CreateTemplate = () => {
               </div>
             </div>
 
+            {/* Header Section */}
+            <div className="mb-8">
+              <h2 className="text-lg font-semibold mb-2 text-gray-800">Header</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Header Type
+                  </label>
+                  <select
+                    className="border border-gray-300 p-2 rounded w-full"
+                    name="headerType"
+                    value={formData.headerType}
+                    onChange={handleChange}
+                  >
+                    <option value="text">Text</option>
+                    <option value="image">Image</option>
+                    <option value="document">Document</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Header Text
+                  </label>
+                  <input
+                    type="text"
+                    className="border border-gray-300 p-2 rounded w-full"
+                    name="headerText"
+                    placeholder="Header Text"
+                    value={formData.headerText}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Body Section */}
             <div className="mb-8">
               <h2 className="text-lg font-semibold mb-2 text-gray-800">Body</h2>
               <p className="text-sm text-gray-600 mb-3">
-                Make your messages personal using variables like and get more
-                replies!
+                Make your messages personal using variables like and get more replies!
               </p>
 
               <button
@@ -352,16 +468,47 @@ const CreateTemplate = () => {
               </p>
             </div>
 
-            {/* Interactive Actions */}
+            {/* Quick Replies Section */}
             <div className="mb-8">
               <h2 className="text-lg font-semibold mb-2 text-gray-800">
-                Interactive Actions (Optional)
+                Quick Replies (Optional)
               </h2>
-              <select className="border border-gray-300 p-2 rounded w-full max-w-xs">
-                <option value="">Select action</option>
-                <option value="CTA">Call To Action</option>
-                <option value="QUICK_REPLY">Quick Reply</option>
-              </select>
+              <p className="text-sm text-gray-600 mb-3">
+                Add up to 3 quick reply buttons
+              </p>
+              <div className="flex gap-2 mb-3">
+                <input
+                  type="text"
+                  className="border border-gray-300 p-2 rounded flex-1"
+                  placeholder="Quick reply text"
+                  value={newQuickReply}
+                  onChange={(e) => setNewQuickReply(e.target.value)}
+                  maxLength={20}
+                />
+                <button
+                  className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 disabled:bg-gray-300"
+                  onClick={handleAddQuickReply}
+                  disabled={!newQuickReply.trim() || quickReplies.length >= 3}
+                >
+                  Add
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {quickReplies.map((reply, index) => (
+                  <div
+                    key={index}
+                    className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full flex items-center gap-2"
+                  >
+                    {reply.text}
+                    <button
+                      onClick={() => handleRemoveQuickReply(index)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Template Footer */}
@@ -379,6 +526,7 @@ const CreateTemplate = () => {
                 placeholder="Template Footer"
                 value={templateFooter}
                 onChange={(e) => setTemplateFooter(e.target.value)}
+                maxLength={60}
               />
             </div>
 
@@ -452,7 +600,7 @@ const CreateTemplate = () => {
                       {attr.name}: {attr.value}
                       <button
                         onClick={(e) => {
-                          e.stopPropagation(); // prevent insert when delete clicked
+                          e.stopPropagation();
                           handleDelete(index);
                         }}
                         className="ml-2 bg-white text-red-500 p-1 rounded-full"
