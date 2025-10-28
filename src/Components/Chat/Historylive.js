@@ -263,12 +263,12 @@ const HistoryLive = () => {
             {/* Input */}
             <div className="p-3 border-t bg-white">
               <div className="flex items-center space-x-2">
-                <button className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
+                {/* <button className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
                   <BsEmojiSmile />
                 </button>
                 <button className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
                   <BsPaperclip />
-                </button>
+                </button> */}
                 <input
                   type="text"
                   placeholder="Type a message"
