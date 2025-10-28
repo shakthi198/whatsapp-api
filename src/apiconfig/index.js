@@ -1,6 +1,4 @@
-import { register } from "react-refresh";
-
-const API_BASE_URL = "http://localhost/whatsapp_admin/";
+const API_BASE_URL = "http://localhost/phpValidation/whatsapp";
 
 
 const apiEndpoints = {
@@ -16,6 +14,9 @@ const apiEndpoints = {
     getGroups: `${API_BASE_URL}/get_groups.php`,
     managetemplate: `${API_BASE_URL}/managetemplate.php`,
     whatsappLog: `${API_BASE_URL}/whatsapp_log.php`,
+    fetchTemplate : `${API_BASE_URL}/fetchtemplate.php`,
+    apiurl : `${API_BASE_URL}/api_settings.php`,
+    fetchmessage : `${API_BASE_URL}/message_crud.php`,
   };
 
 export default apiEndpoints;
