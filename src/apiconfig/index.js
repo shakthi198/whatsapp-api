@@ -16,6 +16,8 @@ const apiEndpoints = {
     getGroups: `${API_BASE_URL}/get_groups.php`,
     managetemplate: `${API_BASE_URL}/managetemplate.php`,
     whatsappLog: `${API_BASE_URL}/whatsapp_log.php`,
+    metaTemplates: `${API_BASE_URL}/meta_templates.php`,
+
   };
 
 export default apiEndpoints;
