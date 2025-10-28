@@ -38,7 +38,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (!token) return;
 
-    fetch(`${apiEndpoints.getProfile}`, {
+    fetch(``, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -75,7 +75,7 @@ const Dashboard = () => {
 
   // 🔹 Example: Fetch dashboard card data
   useEffect(() => {
-    fetch("YOUR_API_ENDPOINT") // Replace with actual API
+    fetch(`${apiEndpoints.getProfile}`) // Replace with actual API
       .then((res) => res.json())
       .then((data) => {
         setCardData({

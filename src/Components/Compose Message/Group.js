@@ -196,12 +196,16 @@ export default function GroupMsg() {
       </div>
 
       {/* Message Template Popup */}
-      {isPopupOpen && (
-        <MessagePopup
-          onClose={() => setIsPopupOpen(false)}
-          onSelectTemplate={handleSelectTemplate}
-        />
-      )}
+       {isPopupOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-auto">
+    <div className="w-full flex justify-center items-start mt-10 md:items-center">
+      <MessagePopup
+        onClose={() => setIsPopupOpen(false)}
+        onSelectTemplate={handleSelectTemplate}
+      />
+    </div>
+  </div>
+)}
     </div>
   );
 }

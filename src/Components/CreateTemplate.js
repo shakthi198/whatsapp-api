@@ -1,12 +1,11 @@
-import { useState,useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import apiEndpoints from "../apiconfig";
 import WhatsAppPreview from "./whatsapppreview";
-import { Box, Typography, Button, Stack } from "@mui/material";
+import { Box } from "@mui/material";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
-
 
 const CreateTemplate = () => {
   const navigate = useNavigate();
@@ -22,7 +21,7 @@ const CreateTemplate = () => {
 
   const [formData, setFormData] = useState({
     templateName: "",
-    categoryGuid: "", // Changed from 'category'
+    categoryGuid: "",
     languageGuid: "",
     type: "",
     erpCategory: "",
@@ -31,35 +30,29 @@ const CreateTemplate = () => {
     headerType: "text",
     headerText: "",
   });
+
   const [categories, setCategories] = useState([]);
   const [languages, setLanguages] = useState([]);
 
-  // ✅ Global variables available in all templates
   const GLOBAL_ATTRIBUTES = [
     { name: "name", value: "user name" },
     { name: "date", value: "meet date" },
   ];
 
-  // Fetch Categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const res = await fetch(apiEndpoints.Category);
         const data = await res.json();
-        if (res.ok && data.status) {
-          setCategories(data.data);
-        } else {
-          toast.error(data.message || "Failed to load categories");
-        }
-      } catch (err) {
-        console.error(err);
+        if (res.ok && data.status) setCategories(data.data);
+        else toast.error(data.message || "Failed to load categories");
+      } catch {
         toast.error("Error loading categories");
       }
     };
     fetchCategories();
   }, []);
 
-  // Fetch Languages
   useEffect(() => {
     const fetchLanguages = async () => {
       try {
@@ -72,25 +65,21 @@ const CreateTemplate = () => {
               name: lang.languageName,
             }))
           );
-        } else {
-          toast.error(data.message || "Failed to load languages");
-        }
-      } catch (err) {
-        console.error(err);
+        } else toast.error(data.message || "Failed to load languages");
+      } catch {
         toast.error("Error loading languages");
       }
     };
     fetchLanguages();
   }, []);
 
-  // Populate form when editing
   useEffect(() => {
     if (location.state?.template) {
       const { template } = location.state;
       setFormData({
         templateName: template.templateName,
-        category: template.category,
-        language: template.language,
+        categoryGuid: template.categoryGuid,
+        languageGuid: template.languageGuid,
         type: template.type,
         erpCategory: template.erpCategory,
         status: template.status,
@@ -100,18 +89,15 @@ const CreateTemplate = () => {
       });
       setTemplateBody(template.templateBody);
       setTemplateFooter(template.templateFooter);
-      // setAttributes(template.attributes || []);
       let attrs = [];
       try {
         attrs =
           typeof template.attributes === "string"
             ? JSON.parse(template.attributes)
             : template.attributes;
-      } catch (err) {
-        console.error("Failed to parse attributes:", err);
+      } catch {
         attrs = [];
       }
-
       setAttributes(Array.isArray(attrs) ? attrs : []);
     }
   }, [location.state]);
@@ -123,67 +109,46 @@ const CreateTemplate = () => {
 
   const handleCloseAddPopup = () => setShowAddAttributePopup(false);
 
+  const insertPlaceholderValue = (value) => {
+    const placeholder = `{{${value}}}`;
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const updatedText =
+        templateBody.substring(0, start) +
+        placeholder +
+        templateBody.substring(end);
+      setTemplateBody(updatedText);
+      setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd =
+          start + placeholder.length;
+        textarea.focus();
+      }, 0);
+    }
+  };
+
   const handleSaveAttribute = () => {
     if (newAttribute.name && newAttribute.value) {
       setAttributes([...attributes, newAttribute]);
-
-      // insert value with curly braces
       insertPlaceholderValue(newAttribute.value);
-
       setShowAddAttributePopup(false);
     }
   };
 
- const insertPlaceholderValue = (value) => {
-   const placeholder = `{{${value}}}`;
-   const textarea = textareaRef.current;
-
-   if (textarea) {
-     const start = textarea.selectionStart;
-     const end = textarea.selectionEnd;
-
-     const updatedText =
-       templateBody.substring(0, start) +
-       placeholder +
-       templateBody.substring(end);
-
-     setTemplateBody(updatedText);
-
-     setTimeout(() => {
-       textarea.selectionStart = textarea.selectionEnd =
-         start + placeholder.length;
-       textarea.focus();
-     }, 0);
-   }
- };
-
-  const handleDelete = (index) => {
+  const handleDelete = (index) =>
     setAttributes(attributes.filter((_, i) => i !== index));
-  };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  const handleChange = (e) =>
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
-    // debugger;
     e.preventDefault();
+    const required = ["templateName", "categoryGuid", "languageGuid", "type"];
+    const missing = required.filter((f) => !formData[f]);
+    if (missing.length)
+      return toast.error(`Please fill: ${missing.join(", ")}`);
 
-    // Validate required fields
-    const requiredFields = [
-      "templateName",
-      "categoryGuid",
-      "languageGuid",
-      "type",
-    ];
-    const missing = requiredFields.filter((field) => !formData[field]);
-    if (missing.length) {
-      toast.error(`Please fill: ${missing.join(", ")}`);
-      return;
-    }
-
-    // Prepare data matching backend structure
     const templateData = {
       name: formData.templateName,
       categoryGuid: formData.categoryGuid,
@@ -191,9 +156,8 @@ const CreateTemplate = () => {
       typeId: formData.type === "TEXT" ? 1 : 2,
       isFile: formData.type === "MEDIA" ? 1 : 0,
       body: templateBody,
-      templateFooter: templateFooter,
+      templateFooter,
       templateHeaders: JSON.stringify({
-        // Stringify the headers object
         type: formData.headerType,
         text: formData.headerText,
       }),
@@ -202,36 +166,23 @@ const CreateTemplate = () => {
       bodyStyle: "",
       actionId: null,
       actionGuid: null,
-      fileGuids: JSON.stringify([]), // Stringify empty array
+      fileGuids: JSON.stringify([]),
       status: formData.status,
-      attributes: JSON.stringify(attributes), // Stringify attributes array
+      attributes: JSON.stringify(attributes),
     };
 
-    console.log("Submitting data:", templateData); // Debug log
-
     try {
-      const response = await fetch(apiEndpoints.managetemplate, {
+      const res = await fetch(apiEndpoints.managetemplate, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(templateData),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to save template");
-      }
-
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
       toast.success("Template saved successfully!");
       navigate("/templates");
-    } catch (error) {
-      console.error("Submission error:", error);
-      toast.error(
-        error.message ||
-          "Failed to save template. Please check console for details."
-      );
+    } catch (err) {
+      toast.error(err.message || "Failed to save template");
     }
   };
 
@@ -243,38 +194,29 @@ const CreateTemplate = () => {
   };
 
   return (
-    <div
-      className="min-h-screen bg-gray-50 p-6"
-      style={{ fontFamily: "Montserrat" }}
-    >
-      <Box display="flex" gap={2}>
-        {/* Left: Form Section - flex grows to occupy available space */}
-        <Box sx={{ flex: 1 }}>
-          <div className="bg-white shadow-md rounded-lg p-6 w-full">
-            <h1 className="text-2xl font-bold mb-6 text-gray-800">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 font-[Montserrat]">
+      <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={2}>
+        {/* Left Section */}
+        <Box flex={1}>
+          <div className="bg-white shadow-md rounded-lg p-4 sm:p-6 w-full">
+            <h1 className="text-xl sm:text-2xl font-bold mb-6 text-gray-800">
               Create New Template
             </h1>
 
-            {/* Top Section - Basic Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              {/* Template Name */}
+            {/* Grid Form */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-8">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium mb-1">
                   Template Name
                 </label>
                 <input
                   type="text"
-                  className="border border-gray-300 p-2 rounded w-full"
                   name="templateName"
                   placeholder="Template Name"
+                  className="border border-gray-300 p-2 rounded w-full"
                   value={formData.templateName}
                   onChange={handleChange}
                 />
-                {!formData.templateName && (
-                  <p className="text-red-500 text-xs mt-1">
-                    Error Template Name
-                  </p>
-                )}
               </div>
 
               <select
@@ -291,7 +233,6 @@ const CreateTemplate = () => {
                 ))}
               </select>
 
-              {/* Language Select */}
               <select
                 className="border border-gray-300 p-2 rounded w-full"
                 name="languageGuid"
@@ -305,40 +246,34 @@ const CreateTemplate = () => {
                   </option>
                 ))}
               </select>
-              {/* Template Type */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Template Type
-                </label>
-                <select
-                  className="border border-gray-300 p-2 rounded w-full"
-                  name="type"
-                  value={formData.type}
-                  onChange={handleChange}
-                >
-                  <option value="">Select type</option>
-                  <option value="TEXT">Text</option>
-                  <option value="MEDIA">Media</option>
-                </select>
-              </div>
+
+              <select
+                className="border border-gray-300 p-2 rounded w-full"
+                name="type"
+                value={formData.type}
+                onChange={handleChange}
+              >
+                <option value="">Select type</option>
+                <option value="TEXT">Text</option>
+                <option value="MEDIA">Media</option>
+              </select>
             </div>
 
-            {/* Body Section */}
+            {/* Body */}
             <div className="mb-8">
-              <h2 className="text-lg font-semibold mb-2 text-gray-800">Body</h2>
+              <h2 className="text-lg font-semibold mb-2">Body</h2>
               <p className="text-sm text-gray-600 mb-3">
-                Make your messages personal using variables like and get more
-                replies!
+                Make your messages personal using variables.
               </p>
 
               <button
-                className="border border-yellow-500 text-yellow-500 px-4 py-2 rounded mb-3 hover:bg-yellow-50"
+                className="border border-yellow-500 text-yellow-500 px-3 py-2 rounded mb-3 hover:bg-yellow-50"
                 onClick={() => setShowPopup(true)}
               >
                 Add Variable
               </button>
 
-              <div className="border border-gray-300 rounded-md p-4">
+              <div className="border border-gray-300 rounded-md p-3">
                 <textarea
                   ref={textareaRef}
                   placeholder="Template Body"
@@ -347,48 +282,27 @@ const CreateTemplate = () => {
                   onChange={(e) => setTemplateBody(e.target.value)}
                 />
               </div>
-              <p className="text-right text-sm text-gray-500 mt-1">
+              <p className="text-right text-xs sm:text-sm text-gray-500 mt-1">
                 {templateBody.length}/1024 characters
               </p>
             </div>
 
-            {/* Interactive Actions */}
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold mb-2 text-gray-800">
-                Interactive Actions (Optional)
-              </h2>
-              <select className="border border-gray-300 p-2 rounded w-full max-w-xs">
-                <option value="">Select action</option>
-                <option value="CTA">Call To Action</option>
-                <option value="QUICK_REPLY">Quick Reply</option>
-              </select>
-            </div>
-
-            {/* Template Footer */}
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold mb-2 text-gray-800">
-                Template Footer (Optional)
-              </h2>
-              <p className="text-sm text-gray-600 mb-3">
-                Footers are great to add any disclaimers or to add a thoughtful
-                PS and only up to 60 characters are allowed.
-              </p>
+            {/* Footer */}
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold mb-2">Template Footer</h2>
               <input
                 type="text"
-                className="border border-gray-300 p-2 rounded w-full"
                 placeholder="Template Footer"
+                className="border border-gray-300 p-2 rounded w-full"
                 value={templateFooter}
                 onChange={(e) => setTemplateFooter(e.target.value)}
               />
             </div>
 
             {/* Buttons */}
-            <div className="flex justify-end space-x-4">
-              <button
-                className="border border-gray-300 px-4 py-2 rounded text-gray-700 hover:bg-gray-50"
-                disabled
-              >
-                Save as draft
+            <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4">
+              <button className="border px-4 py-2 rounded text-gray-700 hover:bg-gray-50">
+                Save as Draft
               </button>
               <button
                 className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
@@ -398,142 +312,140 @@ const CreateTemplate = () => {
               </button>
             </div>
           </div>
-
-          {showPopup && (
-            <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center transition-opacity duration-300 p-4">
-              <div className="bg-white p-6 rounded-lg shadow-lg w-1/2">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-semibold">Select Attribute</h2>
-                  <button
-                    onClick={() => setShowPopup(false)}
-                    className="text-m font-bold"
-                  >
-                    X
-                  </button>
-                </div>
-                <div className="mt-4 flex items-center gap-2">
-                  <input
-                    type="text"
-                    placeholder="🔍 Search attributes..."
-                    className="w-89 border p-2 rounded"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  <button
-                    className="bg-[#D2B887] text-white py-2 px-4 rounded flex ml-20"
-                    onClick={handleAddAttribute}
-                  >
-                    + Add Attribute
-                  </button>
-                </div>
-                {/* ✅ Global Variables Section */}
-                <h3 className="font-semibold mt-4">Global Variables</h3>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {GLOBAL_ATTRIBUTES.map((attr, index) => (
-                    <div
-                      key={`global-${index}`}
-                      className="flex items-center bg-blue-500 text-white px-4 py-2 rounded-full border border-blue-400 cursor-pointer"
-                      onClick={() => insertPlaceholderValue(attr.value)}
-                    >
-                      {attr.name}: {attr.value}
-                    </div>
-                  ))}
-                </div>
-
-                {/* ✅ Template Variables Section */}
-                <h3 className="font-semibold mt-4">Template Variables</h3>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {attributes.map((attr, index) => (
-                    <div
-                      key={`local-${index}`}
-                      className="flex items-center bg-green-500 text-white px-4 py-2 rounded-full border border-green-400 cursor-pointer"
-                      onClick={() => insertPlaceholderValue(attr.value)}
-                    >
-                      {attr.name}: {attr.value}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation(); // prevent insert when delete clicked
-                          handleDelete(index);
-                        }}
-                        className="ml-2 bg-white text-red-500 p-1 rounded-full"
-                      >
-                        🗑
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex mt-4 items-center gap-2">
-                  <button className="p-2 rounded-md text-gray-600 hover:bg-gray-300">
-                    <HiChevronLeft className="text-2xl" />
-                  </button>
-                  <button className="border border-yellow-600 px-4 py-2 rounded-md text-black font-medium">
-                    1
-                  </button>
-                  <button className="p-2 rounded-md text-gray-600 hover:bg-gray-300">
-                    <HiChevronRight className="text-2xl" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {showAddAttributePopup && (
-            <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center p-4">
-              <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
-                <div className="flex justify-between items-center border-b pb-2">
-                  <h2 className="text-lg font-semibold">Add User Attribute</h2>
-                  <button onClick={handleCloseAddPopup}>&times;</button>
-                </div>
-                <div className="mt-4">
-                  <label className="block text-sm font-medium">Name</label>
-                  <input
-                    type="text"
-                    placeholder="Enter Attribute Name"
-                    className="w-full border p-2 rounded mt-1"
-                    value={newAttribute.name}
-                    onChange={(e) =>
-                      setNewAttribute({ ...newAttribute, name: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="mt-4">
-                  <label className="block text-sm font-medium">Value</label>
-                  <input
-                    type="text"
-                    placeholder="Enter Attribute Value"
-                    className="w-full border p-2 rounded mt-1"
-                    value={newAttribute.value}
-                    onChange={(e) =>
-                      setNewAttribute({
-                        ...newAttribute,
-                        value: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div className="mt-6 flex justify-end gap-2">
-                  <button
-                    className="border px-4 py-2 rounded"
-                    onClick={handleCloseAddPopup}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="bg-[#D2B887] text-white px-4 py-2 rounded"
-                    onClick={handleSaveAttribute}
-                  >
-                    OK
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </Box>
-        <Box flex={1}>
+
+        {/* Right Section (Preview) */}
+        <Box flex={1} className="mt-6 md:mt-0 ">
           <WhatsAppPreview templateData={previewData} />
         </Box>
       </Box>
+
+      {/* Popups (Responsive Widths) */}
+      {showPopup && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center p-4">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-[90%] sm:w-3/4 md:w-1/2 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-semibold">Select Attribute</h2>
+              <button onClick={() => setShowPopup(false)}>✕</button>
+            </div>
+            <div className="mt-4 flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="🔍 Search attributes..."
+                className="w-89 border p-2 rounded"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <button
+                className="bg-[#D2B887] text-white py-2 px-4 rounded flex ml-20"
+                onClick={handleAddAttribute}
+              >
+                + Add Attribute
+              </button>
+            </div>
+            {/* ✅ Global Variables Section */}
+            <h3 className="font-semibold mt-4">Global Variables</h3>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {GLOBAL_ATTRIBUTES.map((attr, index) => (
+                <div
+                  key={`global-${index}`}
+                  className="flex items-center bg-blue-500 text-white px-4 py-2 rounded-full border border-blue-400 cursor-pointer"
+                  onClick={() => insertPlaceholderValue(attr.value)}
+                >
+                  {attr.name}: {attr.value}
+                </div>
+              ))}
+            </div>
+
+            {/* ✅ Template Variables Section */}
+            <h3 className="font-semibold mt-4">Template Variables</h3>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {attributes.map((attr, index) => (
+                <div
+                  key={`local-${index}`}
+                  className="flex items-center bg-green-500 text-white px-4 py-2 rounded-full border border-green-400 cursor-pointer"
+                  onClick={() => insertPlaceholderValue(attr.value)}
+                >
+                  {attr.name}: {attr.value}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation(); // prevent insert when delete clicked
+                      handleDelete(index);
+                    }}
+                    className="ml-2 bg-white text-red-500 p-1 rounded-full"
+                  >
+                    🗑
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex mt-4 items-center gap-2">
+              <button className="p-2 rounded-md text-gray-600 hover:bg-gray-300">
+                <HiChevronLeft className="text-2xl" />
+              </button>
+              <button className="border border-yellow-600 px-4 py-2 rounded-md text-black font-medium">
+                1
+              </button>
+              <button className="p-2 rounded-md text-gray-600 hover:bg-gray-300">
+                <HiChevronRight className="text-2xl" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAddAttributePopup && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center p-4">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-[90%] sm:w-3/4 md:w-1/3 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b pb-2">
+              <h2 className="text-lg font-semibold">Add User Attribute</h2>
+              <button onClick={handleCloseAddPopup}>&times;</button>
+            </div>
+            <div className="mt-4">
+              <label className="block text-sm font-medium">Name</label>
+              <input
+                type="text"
+                placeholder="Enter Attribute Name"
+                className="w-full border p-2 rounded mt-1"
+                value={newAttribute.name}
+                onChange={(e) =>
+                  setNewAttribute({ ...newAttribute, name: e.target.value })
+                }
+              />
+            </div>
+            <div className="mt-4">
+              <label className="block text-sm font-medium">Value</label>
+              <input
+                type="text"
+                placeholder="Enter Attribute Value"
+                className="w-full border p-2 rounded mt-1"
+                value={newAttribute.value}
+                onChange={(e) =>
+                  setNewAttribute({
+                    ...newAttribute,
+                    value: e.target.value,
+                  })
+                }
+              />
+            </div>
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                className="border px-4 py-2 rounded"
+                onClick={handleCloseAddPopup}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-[#D2B887] text-white px-4 py-2 rounded"
+                onClick={handleSaveAttribute}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

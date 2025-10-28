@@ -459,12 +459,13 @@ const ManageTemplates = () => {
             <button
               className="mb-2 w-full text-left hover:bg-gray-100 p-2 rounded"
               onClick={() => {
-                handlePreview(modal.data);
                 closeModal();
+                setTimeout(() => handlePreview(modal.data), 50);
               }}
             >
               Preview
             </button>
+
             <button
               className="mb-2 w-full text-left hover:bg-gray-100 p-2 rounded"
               onClick={() => {
@@ -486,12 +487,13 @@ const ManageTemplates = () => {
             <button
               className="w-full text-left hover:bg-gray-100 p-2 rounded"
               onClick={() => {
-                handleShowCurl(modal.data);
                 closeModal();
+                setTimeout(() => handleShowCurl(modal.data), 50);
               }}
             >
               Show cURL
             </button>
+
             <button
               onClick={closeModal}
               className="mt-2 w-full text-left text-red-500 hover:text-red-700"
@@ -629,26 +631,26 @@ const ManageTemplates = () => {
 
       {/* cURL Modal */}
       {curlModal.open && (
-        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center p-4 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-3xl border border-gray-300 relative">
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center p-2 sm:p-4 z-50 overflow-auto">
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg w-full max-w-[95%] sm:max-w-3xl border border-gray-300 relative">
             <button
               onClick={() => setCurlModal({ open: false, data: null })}
               className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl"
             >
               &times;
             </button>
-            <h2 className="text-xl font-semibold mb-4">
+            <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">
               Generated cURL Command
             </h2>
-            <pre className="bg-gray-100 p-4 rounded-md text-sm overflow-x-auto whitespace-pre-wrap">
-              {curlModal.data}
-            </pre>
+            <div className="bg-gray-100 p-3 sm:p-4 rounded-md text-xs sm:text-sm overflow-x-auto whitespace-pre-wrap max-h-[70vh]">
+              <pre className="break-words">{curlModal.data}</pre>
+            </div>
             <button
               onClick={() => {
                 navigator.clipboard.writeText(curlModal.data);
                 alert("Copied to clipboard!");
               }}
-              className="mt-4 bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700"
+              className="mt-4 bg-yellow-600 text-white px-3 sm:px-4 py-2 rounded hover:bg-yellow-700 text-sm sm:text-base"
             >
               Copy to Clipboard
             </button>
