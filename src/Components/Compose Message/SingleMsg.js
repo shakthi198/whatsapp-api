@@ -159,7 +159,7 @@ export default function SingleMsg() {
         to: fullPhoneNumber,
         type: "template",
         template: {
-          name: "hello_world",
+          name: selectedTemplate?.name || "hello_world",
           language: {
             code: "en_US"
           }
