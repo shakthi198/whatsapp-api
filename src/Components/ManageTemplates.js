@@ -243,7 +243,7 @@ const ManageTemplates = () => {
 
   return (
     <div
-      className="p-6 bg-gray-100 xl:w-full lg:w-2xl md:w-md"
+      className="width-full"
       style={{ fontFamily: "Montserrat" }}
     >
       {/* Header */}
@@ -296,9 +296,9 @@ const ManageTemplates = () => {
                 </option>
               ))}
             </select>
-            <button className="text-white px-4 py-2 rounded-md bg-yellow-600">
+            {/* <button className="text-white px-4 py-2 rounded-md bg-yellow-600">
               📺 Watch Tutorial
-            </button>
+            </button> */}
             <button
               onClick={handleCreateTemplate}
               className="text-white px-4 py-2 rounded-md bg-yellow-600"

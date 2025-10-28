@@ -4,13 +4,15 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import apiEndpoints from "../apiconfig";
 import WhatsAppPreview from "./whatsapppreview";
-import { Box, Typography, Button, Stack } from "@mui/material";
+import { Box } from "@mui/material";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
+import { FaUpload, FaTimes, FaFileImage, FaFileVideo, FaFilePdf, FaFileAudio } from "react-icons/fa";
 
 const CreateTemplate = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const textareaRef = useRef(null);
+  const fileInputRef = useRef(null);
   const [templateBody, setTemplateBody] = useState("");
   const [templateFooter, setTemplateFooter] = useState("");
   const [showPopup, setShowPopup] = useState(false);
@@ -20,10 +22,16 @@ const CreateTemplate = () => {
   const [newAttribute, setNewAttribute] = useState({ name: "", value: "" });
   const [quickReplies, setQuickReplies] = useState([]);
   const [newQuickReply, setNewQuickReply] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+
+  // New states for template buttons and format
+  const [templateButtons, setTemplateButtons] = useState([]);
+  const [newButton, setNewButton] = useState({ type: "URL", text: "", url: "", phone: "" });
 
   const [formData, setFormData] = useState({
     templateName: "",
-    categoryName: "", // Changed from categoryGuid to categoryName
+    categoryName: "",
     languageGuid: "",
     type: "",
     erpCategory: "",
@@ -31,7 +39,14 @@ const CreateTemplate = () => {
     createdOn: new Date().toLocaleString(),
     headerType: "text",
     headerText: "",
+    templateCategory: "UTILITY",
   });
+
+  // Media state
+  const [mediaFile, setMediaFile] = useState(null);
+  const [mediaType, setMediaType] = useState("");
+  const [mediaId, setMediaId] = useState(null);
+
   const [categories, setCategories] = useState([]);
   const [languages, setLanguages] = useState([]);
 
@@ -84,80 +99,37 @@ const CreateTemplate = () => {
     fetchLanguages();
   }, []);
 
-  // Populate form when editing
+  // Reset header and media when template type changes
   useEffect(() => {
-    if (location.state?.template) {
-      const { template } = location.state;
-
-      // If template has template_json, use that
-      if (template.template_json) {
-        const templateJson = template.template_json;
-
-        // Extract components from JSON
-        templateJson.components.forEach(component => {
-          switch (component.type) {
-            case 'BODY':
-              setTemplateBody(component.text || '');
-              break;
-            case 'FOOTER':
-              setTemplateFooter(component.text || '');
-              break;
-            case 'HEADER':
-              if (component.format === 'TEXT') {
-                setFormData(prev => ({
-                  ...prev,
-                  headerText: component.text || '',
-                  headerType: 'text'
-                }));
-              }
-              break;
-            case 'BUTTONS':
-              if (component.buttons) {
-                const replies = component.buttons
-                  .filter(btn => btn.type === 'QUICK_REPLY')
-                  .map(btn => ({ text: btn.text }));
-                setQuickReplies(replies);
-              }
-              break;
-          }
-        });
-
-        setFormData(prev => ({
-          ...prev,
-          templateName: templateJson.name || template.template_name,
-          type: templateJson.category === 'TRANSACTIONAL' ? 'TEXT' : 'MEDIA'
-        }));
-      } else {
-        // Fallback to legacy fields - UPDATED for categoryName
-        setFormData({
-          templateName: template.template_name,
-          categoryName: template.categoryName || "", // Use categoryName instead of categoryGuid
-          languageGuid: template.languageGuid,
-          type: template.template_type === 1 ? 'TEXT' : 'MEDIA',
-          erpCategory: template.erpCategoryGuid,
-          status: "Approved",
-          createdOn: template.createdOn,
-          headerType: "text",
-          headerText: "",
-        });
-        setTemplateBody(template.body);
-        setTemplateFooter(template.template_footer);
-      }
-
-      // Parse attributes
-      let attrs = [];
-      try {
-        attrs =
-          typeof template.attributes === "string"
-            ? JSON.parse(template.attributes)
-            : template.attributes;
-      } catch (err) {
-        console.error("Failed to parse attributes:", err);
-        attrs = [];
-      }
-      setAttributes(Array.isArray(attrs) ? attrs : []);
+    if (formData.type === "MEDIA") {
+      setFormData(prev => ({
+        ...prev,
+        headerType: "text", // Reset to text header for MEDIA type
+        headerText: "" // Clear header text
+      }));
+      setMediaFile(null);
+      setMediaType("");
+      setMediaId(null);
     }
-  }, [location.state]);
+  }, [formData.type]);
+
+  // Auto-detect media type when file is selected
+  useEffect(() => {
+    if (mediaFile) {
+      const fileType = mediaFile.type.split('/')[0];
+      if (fileType === 'image') {
+        setMediaType('image');
+      } else if (fileType === 'video') {
+        setMediaType('video');
+      } else if (mediaFile.type === 'application/pdf') {
+        setMediaType('document');
+      } else if (fileType === 'audio') {
+        setMediaType('audio');
+      } else {
+        setMediaType('document');
+      }
+    }
+  }, [mediaFile]);
 
   const handleAddAttribute = () => {
     setNewAttribute({ name: "", value: "" });
@@ -212,18 +184,153 @@ const CreateTemplate = () => {
     setQuickReplies(quickReplies.filter((_, i) => i !== index));
   };
 
+  // New button handlers
+  const handleAddButton = () => {
+    if (templateButtons.length < 3) {
+      const buttonData = {
+        type: newButton.type,
+        text: newButton.text.trim()
+      };
+      
+      if (newButton.type === "URL") {
+        buttonData.url = newButton.url;
+      } else if (newButton.type === "PHONE_NUMBER") {
+        buttonData.phone = newButton.phone;
+      }
+      
+      setTemplateButtons([...templateButtons, buttonData]);
+      setNewButton({ type: "URL", text: "", url: "", phone: "" });
+    }
+  };
+
+  const handleRemoveButton = (index) => {
+    setTemplateButtons(templateButtons.filter((_, i) => i !== index));
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // SEPARATE MEDIA UPLOAD FUNCTION
+  const uploadMediaToServer = async (file) => {
+    try {
+      setIsUploadingMedia(true);
+      const formData = new FormData();
+      formData.append('media_file', file);
+
+      console.log("Uploading media file separately...", file);
+      
+      const response = await fetch(apiEndpoints.managetemplate, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Media upload failed');
+      }
+
+      if (!data.media_id) {
+        throw new Error('No media ID received from server');
+      }
+
+      return data.media_id;
+    } catch (error) {
+      console.error('Media upload error:', error);
+      throw error;
+    } finally {
+      setIsUploadingMedia(false);
+    }
+  };
+
+  // SEPARATE TEMPLATE SUBMISSION FUNCTION
+  const submitTemplateToServer = async (templateData) => {
+    try {
+      console.log("Submitting template data:", templateData);
+      
+      const response = await fetch(apiEndpoints.managetemplate, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(templateData),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Template submission failed');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Template submission error:', error);
+      throw error;
+    }
+  };
+
+  // Media handling - Auto-upload when file is selected
+  const handleMediaUpload = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file size (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("File size must be less than 10MB");
+        return;
+      }
+
+      try {
+        setMediaFile(file);
+        toast.info("Uploading media file...");
+        
+        const uploadedMediaId = await uploadMediaToServer(file);
+        
+        setMediaId(uploadedMediaId);
+        toast.success("Media uploaded successfully!");
+        console.log("Media uploaded with ID:", uploadedMediaId);
+      } catch (error) {
+        console.error("Media upload failed:", error);
+        toast.error("Media upload failed: " + error.message);
+        setMediaFile(null);
+        setMediaId(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      }
+    }
+  };
+
+  const removeMediaFile = () => {
+    setMediaFile(null);
+    setMediaType("");
+    setMediaId(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const getMediaIcon = () => {
+    switch (mediaType) {
+      case 'image': return <FaFileImage className="text-green-500 text-xl" />;
+      case 'video': return <FaFileVideo className="text-red-500 text-xl" />;
+      case 'document': return <FaFilePdf className="text-red-500 text-xl" />;
+      case 'audio': return <FaFileAudio className="text-purple-500 text-xl" />;
+      default: return <FaFileImage className="text-green-500 text-xl" />;
+    }
+  };
+
+  // Main submit handler - Only submits template data
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (isSubmitting) return;
 
     // Validate required fields
     const requiredFields = [
       "templateName",
-      "categoryName", // Updated field name
+      "categoryName",
       "languageGuid",
       "type",
     ];
@@ -233,83 +340,80 @@ const CreateTemplate = () => {
       return;
     }
 
-    // Prepare data - NO HEADERS since not in target format
-    const templateData = {
-      name: formData.templateName,
-      categoryName: formData.categoryName, // Send category name instead of GUID
-      languageGuid: formData.languageGuid,
-      typeId: formData.type === "TEXT" ? 1 : 2,
-      isFile: formData.type === "MEDIA" ? 1 : 0,
-      body: templateBody,
-      templateFooter: templateFooter,
-      templateHeaders: JSON.stringify({}), // Empty headers
-      erpCategoryGuid: formData.erpCategory || null,
-      isVariable: attributes.length > 0 ? 1 : 0,
-      bodyStyle: "",
-      actionId: null,
-      actionGuid: null,
-      fileGuids: JSON.stringify([]),
-      status: formData.status,
-      attributes: JSON.stringify(attributes),
-      quickReplies: JSON.stringify(quickReplies),
-    };
+    // Validate media for MEDIA type
+    if (formData.type === "MEDIA" && !mediaId) {
+      toast.error("Please upload a media file first");
+      return;
+    }
 
-    console.log("Submitting data to backend:", templateData);
-    console.log("This will be sent to Meta as:", {
-      name: templateData.name.toLowerCase().replace(/[^a-zA-Z0-9_]/g, '_') + '_' + Date.now(),
-      category: "UTILITY", // Always UTILITY as per requirement
-      language: "en",
-      components: [
-        {
-          type: "BODY",
-          text: templateData.body // With variables transformed to {{1}}, {{2}}
-        },
-        ...(templateData.templateFooter ? [{
-          type: "FOOTER",
-          text: templateData.templateFooter
-        }] : []),
-        ...(quickReplies.length > 0 ? [{
-          type: "BUTTONS",
-          buttons: quickReplies.map(reply => ({
-            type: "QUICK_REPLY",
-            text: reply.text
-          }))
-        }] : [])
-      ]
-    });
+    setIsSubmitting(true);
 
     try {
-      const response = await fetch(apiEndpoints.managetemplate, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(templateData),
-      });
+      // Prepare template data
+      const templateData = {
+        name: formData.templateName,
+        categoryName: formData.categoryName,
+        languageGuid: formData.languageGuid,
+        typeId: formData.type === "TEXT" ? 1 : 2, // 1 for TEXT, 2 for MEDIA
+        isFile: formData.type === "MEDIA" ? 1 : 0,
+        body: templateBody,
+        templateFooter: templateFooter,
+        templateHeaders: JSON.stringify({
+          headerType: formData.headerType,
+          headerText: formData.headerText,
+        }),
+        erpCategoryGuid: formData.erpCategory || null,
+        isVariable: attributes.length > 0 ? 1 : 0,
+        bodyStyle: "",
+        actionId: null,
+        actionGuid: null,
+        fileGuids: JSON.stringify([]),
+        status: formData.status,
+        attributes: JSON.stringify(attributes),
+        quickReplies: JSON.stringify(quickReplies),
+        templateButtons: JSON.stringify(templateButtons),
+        templateCategory: formData.templateCategory,
+        media_id: mediaId, // Include the uploaded media ID
+      };
 
-      const data = await response.json();
+      console.log("Submitting template with data:", templateData);
 
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to save template");
+      // Submit template data (SEPARATE API CALL - JSON format)
+      const result = await submitTemplateToServer(templateData);
+
+      toast.success("Template created successfully!");
+      
+      if (result.warning) {
+        toast.warning(result.warning);
       }
 
-      toast.success("Template saved successfully!");
+      if (result.data?.meta_status === 'FAILED') {
+        toast.warning("Template saved locally but Meta submission failed");
+      }
+
+      console.log("Template creation result:", result);
       navigate("/templates");
     } catch (error) {
-      console.error("Submission error:", error);
-      toast.error(
-        error.message ||
-        "Failed to save template. Please check console for details."
-      );
+      console.error("Template submission error:", error);
+      toast.error(error.message || "Failed to create template");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  // Update preview data
   const previewData = {
     headerType: formData.headerType,
     headerText: formData.headerText,
     body: templateBody,
     footer: templateFooter,
     quickReplies: quickReplies,
+    templateButtons: templateButtons,
+    mediaFile: mediaFile,
+    mediaType: mediaType,
+    mediaUrl: mediaFile ? URL.createObjectURL(mediaFile) : null,
+    fileName: mediaFile ? mediaFile.name : '',
+    templateType: formData.type, // Add template type to preview
   };
 
   return (
@@ -347,7 +451,7 @@ const CreateTemplate = () => {
                 )}
               </div>
 
-              {/* Category Select - Updated to use categoryName */}
+              {/* Category Select */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Category
@@ -403,42 +507,122 @@ const CreateTemplate = () => {
                   <option value="MEDIA">Media</option>
                 </select>
               </div>
-            </div>
 
-            {/* Header Section */}
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold mb-2 text-gray-800">Header</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Header Type
-                  </label>
-                  <select
-                    className="border border-gray-300 p-2 rounded w-full"
-                    name="headerType"
-                    value={formData.headerType}
-                    onChange={handleChange}
-                  >
-                    <option value="text">Text</option>
-                    <option value="image">Image</option>
-                    <option value="document">Document</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Header Text
-                  </label>
-                  <input
-                    type="text"
-                    className="border border-gray-300 p-2 rounded w-full"
-                    name="headerText"
-                    placeholder="Header Text"
-                    value={formData.headerText}
-                    onChange={handleChange}
-                  />
-                </div>
+              {/* Template Category (for Meta) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Template Category
+                </label>
+                <select
+                  className="border border-gray-300 p-2 rounded w-full"
+                  name="templateCategory"
+                  value={formData.templateCategory}
+                  onChange={handleChange}
+                >
+                  <option value="UTILITY">Utility</option>
+                  <option value="AUTHENTICATION">Authentication</option>
+                  <option value="MARKETING">Marketing</option>
+                </select>
               </div>
             </div>
+
+            {/* Media Section - Show only for MEDIA type */}
+            {formData.type === "MEDIA" && (
+              <div className="mb-8 p-4 border-2 border-dashed border-gray-300 rounded-lg bg-blue-50">
+                <h2 className="text-lg font-semibold mb-4 text-gray-800">Media Upload *</h2>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Upload Media File
+                    {mediaId && <span className="text-green-600 ml-2">✓ Uploaded</span>}
+                    {isUploadingMedia && <span className="text-yellow-600 ml-2">Uploading...</span>}
+                  </label>
+                  
+                  {!mediaFile ? (
+                    <div className="border-2 border-dashed border-gray-400 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer">
+                      <FaUpload className="mx-auto text-3xl text-gray-400 mb-3" />
+                      <p className="text-gray-600 mb-2">Click to upload or drag and drop</p>
+                      <p className="text-sm text-gray-500">
+                        Supported formats: Images, Videos, Documents, Audio (Max 10MB)
+                      </p>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        onChange={handleMediaUpload}
+                        accept="image/*,video/*,.pdf,.doc,.docx,.txt,audio/*"
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        disabled={isUploadingMedia}
+                      />
+                    </div>
+                  ) : (
+                    <div className="border border-gray-300 rounded-lg p-4 bg-white">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          {getMediaIcon()}
+                          <div>
+                            <p className="font-medium text-gray-800">{mediaFile.name}</p>
+                            <p className="text-sm text-gray-500">
+                              {(mediaFile.size / (1024 * 1024)).toFixed(2)} MB • {mediaType}
+                            </p>
+                            {mediaId && (
+                              <p className="text-xs text-green-600 font-mono">
+                                Media ID: {mediaId}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={removeMediaFile}
+                          className="p-2 hover:bg-gray-100 rounded-full text-gray-500 hover:text-red-500"
+                          disabled={isUploadingMedia}
+                        >
+                          <FaTimes className="text-lg" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Header Section - Show only for TEXT type */}
+            {formData.type === "TEXT" && (
+              <div className="mb-8">
+                <h2 className="text-lg font-semibold mb-2 text-gray-800">Header</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Header Type
+                    </label>
+                    <select
+                      className="border border-gray-300 p-2 rounded w-full"
+                      name="headerType"
+                      value={formData.headerType}
+                      onChange={handleChange}
+                    >
+                      <option value="text">Text</option>
+                      <option value="image">Image</option>
+                      <option value="document">Document</option>
+                      <option value="video">Video</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Header Text
+                    </label>
+                    <input
+                      type="text"
+                      className="border border-gray-300 p-2 rounded w-full"
+                      name="headerText"
+                      placeholder="Header Text"
+                      value={formData.headerText}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Body Section */}
             <div className="mb-8">
@@ -466,6 +650,86 @@ const CreateTemplate = () => {
               <p className="text-right text-sm text-gray-500 mt-1">
                 {templateBody.length}/1024 characters
               </p>
+            </div>
+
+            {/* Template Buttons Section */}
+            <div className="mb-8">
+              <h2 className="text-lg font-semibold mb-2 text-gray-800">
+                Template Buttons (Optional)
+              </h2>
+              <p className="text-sm text-gray-600 mb-3">
+                Add buttons for URL, Phone, or Quick Reply actions
+              </p>
+              
+              {/* Add Button Form */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-3">
+                <select
+                  className="border border-gray-300 p-2 rounded"
+                  value={newButton.type}
+                  onChange={(e) => setNewButton({...newButton, type: e.target.value})}
+                >
+                  <option value="URL">URL Button</option>
+                  <option value="PHONE_NUMBER">Call Button</option>
+                  <option value="QUICK_REPLY">Quick Reply</option>
+                </select>
+                
+                <input
+                  type="text"
+                  className="border border-gray-300 p-2 rounded"
+                  placeholder="Button text"
+                  value={newButton.text}
+                  onChange={(e) => setNewButton({...newButton, text: e.target.value})}
+                  maxLength={20}
+                />
+                
+                {newButton.type === "URL" && (
+                  <input
+                    type="text"
+                    className="border border-gray-300 p-2 rounded"
+                    placeholder="URL"
+                    value={newButton.url}
+                    onChange={(e) => setNewButton({...newButton, url: e.target.value})}
+                  />
+                )}
+                
+                {newButton.type === "PHONE_NUMBER" && (
+                  <input
+                    type="text"
+                    className="border border-gray-300 p-2 rounded"
+                    placeholder="Phone number"
+                    value={newButton.phone}
+                    onChange={(e) => setNewButton({...newButton, phone: e.target.value})}
+                  />
+                )}
+                
+                <button
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled:bg-gray-300"
+                  onClick={handleAddButton}
+                  disabled={!newButton.text || (newButton.type === "URL" && !newButton.url) || (newButton.type === "PHONE_NUMBER" && !newButton.phone)}
+                >
+                  Add Button
+                </button>
+              </div>
+              
+              {/* Display Added Buttons */}
+              <div className="space-y-2">
+                {templateButtons.map((button, index) => (
+                  <div key={index} className="flex items-center justify-between bg-gray-100 p-3 rounded">
+                    <div>
+                      <span className="font-medium">{button.type}: </span>
+                      <span>{button.text}</span>
+                      {button.url && <span className="text-blue-600 ml-2">→ {button.url}</span>}
+                      {button.phone && <span className="text-green-600 ml-2">📞 {button.phone}</span>}
+                    </div>
+                    <button
+                      onClick={() => handleRemoveButton(index)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Quick Replies Section */}
@@ -539,14 +803,16 @@ const CreateTemplate = () => {
                 Save as draft
               </button>
               <button
-                className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+                className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 disabled:bg-gray-400"
                 onClick={handleSubmit}
+                disabled={isSubmitting || (formData.type === "MEDIA" && !mediaId)}
               >
-                Submit Template
+                {isSubmitting ? "Submitting..." : "Submit Template"}
               </button>
             </div>
           </div>
 
+          {/* Popups remain the same */}
           {showPopup && (
             <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center transition-opacity duration-300 p-4">
               <div className="bg-white p-6 rounded-lg shadow-lg w-1/2">
@@ -574,7 +840,7 @@ const CreateTemplate = () => {
                     + Add Attribute
                   </button>
                 </div>
-                {/* ✅ Global Variables Section */}
+                {/* Global Variables Section */}
                 <h3 className="font-semibold mt-4">Global Variables</h3>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {GLOBAL_ATTRIBUTES.map((attr, index) => (
@@ -588,7 +854,7 @@ const CreateTemplate = () => {
                   ))}
                 </div>
 
-                {/* ✅ Template Variables Section */}
+                {/* Template Variables Section */}
                 <h3 className="font-semibold mt-4">Template Variables</h3>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {attributes.map((attr, index) => (
