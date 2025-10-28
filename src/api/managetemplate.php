@@ -24,12 +24,12 @@ class WhatsAppBusinessAPI {
         $this->whatsappConfig = [
             'base_url' => 'https://graph.facebook.com/v21.0',
             'phone_number_id' => '779927621877990',
-            'access_token' => 'Bearer EAAS5pfUImY8BPZCmhtnGgjiXfqxZC8dqdB0mDDF9FsqBA2t3LZC2d3pDPybDZCUD5P1KUQNfZAqvyKiwG997Twzn2NpzkjZAZAg5eR4ZCWpREWUZBxmHYn4ZC1CwwTH2CH1HrwIDN6wKWI6NZADmv1qh79ontOOmAOJRwh7GuF1gjUGeKFoZC9vTvPe2DZBXNOukiKaTA4wYjjWIor0qV2lpZAx1keP9WauQ1uKnVZCEoQdbPYEQWYiOUoZAs19SOCQJ07iR6vCy8KWDlbKQHFCZBHO4QZC0m1bLLz29JjlmwuiA5eFgZDZD',
+            'access_token' => 'Bearer EAAS5pfUImY8BPzhZBJ9EHZC3BfZCQvjcxzvli0teHq59N6Uew3ZBL3csExyuvxO0JR429d5zuReQGZBCI4w0bQQ4mqNBOqu7TWZCpm5znkhkdPIYhvpSp5rmsPBYrqWtfmq6XqnhQPJlGPvXkLA87hS5thL4r6M4byF1KduAN1UVwaYaEMkqujTvftNI8pCaXVOggakZBztZAmG80ZBZAJEWyl9uHUHaXMxl7hh2b95yNeFiXue2mUZAA9TotAXv8KcyJphwPC8gX30ZCZCfV86gxnamnsp8CuQ36FZBLX1vgnPi0ZD',
             'waba_id' => '1354293032712286'
         ];
     }
     
-    // Method to get all templates from Meta and update status
+    // Method to sync all templates status
     public function syncAllTemplatesStatus() {
         $url = $this->whatsappConfig['base_url'] . '/' . $this->whatsappConfig['waba_id'] . '/message_templates';
         
@@ -38,8 +38,10 @@ class WhatsAppBusinessAPI {
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER => [
-                'Authorization: Bearer ' . $this->whatsappConfig['access_token']
-            ]
+                'Authorization: ' . $this->whatsappConfig['access_token']
+            ],
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_TIMEOUT => 30
         ]);
         
         $response = curl_exec($ch);
@@ -49,7 +51,6 @@ class WhatsAppBusinessAPI {
         if ($httpCode === 200) {
             $metaTemplates = json_decode($response, true);
             
-            // Get all local templates that have meta_template_id
             $sql = "SELECT id, meta_template_id FROM templates WHERE meta_template_id IS NOT NULL AND isDelete = 0";
             $result = $this->conn->query($sql);
             
@@ -57,7 +58,6 @@ class WhatsAppBusinessAPI {
             while ($localTemplate = $result->fetch_assoc()) {
                 foreach ($metaTemplates['data'] as $metaTemplate) {
                     if ($metaTemplate['id'] === $localTemplate['meta_template_id']) {
-                        // Update local template status
                         $updateSql = "UPDATE templates SET meta_status = ? WHERE id = ?";
                         $updateStmt = $this->conn->prepare($updateSql);
                         $updateStmt->bind_param("si", $metaTemplate['status'], $localTemplate['id']);
@@ -82,11 +82,93 @@ class WhatsAppBusinessAPI {
         ];
     }
     
-    // Method to send template to Meta with detailed debugging
+    // Method to upload media to Meta and get media ID
+    public function uploadMediaToMeta($mediaFile) {
+        $url = $this->whatsappConfig['base_url'] . '/' . $this->whatsappConfig['phone_number_id'] . '/media';
+        
+        error_log("Media Upload URL: " . $url);
+        error_log("Media File Info: " . print_r($mediaFile, true));
+        
+        // Validate file type and size
+        $maxFileSize = 10 * 1024 * 1024; // 10MB
+        if ($mediaFile['size'] > $maxFileSize) {
+            return [
+                'success' => false,
+                'error' => 'File size exceeds 10MB limit'
+            ];
+        }
+        
+        // Validate file type
+        $allowedTypes = [
+            'image/jpeg', 'image/jpg', 'image/png', 'image/gif',
+            'video/mp4', 'video/3gp', 
+            'audio/aac', 'audio/mp4', 'audio/mpeg', 'audio/amr', 'audio/ogg',
+            'application/pdf', 'text/plain'
+        ];
+        
+        if (!in_array($mediaFile['type'], $allowedTypes)) {
+            return [
+                'success' => false,
+                'error' => 'File type not supported: ' . $mediaFile['type']
+            ];
+        }
+        
+        // Create CURLFile object for file upload
+        $cfile = new CURLFile($mediaFile['tmp_name'], $mediaFile['type'], $mediaFile['name']);
+        
+        $postData = [
+            'messaging_product' => 'whatsapp',
+            'file' => $cfile,
+            'type' => $mediaFile['type']
+        ];
+        
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $postData,
+            CURLOPT_HTTPHEADER => [
+                'Authorization: ' . $this->whatsappConfig['access_token']
+            ],
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_TIMEOUT => 30
+        ]);
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+        
+        error_log("Media Upload Response Code: " . $httpCode);
+        error_log("Media Upload Response: " . $response);
+        
+        if ($httpCode === 200) {
+            $responseData = json_decode($response, true);
+            return [
+                'success' => true,
+                'media_id' => $responseData['id'] ?? null,
+                'response' => $responseData
+            ];
+        } else {
+            $errorData = json_decode($response, true);
+            return [
+                'success' => false,
+                'error' => $errorData['error']['message'] ?? 'Unknown error',
+                'error_details' => $errorData,
+                'curl_error' => $curlError,
+                'http_code' => $httpCode
+            ];
+        }
+    }
+    
+    // Method to create template on Meta with media support
     public function createTemplateOnMeta($templateData) {
         $url = $this->whatsappConfig['base_url'] . '/' . $this->whatsappConfig['waba_id'] . '/message_templates';
         
-        // Log the request details for debugging
+        // Add messaging_product to template data
+        $templateData['messaging_product'] = 'whatsapp';
+        
         error_log("Meta API Request URL: " . $url);
         error_log("Meta API Request Payload: " . json_encode($templateData, JSON_PRETTY_PRINT));
         
@@ -98,184 +180,179 @@ class WhatsAppBusinessAPI {
             CURLOPT_POSTFIELDS => json_encode($templateData),
             CURLOPT_HTTPHEADER => [
                 'Authorization: ' . $this->whatsappConfig['access_token'],
-                'Content-Type: application/json'
+                'Content-Type: ' . 'application/json'
             ],
-            CURLOPT_VERBOSE => true, // Enable verbose output for debugging
-            CURLOPT_SSL_VERIFYPEER => false, // Temporarily disable SSL verification for testing
+            CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_TIMEOUT => 30
         ]);
         
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curlError = curl_error($ch);
-        $curlInfo = curl_getinfo($ch);
         curl_close($ch);
         
-        // Log the response for debugging
         error_log("Meta API Response Code: " . $httpCode);
         error_log("Meta API Response: " . $response);
-        if ($curlError) {
-            error_log("CURL Error: " . $curlError);
-        }
         
         return [
             'status_code' => $httpCode,
             'response' => json_decode($response, true),
-            'curl_error' => $curlError,
-            'request_details' => [
-                'url' => $url,
-                'headers' => [
-                    'Authorization: ' . $this->whatsappConfig['access_token'],
-                    'Content-Type: application/json'
-                ],
-                'payload' => $templateData
-            ]
+            'curl_error' => $curlError
         ];
     }
     
-    // Method to format template for Meta API in the exact required JSON format
-   // Method to format template for Meta API in the exact required JSON format
-// Method to format template for Meta API in the exact required JSON format
-public function formatTemplateForMeta($templateData) {
-    $components = [];
-    
-    // Determine category
-    $category = 'UTILITY';
-    if (isset($templateData['categoryName'])) {
-        if ($templateData['categoryName'] == "Utility") {
-            $category = 'UTILITY';
-        } elseif ($templateData['categoryName'] == 'Marketing') {
-            $category = 'MARKETING';
-        } elseif ($templateData['categoryName'] == 'Authentication') {
-            $category = 'AUTHENTICATION';
-        }
-    }
-    
-    // Body component for all template types
-    if (!empty($templateData['body'])) {
-        $bodyText = $templateData['body'];
+    // Method to format template for Meta API with media support
+    public function formatTemplateForMeta($templateData, $mediaId = null) {
+        $components = [];
         
-        // Transform custom variables to Meta's format ({{1}}, {{2}}, etc.)
-        if (!empty($templateData['attributes'])) {
-            $attributes = json_decode($templateData['attributes'], true);
-            if (is_array($attributes)) {
-                $variableIndex = 1;
-                foreach ($attributes as $attribute) {
-                    $placeholder = '{{' . ($attribute['value'] ?? $attribute['name'] ?? '') . '}}';
-                    $metaFormat = '{{' . $variableIndex . '}}';
-                    $bodyText = str_replace($placeholder, $metaFormat, $bodyText);
-                    $variableIndex++;
-                }
+        // Determine category
+        $category = 'UTILITY';
+        if (isset($templateData['categoryName'])) {
+            $catName = strtolower($templateData['categoryName']);
+            if (strpos($catName, 'utility') !== false) {
+                $category = 'UTILITY';
+            } elseif (strpos($catName, 'market') !== false) {
+                $category = 'MARKETING';
+            } elseif (strpos($catName, 'auth') !== false) {
+                $category = 'AUTHENTICATION';
             }
         }
         
-        if ($category === 'AUTHENTICATION') {
-            // For authentication templates - KEEP YOUR ORIGINAL FORMAT
-            $components[] = [
-                'type' => 'BODY',
-                'example' => [
-                    'body_text' => [$this->generateAuthenticationExample($bodyText)]
-                ]
-            ];
-            
-            // Keep your original BUTTONS format for authentication
-            $components[] = [
-                'type' => 'BUTTONS',
-                'buttons' => [
-                    [
-                        'type' => 'OTP',
-                        'otp_type' => 'COPY_CODE'
+        // Get template type (1 for TEXT, 2 for MEDIA)
+        $templateType = $templateData['typeId'] ?? 1;
+        
+        // Handle HEADER component based on template type
+        $headers = json_decode($templateData['templateHeaders'] ?? '[]', true);
+        $headerType = $headers['headerType'] ?? 'text';
+        
+        if ($templateType == 1) { 
+            // TEXT type template - use existing method with headers
+            if ($headerType !== 'text' && $mediaId) {
+                // Media header (IMAGE, DOCUMENT, VIDEO) with media ID for TEXT type
+                $headerComponent = [
+                    'type' => 'HEADER',
+                    'format' => strtoupper($headerType),
+                    'example' => [
+                        'header_handle' => [$mediaId]
                     ]
+                ];
+                $components[] = $headerComponent;
+            } elseif (!empty($headers['headerText'])) {
+                // Text header for TEXT type
+                $components[] = [
+                    'type' => 'HEADER',
+                    'format' => 'TEXT',
+                    'text' => $headers['headerText']
+                ];
+            }
+        } elseif ($templateType == 2 && $mediaId) { 
+            // MEDIA type template - ALWAYS use media in header
+            // Determine media format from the uploaded file or use default
+            $mediaFormat = $this->determineMediaFormat($templateData, $headers);
+            
+            $headerComponent = [
+                'type' => 'HEADER',
+                'format' => $mediaFormat,
+                'example' => [
+                    'header_handle' => [$mediaId]
                 ]
             ];
-            
-        } else {
-            // For MARKETING and UTILITY templates - SIMPLIFIED FORMAT
+            $components[] = $headerComponent;
+        }
+        
+        // BODY component
+        if (!empty($templateData['body'])) {
+            $bodyText = $templateData['body'];
             $bodyComponent = [
                 'type' => 'BODY',
                 'text' => $bodyText
             ];
             
+            // Transform custom variables to Meta's format and add example
+            if (!empty($templateData['attributes'])) {
+                $attributes = json_decode($templateData['attributes'], true);
+                if (is_array($attributes) && !empty($attributes)) {
+                    $variableIndex = 1;
+                    foreach ($attributes as $attribute) {
+                        $placeholder = '{{' . ($attribute['value'] ?? $attribute['name'] ?? '') . '}}';
+                        $metaFormat = '{{' . $variableIndex . '}}';
+                        $bodyText = str_replace($placeholder, $metaFormat, $bodyText);
+                        $variableIndex++;
+                    }
+                    
+                    // Add example for body text
+                    $exampleValues = array_map(function($attr) {
+                        return $attr['value'] ?? $attr['name'] ?? 'example';
+                    }, $attributes);
+                    
+                    $bodyComponent['example'] = [
+                        'body_text' => [$exampleValues]
+                    ];
+                }
+            }
+            
+            $bodyComponent['text'] = $bodyText;
             $components[] = $bodyComponent;
         }
-    }
-    
-    // Header component (for MARKETING/UTILITY only - not allowed in AUTHENTICATION)
-    if (!empty($templateData['templateHeaders']) && $category !== 'AUTHENTICATION') {
-        $headers = json_decode($templateData['templateHeaders'], true);
-        if (isset($headers['type']) && $headers['type'] === 'text' && !empty($headers['text'])) {
+        
+        // FOOTER component
+        if (!empty($templateData['templateFooter']) && $category !== 'AUTHENTICATION') {
             $components[] = [
-                'type' => 'HEADER',
-                'format' => 'TEXT',
-                'text' => $headers['text']
+                'type' => 'FOOTER',
+                'text' => $templateData['templateFooter']
             ];
         }
-    }
-    
-    // Footer component (for MARKETING/UTILITY only - not allowed in AUTHENTICATION)
-    if (!empty($templateData['templateFooter']) && $category !== 'AUTHENTICATION') {
-        $components[] = [
-            'type' => 'FOOTER',
-            'text' => $templateData['templateFooter']
-        ];
-    }
-    
-    // Add buttons for MARKETING templates (URL buttons and Quick Replies)
-    if ($category === 'MARKETING') {
-        $buttons = [];
         
-        // Add URL buttons if available
-        if (!empty($templateData['urlButtons'])) {
-            $urlButtons = json_decode($templateData['urlButtons'], true);
-            if (is_array($urlButtons)) {
-                foreach ($urlButtons as $urlButton) {
-                    if (!empty($urlButton['text']) && !empty($urlButton['url'])) {
-                        $buttons[] = [
-                            'type' => 'URL',
-                            'text' => $urlButton['text'],
-                            'url' => $urlButton['url']
-                        ];
+        // BUTTONS component
+        if ($category !== 'AUTHENTICATION') {
+            $buttons = [];
+            
+            // Add template buttons
+            if (!empty($templateData['templateButtons'])) {
+                $templateButtons = json_decode($templateData['templateButtons'], true);
+                if (is_array($templateButtons)) {
+                    foreach ($templateButtons as $button) {
+                        if ($button['type'] === 'URL' && !empty($button['text']) && !empty($button['url'])) {
+                            $urlButton = [
+                                'type' => 'URL',
+                                'text' => $button['text'],
+                                'url' => $button['url']
+                            ];
+                            
+                            // Add example for URL variables if needed
+                            if (strpos($button['url'], '{{1}}') !== false) {
+                                $urlButton['example'] = ['A12345'];
+                            }
+                            
+                            $buttons[] = $urlButton;
+                        } elseif ($button['type'] === 'PHONE_NUMBER' && !empty($button['text']) && !empty($button['phone'])) {
+                            $buttons[] = [
+                                'type' => 'PHONE_NUMBER',
+                                'text' => $button['text'],
+                                'phone_number' => $button['phone']
+                            ];
+                        } elseif ($button['type'] === 'QUICK_REPLY' && !empty($button['text'])) {
+                            $buttons[] = [
+                                'type' => 'QUICK_REPLY',
+                                'text' => $button['text']
+                            ];
+                        }
                     }
                 }
             }
-        }
-        
-        // Add quick reply buttons if available
-        if (!empty($templateData['quickReplies'])) {
-            $quickReplies = json_decode($templateData['quickReplies'], true);
-            if (is_array($quickReplies)) {
-                foreach ($quickReplies as $reply) {
-                    if (!empty($reply['text'])) {
-                        $buttons[] = [
-                            'type' => 'QUICK_REPLY',
-                            'text' => $reply['text']
-                        ];
+            
+            // Add quick reply buttons
+            if (!empty($templateData['quickReplies'])) {
+                $quickReplies = json_decode($templateData['quickReplies'], true);
+                if (is_array($quickReplies)) {
+                    foreach ($quickReplies as $reply) {
+                        if (!empty($reply['text'])) {
+                            $buttons[] = [
+                                'type' => 'QUICK_REPLY',
+                                'text' => $reply['text']
+                            ];
+                        }
                     }
-                }
-            }
-        }
-        
-        // Add buttons component if we have any buttons
-        if (!empty($buttons)) {
-            $components[] = [
-                'type' => 'BUTTONS',
-                'buttons' => $buttons
-            ];
-        }
-    }
-    
-    // Add quick reply buttons for UTILITY templates (only quick replies, no URL buttons)
-    if ($category === 'UTILITY' && !empty($templateData['quickReplies'])) {
-        $buttons = [];
-        $quickReplies = json_decode($templateData['quickReplies'], true);
-        
-        if (is_array($quickReplies) && !empty($quickReplies)) {
-            foreach ($quickReplies as $reply) {
-                if (!empty($reply['text'])) {
-                    $buttons[] = [
-                        'type' => 'QUICK_REPLY',
-                        'text' => $reply['text']
-                    ];
                 }
             }
             
@@ -286,34 +363,70 @@ public function formatTemplateForMeta($templateData) {
                 ];
             }
         }
+        
+        return [
+            'name' => $this->generateMetaTemplateName($templateData['name']),
+            'category' => $category,
+            'language' => 'en',
+            'messaging_product' => 'whatsapp',
+            'components' => $components
+        ];
     }
     
-    return [
-        'name' => $this->generateMetaTemplateName($templateData['name']),
-        'category' => $category,
-        'language' => 'en',
-        'components' => $components
-    ];
-}
-
-// Helper method to generate example for authentication templates
-private function generateAuthenticationExample($bodyText) {
-    return preg_replace('/\{\{\d+\}\}/', '123456', $bodyText);
-}
+    // Helper method to determine media format
+    private function determineMediaFormat($templateData, $headers) {
+        $headerType = $headers['headerType'] ?? 'image';
+        
+        // Map header types to Meta format
+        $formatMap = [
+            'image' => 'IMAGE',
+            'video' => 'VIDEO',
+            'document' => 'DOCUMENT',
+            'audio' => 'AUDIO'
+        ];
+        
+        return $formatMap[$headerType] ?? 'IMAGE';
+    }
+    
     // Method to create complete template JSON for storage
-    public function createTemplateJSON($templateData) {
+    public function createTemplateJSON($templateData, $mediaId = null) {
         $components = [];
         
-        // Header component
-        if (!empty($templateData['templateHeaders'])) {
-            $headers = json_decode($templateData['templateHeaders'], true);
-            if (isset($headers['type']) && $headers['type'] === 'text' && !empty($headers['text'])) {
+        // Get template type
+        $templateType = $templateData['typeId'] ?? 1;
+        
+        // Header component based on template type
+        $headers = json_decode($templateData['templateHeaders'] ?? '[]', true);
+        $headerType = $headers['headerType'] ?? 'text';
+        
+        if ($templateType == 1) { 
+            // TEXT type template
+            if ($headerType !== 'text' && $mediaId) {
+                $components[] = [
+                    'type' => 'HEADER',
+                    'format' => strtoupper($headerType),
+                    'example' => [
+                        'header_handle' => [$mediaId]
+                    ]
+                ];
+            } elseif (!empty($headers['headerText'])) {
                 $components[] = [
                     'type' => 'HEADER',
                     'format' => 'TEXT',
-                    'text' => $headers['text']
+                    'text' => $headers['headerText']
                 ];
             }
+        } elseif ($templateType == 2 && $mediaId) { 
+            // MEDIA type template - ALWAYS use media in header
+            $mediaFormat = $this->determineMediaFormat($templateData, $headers);
+            
+            $components[] = [
+                'type' => 'HEADER',
+                'format' => $mediaFormat,
+                'example' => [
+                    'header_handle' => [$mediaId]
+                ]
+            ];
         }
         
         // Body component
@@ -333,38 +446,64 @@ private function generateAuthenticationExample($bodyText) {
         }
         
         // Buttons component
-        if (!empty($templateData['quickReplies'])) {
-            $buttons = [];
-            $quickReplies = json_decode($templateData['quickReplies'], true);
-            
-            if (is_array($quickReplies)) {
-                foreach ($quickReplies as $reply) {
-                    if (!empty($reply['text'])) {
+        $buttons = [];
+        
+        // Add template buttons
+        if (!empty($templateData['templateButtons'])) {
+            $templateButtons = json_decode($templateData['templateButtons'], true);
+            if (is_array($templateButtons)) {
+                foreach ($templateButtons as $button) {
+                    if ($button['type'] === 'URL') {
+                        $buttons[] = [
+                            'type' => 'URL',
+                            'text' => $button['text'],
+                            'url' => $button['url']
+                        ];
+                    } elseif ($button['type'] === 'PHONE_NUMBER') {
+                        $buttons[] = [
+                            'type' => 'PHONE_NUMBER',
+                            'text' => $button['text'],
+                            'phone_number' => $button['phone']
+                        ];
+                    } elseif ($button['type'] === 'QUICK_REPLY') {
                         $buttons[] = [
                             'type' => 'QUICK_REPLY',
-                            'text' => $reply['text']
+                            'text' => $button['text']
                         ];
                     }
                 }
-                
-                if (!empty($buttons)) {
-                    $components[] = [
-                        'type' => 'BUTTONS',
-                        'buttons' => $buttons
+            }
+        }
+        
+        // Add quick replies
+        if (!empty($templateData['quickReplies'])) {
+            $quickReplies = json_decode($templateData['quickReplies'], true);
+            if (is_array($quickReplies)) {
+                foreach ($quickReplies as $reply) {
+                    $buttons[] = [
+                        'type' => 'QUICK_REPLY',
+                        'text' => $reply['text']
                     ];
                 }
             }
         }
         
-        // Determine category based on typeId
+        if (!empty($buttons)) {
+            $components[] = [
+                'type' => 'BUTTONS',
+                'buttons' => $buttons
+            ];
+        }
+        
+        // Determine category
         $category = 'UTILITY';
         if (isset($templateData['categoryName'])) {
-            if ($templateData['categoryName'] == "Utility") {
+            $catName = strtolower($templateData['categoryName']);
+            if (strpos($catName, 'utility') !== false) {
                 $category = 'UTILITY';
-            } elseif ($templateData['categoryName'] == 'Marketing') {
+            } elseif (strpos($catName, 'market') !== false) {
                 $category = 'MARKETING';
-            }
-            else {
+            } else {
                 $category = 'AUTHENTICATION';
             }
         }
@@ -394,10 +533,10 @@ $whatsappAPI = new WhatsAppBusinessAPI($conn);
 // ================= GET =================
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     
-    // Sync template status with Meta if requested
+    // Handle sync request
     if (isset($_GET['sync']) && $_GET['sync'] === 'true') {
         $syncResult = $whatsappAPI->syncAllTemplatesStatus();
-        // Continue to fetch templates even if sync fails
+        // You can choose to return sync result or continue with template fetch
     }
     
     $sql = "SELECT 
@@ -424,12 +563,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     $templates = [];
     while ($row = $result->fetch_assoc()) {
-        // Parse template JSON if exists, otherwise use legacy fields
         $templateJson = null;
         if (!empty($row['template_json'])) {
             $templateJson = json_decode($row['template_json'], true);
         } else {
-            // Fallback to legacy format
             $templateJson = [
                 'name' => $row['template_name'],
                 'category' => $row['template_type'] == 1 ? 'TRANSACTIONAL' : 'MARKETING',
@@ -484,9 +621,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     exit();
 }
 
-// ================= POST =================
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $data = json_decode(file_get_contents('php://input'), true);
+// ================= POST - MEDIA UPLOAD ONLY =================
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['media_file'])) {
+    // This endpoint is specifically for media upload only
+    if ($_FILES['media_file']['error'] === UPLOAD_ERR_OK) {
+        error_log("Processing media-only upload request...");
+        $uploadResult = $whatsappAPI->uploadMediaToMeta($_FILES['media_file']);
+        
+        if ($uploadResult['success']) {
+            echo json_encode([
+                "status" => "success", 
+                "media_id" => $uploadResult['media_id'],
+                "message" => "Media uploaded successfully",
+                "media_details" => $uploadResult['response'] ?? null
+            ]);
+        } else {
+            http_response_code(500);
+            echo json_encode([
+                "status" => "error", 
+                "message" => "Media upload failed",
+                "error_details" => $uploadResult
+            ]);
+        }
+    } else {
+        http_response_code(400);
+        echo json_encode([
+            "status" => "error", 
+            "message" => "No media file provided or upload error",
+            "upload_error" => $_FILES['media_file']['error']
+        ]);
+    }
+    exit();
+}
+
+// ================= POST - TEMPLATE CREATION ONLY =================
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_FILES['media_file'])) {
+    // Check if it's JSON content type
+    $contentType = isset($_SERVER["CONTENT_TYPE"]) ? trim($_SERVER["CONTENT_TYPE"]) : '';
+    
+    if (strpos($contentType, 'application/json') !== false) {
+        $json = file_get_contents('php://input');
+        $data = json_decode($json, true);
+    } else {
+        // Fallback to form data if needed, but we expect JSON
+        $data = $_POST;
+    }
+    
+    if (!$data) {
+        http_response_code(400);
+        echo json_encode(["status" => "error", "message" => "Invalid data received"]);
+        exit();
+    }
+
     $requiredFields = ['name', 'categoryName', 'languageGuid', 'typeId'];
     $missingFields = [];
 
@@ -503,11 +689,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $guid = $data['guid'] ?? bin2hex(random_bytes(16));
     $currentDateTime = date('Y-m-d H:i:s');
 
+    // Extract media_id if provided
+    $mediaId = $data['media_id'] ?? null;
+
+    // Validate media_id for MEDIA type templates
+    $templateType = (int)$data['typeId'];
+    if ($templateType == 2 && !$mediaId) {
+        http_response_code(400);
+        echo json_encode(["status" => "error", "message" => "Media ID is required for MEDIA type templates"]);
+        exit();
+    }
+
     // Create template JSON for storage
-    $templateJSON = $whatsappAPI->createTemplateJSON($data);
+    $templateJSON = $whatsappAPI->createTemplateJSON($data, $mediaId);
     $templateJSONString = json_encode($templateJSON);
 
-    // First, store in local database
+    // Prepare data for Meta API with media ID
+    $metaTemplateData = $whatsappAPI->formatTemplateForMeta($data, $mediaId);
+    
+    // Send to Meta WhatsApp Business API
+    $metaResponse = $whatsappAPI->createTemplateOnMeta($metaTemplateData);
+    
+    $meta_template_id = null;
+    $meta_status = 'PENDING';
+    
+    if ($metaResponse['status_code'] === 200) {
+        $meta_template_id = $metaResponse['response']['id'] ?? null;
+        $meta_status = 'SUBMITTED';
+    } else {
+        $meta_status = 'FAILED';
+        error_log("Meta API Error: " . json_encode($metaResponse));
+    }
+
+    // Store in local database
     $sql = "INSERT INTO templates (
                 guid, name, categoryName, languageGuid, typeId, isFile,
                 templateHeaders, erpcategoryName, isVariable, body, bodyStyle,
@@ -523,30 +737,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 
-    // Set default values
-    $meta_template_id = null;
-    $meta_status = 'PENDING';
-
-    // Prepare data for Meta API
-    $metaTemplateData = $whatsappAPI->formatTemplateForMeta($data);
-    
-    // Send to Meta WhatsApp Business API
-    $metaResponse = $whatsappAPI->createTemplateOnMeta($metaTemplateData);
-    
-    if ($metaResponse['status_code'] === 200) {
-        $meta_template_id = $metaResponse['response']['id'] ?? null;
-        $meta_status = 'SUBMITTED';
-    } else {
-        $meta_status = 'FAILED';
-        error_log("Meta API Error: " . json_encode($metaResponse));
-    }
-
     $name = $data['name'];
     $categoryName = $data['categoryName'];
     $languageGuid = $data['languageGuid'];
     $typeId = (int)$data['typeId'];
     $isFile = isset($data['isFile']) ? (int)$data['isFile'] : 0;
-    $templateHeaders = json_encode($data['templateHeaders'] ?? []);
+    $templateHeaders = $data['templateHeaders'] ?? '[]';
     $erpcategoryName = $data['erpcategoryName'] ?? '';
     $isVariable = isset($data['isVariable']) ? (int)$data['isVariable'] : 0;
     $body = $data['body'] ?? '';
@@ -554,7 +750,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $actionId = isset($data['actionId']) ? (int)$data['actionId'] : 0;
     $actionGuid = $data['actionGuid'] ?? '';
     $templateFooter = $data['templateFooter'] ?? '';
-    $fileGuids = json_encode($data['fileGuids'] ?? []);
+    $fileGuids = $data['fileGuids'] ?? '[]';
     $createdOn = $currentDateTime;
     $modifiedOn = $currentDateTime;
     $isActive = 1;
@@ -578,29 +774,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             "data" => [
                 "id" => $newId, 
                 "guid" => $guid,
+                "media_id" => $mediaId,
                 "meta_template_id" => $meta_template_id,
                 "meta_status" => $meta_status,
                 "template_json" => $templateJSON,
                 "meta_api_request" => [
-                    "url" => $metaResponse['request_details']['url'],
-                    "headers" => $metaResponse['request_details']['headers'],
-                    "payload" => $metaResponse['request_details']['payload']
+                    "payload" => $metaTemplateData
                 ],
                 "meta_api_response" => [
                     "status_code" => $metaResponse['status_code'],
-                    "response" => $metaResponse['response'],
-                    "curl_error" => $metaResponse['curl_error']
+                    "response" => $metaResponse['response']
                 ]
             ]
         ];
         
-        // If Meta submission failed, include warning
         if ($meta_status === 'FAILED') {
             $responseData['warning'] = "Template saved locally but failed to submit to Meta";
-            $responseData['debug_info'] = [
-                'meta_error_details' => $metaResponse['response']['error'] ?? 'Unknown error',
-                'curl_error' => $metaResponse['curl_error']
-            ];
         }
         
         echo json_encode($responseData);
@@ -624,7 +813,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
 
     $id = (int)$data['id'];
 
-    // Check if exists
     $checkSql = "SELECT id, meta_template_id FROM templates WHERE id = ? AND isDelete = 0";
     $checkStmt = $conn->prepare($checkSql);
     $checkStmt->bind_param("i", $id);
@@ -639,14 +827,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
         exit();
     }
 
-    // If template exists on Meta, delete it there too
-    if (!empty($template['meta_template_id'])) {
-        // Note: Meta doesn't allow template deletion via API for approved templates
-        // You can only delete rejected or in review templates
-        // This is a limitation of the Meta WhatsApp Business API
-    }
-
-    // Soft delete from local database
     $deleteSql = "UPDATE templates SET isDelete = 1, modifiedOn = NOW() WHERE id = ?";
     $deleteStmt = $conn->prepare($deleteSql);
     $deleteStmt->bind_param("i", $id);
