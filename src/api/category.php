@@ -1,32 +1,20 @@
 <?php
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
-header("Access-Control-Allow-Origin: http://localhost:3000");
 header("Access-Control-Allow-Credentials: true");
 header("Cache-Control: no-cache, must-revalidate"); // Add this line
 header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Add this line (past date)
 
 require_once "config.php";
 
-// Database config
-// $host = "localhost";
-// $user = "root";
-// $password = "";
-// $database = "whatapp";
-// $host = "localhost";
-// $user = "root";
-// $password = "";
-// $database = "whatapp";
 
-// $conn = new mysqli($host, $user, $password, $database);
-// if ($conn->connect_error) {
-//     die(json_encode([
-//         "status" => false, 
-//         "message" => "Database connection failed: " . $conn->connect_error
-//     ]));
-// }
 
 $method = $_SERVER['REQUEST_METHOD'];
 
