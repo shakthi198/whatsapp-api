@@ -3,14 +3,18 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronDown, X } from "lucide-react";
 import MessagePopup from "../MessagePopup";
 import { HiChevronRight, HiChevronLeft } from "react-icons/hi";
+import apiEndpoints from "../../apiconfig";
+
 export default function SingleMsg() {
-  const [campaignName, setCampaignName] = useState(`CAMP-${Math.floor(Math.random() * 100000)}`);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [messageContent, setMessageContent] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
   const [countryCode, setCountryCode] = useState("");
   const [isMobile, setIsMobile] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -43,18 +47,23 @@ export default function SingleMsg() {
 
   const handleSelectTemplate = (template) => {
     setMessageContent(template.templateBody || template.content || "");
+    setSelectedTemplate(template);
     setIsPopupOpen(false);
+    // Clear message content error when template is selected
+    if (errors.messageContent) {
+      setErrors(prev => ({ ...prev, messageContent: "" }));
+    }
   };
 
   const handleClear = () => {
     setMessageContent("");
     setMobileNumber("");
     setCountryCode("");
-    setCampaignName(`CAMP-${Math.floor(Math.random() * 100000)}`);
+    setSelectedTemplate(null);
+    setErrors({});
   };
 
   const validateMobileNumber = (number) => {
-    // Basic validation - allow only numbers
     return /^\d*$/.test(number);
   };
 
@@ -62,12 +71,219 @@ export default function SingleMsg() {
     const value = e.target.value;
     if (validateMobileNumber(value)) {
       setMobileNumber(value);
+      // Clear mobile number error when user types
+      if (errors.mobileNumber) {
+        setErrors(prev => ({ ...prev, mobileNumber: "" }));
+      }
     }
+  };
+
+  const handleCountryCodeChange = (e) => {
+    setCountryCode(e.target.value);
+    // Clear country code error when user selects
+    if (errors.countryCode) {
+      setErrors(prev => ({ ...prev, countryCode: "" }));
+    }
+  };
+
+  // Validate all fields
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!countryCode) {
+      newErrors.countryCode = "Country code is required";
+    }
+
+    if (!mobileNumber) {
+      newErrors.mobileNumber = "Mobile number is required";
+    } else if (mobileNumber.length !== 10) {
+      newErrors.mobileNumber = "Mobile number must be 10 digits";
+    }
+
+    if (!messageContent) {
+      newErrors.messageContent = "Message content is required";
+    } else if (messageContent.length > 160) {
+      newErrors.messageContent = "Message content cannot exceed 160 characters";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Function to get WhatsApp API credentials
+  const getWhatsAppCredentials = async () => {
+    try {
+      const response = await fetch(apiEndpoints.apiurl, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch WhatsApp credentials");
+      }
+
+      const data = await response.json();
+      
+      if (data.status === "success") {
+        return data.data;
+      } else {
+        throw new Error("Failed to load WhatsApp credentials");
+      }
+    } catch (error) {
+      console.error("Error fetching WhatsApp credentials:", error);
+      throw error;
+    }
+  };
+
+  // Function to send WhatsApp message
+  const sendWhatsAppMessage = async (credentials, isScheduled = false) => {
+    try {
+      debugger
+      const fullPhoneNumber = countryCode + mobileNumber;
+      
+      // Prepare the request body for WhatsApp API
+      // const requestBody = {
+      //   messaging_product: "whatsapp",
+      //   to: fullPhoneNumber,
+      //   type: "text",
+      //   text: {
+      //     body: messageContent
+      //   }
+      // };
+
+      // If using template instead of text message, use this structure:
+      const requestBody = {
+        messaging_product: "whatsapp",
+        to: fullPhoneNumber,
+        type: "template",
+        template: {
+          name: selectedTemplate?.name || "hello_world",
+          language: {
+            code: "en_US"
+          }
+        }
+      };
+
+      const response = await fetch(
+        `${credentials.base_url}${credentials.number_id}/messages`,
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${credentials.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error?.message || "Failed to send message");
+      }
+
+      return result;
+    } catch (error) {
+      console.error("Error sending WhatsApp message:", error);
+      throw error;
+    }
+  };
+
+  // Function to store message response in your database
+  const storeMessageResponse = async (whatsappResponse, isScheduled = false) => {
+  try {
+    const storeResponse = await fetch(apiEndpoints.fetchmessage, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        phone_number: countryCode + mobileNumber,
+        country_code: countryCode,
+        mobile_number: mobileNumber,
+        message_content: messageContent,
+        template_used: selectedTemplate?.name || null,
+        template_id: selectedTemplate?.meta_template_id || null,
+        whatsapp_message_id: whatsappResponse.messages?.[0]?.id,
+        status: isScheduled ? "scheduled" : "sent",
+        message_type: selectedTemplate ? "template" : "text",
+        response_data: whatsappResponse,
+        sent_at: new Date().toISOString()
+      }),
+    });
+
+    const result = await storeResponse.json();
+    
+    if (result.status === "success") {
+      return result;
+    } else {
+      throw new Error(result.message || "Failed to store message");
+    }
+  } catch (error) {
+    console.error("Error storing message response:", error);
+    return null;
+  }
+};
+
+  const handleSendMessage = async (isScheduled = false) => {
+    if (!validateForm()) {
+      setIsDropdownOpen(false);
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      // Step 1: Get WhatsApp credentials
+      const credentials = await getWhatsAppCredentials();
+      
+      // Step 2: Send WhatsApp message
+      const whatsappResponse = await sendWhatsAppMessage(credentials, isScheduled);
+      
+      // Step 3: Store the response in your database
+      await storeMessageResponse(whatsappResponse, isScheduled);
+      
+      // Step 4: Show success message
+      alert(`Message ${isScheduled ? 'scheduled' : 'sent'} successfully!`);
+      
+      // Step 5: Clear form if it's not scheduled
+      if (!isScheduled) {
+        handleClear();
+      }
+      
+    } catch (error) {
+      console.error("Error in sending message:", error);
+      alert(`Failed to ${isScheduled ? 'schedule' : 'send'} message: ${error.message}`);
+    } finally {
+      setLoading(false);
+      setIsDropdownOpen(false);
+    }
+  };
+
+  const handleSendNow = () => {
+    handleSendMessage(false);
+  };
+
+  const handleSchedule = () => {
+    handleSendMessage(true);
+  };
+
+  const handleSendButtonClick = () => {
+    // First validate the form when main button is clicked
+    if (!validateForm()) {
+      setIsDropdownOpen(false);
+      return;
+    }
+    
+    // If validation passes, open dropdown
+    setIsDropdownOpen(!isDropdownOpen);
   };
 
   return (
     <div
-      className="max-w-7xl mx-auto p-4 md:p-6"
+      className="width-full"
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
       {/* Header Section */}
@@ -84,6 +300,7 @@ export default function SingleMsg() {
           <span className="whitespace-nowrap">Compose Message</span>
         </div>
       </div>
+      
       {/* Navigation Tabs */}
       <div className="mb-6">
         <nav className="flex overflow-x-auto mb-4 border-b border-gray-200">
@@ -114,9 +331,11 @@ export default function SingleMsg() {
                 <span className="text-red-500 ml-1">*</span>
               </label>
               <select
-                className="w-full p-2 md:p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm md:text-base"
+                className={`w-full p-2 md:p-3 border rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm md:text-base ${
+                  errors.countryCode ? "border-red-500" : "border-gray-300"
+                }`}
                 value={countryCode}
-                onChange={(e) => setCountryCode(e.target.value)}
+                onChange={handleCountryCodeChange}
                 required
               >
                 <option value="">Select Country</option>
@@ -127,6 +346,9 @@ export default function SingleMsg() {
                 <option value="+65">Singapore (+65)</option>
                 <option value="+60">Malaysia (+60)</option>
               </select>
+              {errors.countryCode && (
+                <p className="text-red-500 text-xs mt-1">{errors.countryCode}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium mb-1 md:mb-2 text-gray-700">
@@ -136,7 +358,9 @@ export default function SingleMsg() {
               <div className="relative">
                 <input
                   type="tel"
-                  className="w-full p-2 md:p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm md:text-base"
+                  className={`w-full p-2 md:p-3 border rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm md:text-base ${
+                    errors.mobileNumber ? "border-red-500" : "border-gray-300"
+                  }`}
                   placeholder="Enter 10-digit number"
                   value={mobileNumber}
                   onChange={handleMobileNumberChange}
@@ -152,6 +376,9 @@ export default function SingleMsg() {
                   </button>
                 )}
               </div>
+              {errors.mobileNumber && (
+                <p className="text-red-500 text-xs mt-1">{errors.mobileNumber}</p>
+              )}
             </div>
           </div>
 
@@ -172,31 +399,23 @@ export default function SingleMsg() {
               )}
             </div>
             <textarea
-              className="w-full p-3 border border-yellow-600 bg-gray-50 rounded-md h-40 cursor-pointer focus:ring-2 focus:ring-yellow-500 text-sm md:text-base"
+              className={`w-full p-3 border bg-gray-50 rounded-md h-40 cursor-pointer focus:ring-2 focus:ring-yellow-500 text-sm md:text-base ${
+                errors.messageContent ? "border-red-500" : "border-yellow-600"
+              }`}
               readOnly
               onClick={() => setIsPopupOpen(true)}
               value={messageContent}
               placeholder="Click to select a template"
               required
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Character count: {messageContent.length} (Max 160 characters)
-            </p>
-          </div>
-
-          {/* Campaign Name */}
-          <div>
-            <label className="block text-sm font-medium mb-1 md:mb-2 text-gray-700">
-              Campaign Name
-              <span className="text-red-500 ml-1">*</span>
-            </label>
-            <input
-              type="text"
-              className="w-full p-2 md:p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm md:text-base"
-              value={campaignName}
-              onChange={(e) => setCampaignName(e.target.value)}
-              required
-            />
+            <div className="flex justify-between items-center mt-1">
+              <p className="text-xs text-gray-500">
+                Character count: {messageContent.length} (Max 160 characters)
+              </p>
+              {errors.messageContent && (
+                <p className="text-red-500 text-xs">{errors.messageContent}</p>
+              )}
+            </div>
           </div>
 
           {/* Action Buttons */}
@@ -204,44 +423,40 @@ export default function SingleMsg() {
             <button
               onClick={handleClear}
               className="px-4 py-2 md:px-6 md:py-2 bg-white text-gray-700 rounded-md border border-gray-300 hover:bg-gray-50 transition-colors"
+              disabled={loading}
             >
               Clear All
             </button>
 
             <div className="relative">
               <button
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="w-full md:w-auto px-4 py-2 md:px-6 md:py-2 flex items-center justify-center bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors"
-                disabled={!countryCode || !mobileNumber || !messageContent}
+                onClick={handleSendButtonClick}
+                className="w-full md:w-auto px-4 py-2 md:px-6 md:py-2 flex items-center justify-center bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                disabled={!countryCode || !mobileNumber || !messageContent || loading}
               >
-                Send Now
-                <ChevronDown className="w-4 h-4 ml-2" />
+                {loading ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Sending...
+                  </div>
+                ) : (
+                  <>
+                    Send Now
+                    <ChevronDown className="w-4 h-4 ml-2" />
+                  </>
+                )}
               </button>
 
-              {isDropdownOpen && (
+              {isDropdownOpen && !loading && (
                 <div className="absolute right-0 mt-1 w-full md:w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                   <button
-                    onClick={() => {
-                      if (!countryCode || !mobileNumber || !messageContent) {
-                        alert("Please fill all required fields");
-                        return;
-                      }
-                      alert("Message sent successfully!");
-                      setIsDropdownOpen(false);
-                    }}
+                    onClick={handleSendNow}
                     className="block w-full text-left px-4 py-2 md:py-3 text-gray-700 hover:bg-yellow-50 transition-colors"
                   >
                     Send Now
                   </button>
                   <button
-                    onClick={() => {
-                      if (!countryCode || !mobileNumber || !messageContent) {
-                        alert("Please fill all required fields");
-                        return;
-                      }
-                      alert("Message scheduled successfully!");
-                      setIsDropdownOpen(false);
-                    }}
+                    onClick={handleSchedule}
                     className="block w-full text-left px-4 py-2 md:py-3 text-gray-700 hover:bg-yellow-50 transition-colors"
                   >
                     Schedule
@@ -254,17 +469,16 @@ export default function SingleMsg() {
       </div>
 
       {/* Message Template Popup */}
-     {isPopupOpen && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-auto">
-    <div className="w-full flex justify-center items-start mt-10 md:items-center">
-      <MessagePopup
-        onClose={() => setIsPopupOpen(false)}
-        onSelectTemplate={handleSelectTemplate}
-      />
-    </div>
-  </div>
-)}
-
+      {isPopupOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-auto">
+          <div className="w-full flex justify-center items-start mt-10 md:items-center">
+            <MessagePopup
+              onClose={() => setIsPopupOpen(false)}
+              onSelectTemplate={handleSelectTemplate}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

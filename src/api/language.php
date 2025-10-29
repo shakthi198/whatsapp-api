@@ -6,18 +6,11 @@ header("Access-Control-Allow-Headers: Content-Type");
 
 require_once "config.php";
 
-// DB Config
-// $host = "localhost";
-// $user = "root";
-// $password = "";
-// $database = "whatapp"; // Change this if needed
-
-// $conn = new mysqli($host, $user, $password, $database);
-// $conn = new mysqli($host, $user, $password, $database);
-
-// if ($conn->connect_error) {
-//     die(json_encode(["status" => false, "message" => "Database connection failed."]));
-// }
+$conn = new mysqli($servername, $username, $password, $dbname);
+if ($conn->connect_error) {
+    echo json_encode(["status" => "error", "message" => "DB Connection Failed"]);
+    exit;
+}
 
 $method = $_SERVER['REQUEST_METHOD'];
 

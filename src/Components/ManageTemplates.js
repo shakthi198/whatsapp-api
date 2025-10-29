@@ -7,6 +7,7 @@ import {
   faCopy,
   faAngleLeft,
   faAngleRight,
+  faSync,
 } from "@fortawesome/free-solid-svg-icons";
 import { HiChevronRight, HiChevronLeft } from "react-icons/hi";
 import MessagePopup from "./MessagePopup";
@@ -22,56 +23,64 @@ const ManageTemplates = () => {
   const [showMessagePopup, setShowMessagePopup] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [syncing, setSyncing] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const templatesPerPage = 5;
   const [curlModal, setCurlModal] = useState({ open: false, data: null });
 
-  useEffect(() => {
-    const fetchTemplates = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch(apiEndpoints.managetemplate);
-        const data = await response.json();
+  const fetchTemplates = async (syncWithMeta = false) => {
+    setIsLoading(true);
+    try {
+      const url = syncWithMeta 
+        ? `${apiEndpoints.managetemplate}?sync=true`
+        : apiEndpoints.managetemplate;
+      
+      const response = await fetch(url);
+      const data = await response.json();
 
-        if (data.status === "success") {
-          const formattedTemplates = data.data.map((template) => ({
-            id: template.id,
-            guid: template.guid,
-            templateName: template.template_name,
-            category: template.category,
-            status: template.isActive ? "Active" : "Inactive",
-            type:
-              template.template_type === "1" ? "Transactional" : "Promotional",
-            createdOn: template.createdOn,
-            templateBody: template.body,
-            templateFooter: template.template_footer,
-            attributes: (() => {
-              try {
-                if (typeof template.templateHeaders === "string") {
-                  return JSON.parse(template.templateHeaders);
-                }
-                return template.templateHeaders || [];
-              } catch {
-                return [];
+      if (data.status === "success") {
+        const formattedTemplates = data.data.map((template) => ({
+          id: template.id,
+          guid: template.guid,
+          templateName: template.template_name,
+          category: template.category,
+          status: template.isActive ? "Active" : "Inactive",
+          type: template.template_type === "1" ? "Transactional" : "Promotional",
+          createdOn: template.createdOn,
+          templateBody: template.body,
+          templateFooter: template.template_footer,
+          meta_template_id: template.meta_template_id,
+          meta_status: template.meta_status || 'PENDING',
+          attributes: (() => {
+            try {
+              if (typeof template.templateHeaders === "string") {
+                return JSON.parse(template.templateHeaders);
               }
-            })(),
-            isFile: template.isFile,
-            isVariable: template.isVariable,
-          }));
-          setTemplates(formattedTemplates);
-        } else {
-          setError(data.message || "Error fetching templates");
-        }
-      } catch (error) {
-        setError("Failed to fetch templates: " + error.message);
-        console.error("Error fetching templates:", error);
-      } finally {
-        setIsLoading(false);
+              return template.templateHeaders || [];
+            } catch {
+              return [];
+            }
+          })(),
+          isFile: template.isFile,
+          isVariable: template.isVariable,
+        }));
+        setTemplates(formattedTemplates);
+      } else {
+        setError(data.message || "Error fetching templates");
       }
-    };
+    } catch (error) {
+      setError("Failed to fetch templates: " + error.message);
+      console.error("Error fetching templates:", error);
+    } finally {
+      setIsLoading(false);
+      setSyncing(false);
+    }
+  };
 
-    fetchTemplates();
+  useEffect(() => {
+    // Auto-sync with Meta on component mount
+    fetchTemplates(true);
   }, []);
 
   useEffect(() => {
@@ -81,6 +90,11 @@ const ManageTemplates = () => {
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state, navigate, location.pathname]);
+
+  const handleSyncWithMeta = () => {
+    setSyncing(true);
+    fetchTemplates(true);
+  };
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this template?")) {
@@ -229,7 +243,7 @@ const ManageTemplates = () => {
 
   return (
     <div
-      className="p-6 bg-gray-100 xl:w-full lg:w-2xl md:w-md"
+      className="width-full"
       style={{ fontFamily: "Montserrat" }}
     >
       {/* Header */}
@@ -249,7 +263,7 @@ const ManageTemplates = () => {
 
       {/* Table and Filters */}
       <div className="bg-white p-4 shadow rounded-lg border border-gray-300">
-        <div className="flex justify-start items-center pb-4 flex-wrap gap-2">
+        <div className="flex justify-between items-center pb-4 flex-wrap gap-2">
           <div className="flex gap-2 flex-wrap">
             <input
               type="text"
@@ -282,9 +296,9 @@ const ManageTemplates = () => {
                 </option>
               ))}
             </select>
-            <button className="text-white px-4 py-2 rounded-md bg-yellow-600">
+            {/* <button className="text-white px-4 py-2 rounded-md bg-yellow-600">
               📺 Watch Tutorial
-            </button>
+            </button> */}
             <button
               onClick={handleCreateTemplate}
               className="text-white px-4 py-2 rounded-md bg-yellow-600"
@@ -292,6 +306,17 @@ const ManageTemplates = () => {
               + Create New Template
             </button>
           </div>
+          <button
+            onClick={handleSyncWithMeta}
+            disabled={syncing}
+            className="flex items-center gap-2 text-white px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+          >
+            <FontAwesomeIcon 
+              icon={faSync} 
+              className={syncing ? "animate-spin" : ""} 
+            />
+            {syncing ? "Syncing..." : "Sync Meta Status"}
+          </button>
         </div>
 
         {/* Table */}
@@ -309,7 +334,7 @@ const ManageTemplates = () => {
                   Category
                 </th>
                 <th className="p-3 text-gray-600 font-medium whitespace-nowrap">
-                  Status
+                  Meta Status
                 </th>
                 <th className="p-3 text-gray-600 font-medium whitespace-nowrap">
                   Type
@@ -335,14 +360,18 @@ const ManageTemplates = () => {
                     <td className="p-3">
                       <span
                         className={`px-2 py-1 rounded text-xs md:text-sm ${
-                          template.status === "Approved"
-                            ? "bg-green-500 text-white"
-                            : template.status === "Pending"
-                            ? "bg-yellow-500 text-white"
-                            : "bg-red-500 text-white"
+                          template.meta_status === 'APPROVED'
+                            ? 'bg-green-500 text-white'
+                            : template.meta_status === 'REJECTED'
+                            ? 'bg-red-500 text-white'
+                            : template.meta_status === 'IN_REVIEW'
+                            ? 'bg-yellow-500 text-white'
+                            : template.meta_status === 'PENDING'
+                            ? 'bg-gray-500 text-white'
+                            : 'bg-blue-500 text-white'
                         }`}
                       >
-                        {template.status}
+                        {template.meta_status || 'PENDING'}
                       </span>
                     </td>
                     <td className="p-3">{template.type}</td>

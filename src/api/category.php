@@ -1,32 +1,24 @@
 <?php
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
-header("Access-Control-Allow-Origin: http://localhost:3000");
 header("Access-Control-Allow-Credentials: true");
 header("Cache-Control: no-cache, must-revalidate"); // Add this line
 header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Add this line (past date)
 
 require_once "config.php";
 
-// Database config
-// $host = "localhost";
-// $user = "root";
-// $password = "";
-// $database = "whatapp";
-// $host = "localhost";
-// $user = "root";
-// $password = "";
-// $database = "whatapp";
-
-// $conn = new mysqli($host, $user, $password, $database);
-// if ($conn->connect_error) {
-//     die(json_encode([
-//         "status" => false, 
-//         "message" => "Database connection failed: " . $conn->connect_error
-//     ]));
-// }
+$conn = new mysqli($servername, $username, $password, $dbname);
+if ($conn->connect_error) {
+    echo json_encode(["status" => "error", "message" => "DB Connection Failed"]);
+    exit;
+}
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -94,7 +86,7 @@ elseif ($method === 'GET') {
                 t.id as template_id,
                 t.name as template_name
             FROM category c
-            LEFT JOIN templates t ON t.categoryGuid = c.guid AND t.isDelete = 0
+            LEFT JOIN templates t ON t.categoryName = c.categoryName AND t.isDelete = 0
             WHERE c.isDelete = 0
             ORDER BY c.id";
 
