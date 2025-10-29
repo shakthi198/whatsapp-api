@@ -155,99 +155,100 @@ const Dashboard = () => {
       >
         Account Overview
       </Typography>
+      <div style={{ justifyContent: "center" }}>
+        <Grid container spacing={3} justifyContent={"center"} >
+          {/* INR Balance Card */}
+          <Grid item sx={{ width: { xs: "100%", sm: "100%", md: "50%", lg: "33.3%", xl: "33.3%" } }}>
+            <Card
+              sx={{
+                padding: "20px",
+                height: "100%",
+                borderRadius: "12px",
+                boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+                backgroundColor: "rgb(232, 232, 232)",
+              }}
+            >
+              <CardContent>
+                <Typography variant="h6" sx={{ fontWeight: "medium", color: "#333", fontFamily: "Montserrat, sans-serif" }}>
+                  Hello Elcodamics!
+                </Typography>
+                <Typography variant="h4" sx={{ fontWeight: "medium", marginTop: "10px", fontFamily: "Montserrat, sans-serif" }}>
+                  INR 5.4
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
 
-      <Grid container spacing={3} width={"100%"} >
-        {/* INR Balance Card */}
-        <Grid item xs={12} md={4} sx={{ width: { xs: "100%", sm: "90%", md: "80%", lg: "47%", xl: "48%" } }}>
-          <Card
-            sx={{
-              padding: "20px",
-              height: "100%",
-              borderRadius: "12px",
-              boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
-              backgroundColor: "rgb(232, 232, 232)",
-            }}
-          >
-            <CardContent>
-              <Typography variant="h6" sx={{ fontWeight: "medium", color: "#333", fontFamily: "Montserrat, sans-serif" }}>
-                Hello Elcodamics!
-              </Typography>
-              <Typography variant="h4" sx={{ fontWeight: "medium", marginTop: "10px", fontFamily: "Montserrat, sans-serif" }}>
-                INR 5.4
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
+          {/* Upgrade Plan Card */}
+          <Grid item sx={{ width: { xs: "100%", sm: "100%", md: "50%", lg: "33.3%", xl: "33.3%" } }}>
+            <Card
+              sx={{
+                padding: "7px",
+                borderRadius: "12px",
+                height: "100%",
+                boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+                backgroundColor: "#FAF3E0",
+              }}
+            >
+              <CardContent>
+                <Typography variant="h6" sx={{ fontWeight: "medium", color: "#333", fontFamily: "Montserrat, sans-serif" }}>
+                  {currentPlan.planName}
+                </Typography>
+                <Typography sx={{ marginBottom: "10px", color: "#666", fontFamily: "Montserrat, sans-serif" }}>
+                  {currentPlan.features}
+                </Typography>
+                <button
+                  onClick={() => navigate("/upgrade")}
+                  style={{
+                    fontFamily: "Montserrat, sans-serif",
+                    backgroundColor: "#D6B76F",
+                    border: "none",
+                    color: "white",
+                    padding: "10px 15px",
+                    borderRadius: "5px",
+                    cursor: "pointer",
+                    width: "100%",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {currentPlan.upgradeText}
+                </button>
+              </CardContent>
+            </Card>
+          </Grid>
 
-        {/* Upgrade Plan Card */}
-        <Grid item xs={12} md={4} sx={{ width: { xs: "100%", sm: "90%", md: "80%", lg: "47%", xl: "48%" } }}>
-          <Card
-            sx={{
-              padding: "7px",
-              borderRadius: "12px",
-              height: "100%",
-              boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
-              backgroundColor: "#FAF3E0",
-            }}
-          >
-            <CardContent>
-              <Typography variant="h6" sx={{ fontWeight: "medium", color: "#333", fontFamily: "Montserrat, sans-serif" }}>
-                {currentPlan.planName}
-              </Typography>
-              <Typography sx={{ marginBottom: "10px", color: "#666", fontFamily: "Montserrat, sans-serif" }}>
-                {currentPlan.features}
-              </Typography>
-              <button
-                onClick={() => navigate("/upgrade")}
-                style={{
-                  fontFamily: "Montserrat, sans-serif",
-                  backgroundColor: "#D6B76F",
-                  border: "none",
-                  color: "white",
-                  padding: "10px 15px",
-                  borderRadius: "5px",
-                  cursor: "pointer",
-                  width: "100%",
-                  fontWeight: "bold",
-                }}
-              >
-                {currentPlan.upgradeText}
-              </button>
-            </CardContent>
-          </Card>
+          {/* Usage Card */}
+          <Grid item sx={{ width: { xs: "100%", sm: "100%", md: "50%", lg: "33.3%", xl: "33.3%" } }}>
+            <Card
+              sx={{
+                padding: "19px",
+                borderRadius: "12px",
+                height: "100%",
+                boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+                backgroundColor: "#E3F2FD",
+                cursor: "pointer",
+              }}
+              onClick={() => navigate("/usage")}
+            >
+              <CardContent>
+                <Typography variant="h6" sx={{ fontWeight: "medium", color: "#333", fontFamily: "Montserrat, sans-serif" }}>
+                  Usage
+                </Typography>
+                <LinearProgress
+                  variant="determinate"
+                  value={usagePercentage}
+                  sx={{ height: "10px", borderRadius: "5px", marginTop: "10px", position: "relative" }}
+                />
+                <Typography
+                  sx={{ marginTop: "10px", color: "#666", textAlign: "center", fontFamily: "Montserrat, sans-serif" }}
+                >
+                  {usage.used} out of {usage.total} ({usagePercentage.toFixed(1)}%)
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
         </Grid>
-
-        {/* Usage Card */}
-        <Grid item xs={12} md={4} sx={{ width: { xs: "100%", sm: "90%", md: "80%", lg: "47%", xl: "48%" } }}>
-          <Card
-            sx={{
-              padding: "19px",
-              borderRadius: "12px",
-              height: "100%",
-              boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
-              backgroundColor: "#E3F2FD",
-              cursor: "pointer",
-            }}
-            onClick={() => navigate("/usage")}
-          >
-            <CardContent>
-              <Typography variant="h6" sx={{ fontWeight: "medium", color: "#333", fontFamily: "Montserrat, sans-serif" }}>
-                Usage
-              </Typography>
-              <LinearProgress
-                variant="determinate"
-                value={usagePercentage}
-                sx={{ height: "10px", borderRadius: "5px", marginTop: "10px", position: "relative" }}
-              />
-              <Typography
-                sx={{ marginTop: "10px", color: "#666", textAlign: "center", fontFamily: "Montserrat, sans-serif" }}
-              >
-                {usage.used} out of {usage.total} ({usagePercentage.toFixed(1)}%)
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      </div>
 
       {/* Dashboard Overview */}
       <Typography

@@ -13,12 +13,13 @@ import apiEndpoints from "../../apiconfig";
 
 const Contacts = () => {
   const [contacts, setContacts] = useState([]);
+  const [filteredContacts, setFilteredContacts] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState("All");
-  const [searchTag, setSearchTag] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedContacts, setSelectedContacts] = useState([]);
-  const [editingContact, setEditingContact] = useState(null); // For Edit
+  const [editingContact, setEditingContact] = useState(null);
   const navigate = useNavigate();
 
   const fetchContacts = async () => {
@@ -28,15 +29,32 @@ const Contacts = () => {
       if (data && typeof data === "object" && data.data) data = data.data;
       if (!Array.isArray(data)) data = [];
       setContacts(data);
+      setFilteredContacts(data); // Initialize filtered contacts with all data
     } catch (error) {
       console.error("Error fetching contacts:", error);
       setContacts([]);
+      setFilteredContacts([]);
     }
   };
 
   useEffect(() => {
     fetchContacts();
   }, []);
+
+  // Search functionality
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredContacts(contacts);
+    } else {
+      const filtered = contacts.filter(contact =>
+        contact.contact_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        contact.contact_group?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        contact.tags?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        contact.mobile_number?.includes(searchQuery)
+      );
+      setFilteredContacts(filtered);
+    }
+  }, [searchQuery, contacts]);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this contact?")) return;
@@ -79,7 +97,7 @@ const Contacts = () => {
     const headers = ["Contact Name", "Group Name", "Tags", "Mobile Number"];
     const csvContent = [
       headers.join(","),
-      ...contacts.map(c => `"${c.contact_name}","${c.contact_group}","${c.tags}","${c.mobile_number}"`)
+      ...filteredContacts.map(c => `"${c.contact_name}","${c.contact_group}","${c.tags}","${c.mobile_number}"`)
     ].join("\n");
     saveAs(new Blob([csvContent], { type: "text/csv;charset=utf-8" }), "contacts_export.csv");
   };
@@ -94,10 +112,19 @@ const Contacts = () => {
   };
 
   const toggleSelectAll = (e) => {
-    setSelectedContacts(e.target.checked ? contacts.map(c => c.id) : []);
+    setSelectedContacts(e.target.checked ? filteredContacts.map(c => c.id) : []);
   };
+
   const toggleSelectContact = (id, checked) => {
     setSelectedContacts(checked ? [...selectedContacts, id] : selectedContacts.filter(i => i !== id));
+  };
+
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
   };
 
   return (
@@ -127,13 +154,23 @@ const Contacts = () => {
           >
             <option value="All">All</option>
           </select>
-          <input
-            type="text"
-            value={searchTag}
-            onChange={(e) => setSearchTag(e.target.value)}
-            placeholder="Search tag"
-            className="border border-gray-300 p-2 rounded w-full md:w-72 focus:outline-none focus:border-yellow-600"
-          />
+          <div className="relative w-full md:w-72">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={handleSearch}
+              placeholder="Search by name, group, tag, or number"
+              className="border border-gray-300 p-2 rounded w-full focus:outline-none focus:border-yellow-600 pr-10"
+            />
+            {searchQuery && (
+              <button
+                onClick={clearSearch}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
       </div>
       <hr />
@@ -146,24 +183,28 @@ const Contacts = () => {
             setEditingContact(null);
           }}
           className="text-gray-600 text-2xl"
+          title="Add Contact"
         >
           <LuSquarePlus />
         </button>
         <button
           onClick={handleBulkDelete}
           className="px-4 py-2 text-gray-600 text-2xl"
+          title="Delete Selected"
         >
           <RiDeleteBinLine />
         </button>
         <button
           onClick={() => setIsImportModalOpen(true)}
           className="px-3 py-2 text-gray-600 text-2xl"
+          title="Import Contacts"
         >
           <TbUpload />
         </button>
         <button
           onClick={handleExport}
           className="px-3 py-2 text-gray-600 text-2xl"
+          title="Export Contacts"
         >
           <TbDownload />
         </button>
@@ -181,17 +222,32 @@ const Contacts = () => {
         </button>
       </div>
 
+      {/* Search Results Info */}
+      {searchQuery && (
+        <div className="mt-3 bg-blue-50 p-3 rounded-md">
+          <p className="text-sm text-blue-700">
+            Showing {filteredContacts.length} result{filteredContacts.length !== 1 ? 's' : ''} for "<strong>{searchQuery}</strong>"
+            <button
+              onClick={clearSearch}
+              className="ml-2 text-blue-500 hover:text-blue-700 underline text-xs"
+            >
+              Clear search
+            </button>
+          </p>
+        </div>
+      )}
+
       {/* Table */}
       <div className="bg-white p-4 rounded-md overflow-x-auto shadow mt-3">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
+        <table className="w-full text-sm overflowX-auto">
           <thead className="bg-gray-100 text-left font-semibold text-gray-800">
             <tr>
               <th className="px-4 py-2">
                 <input
                   type="checkbox"
                   checked={
-                    selectedContacts.length === contacts.length &&
-                    contacts.length > 0
+                    selectedContacts.length === filteredContacts.length &&
+                    filteredContacts.length > 0
                   }
                   onChange={toggleSelectAll}
                 />
@@ -205,18 +261,28 @@ const Contacts = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {contacts.length === 0 ? (
+            {filteredContacts.length === 0 ? (
               <tr>
                 <td colSpan={7} className="text-center py-8 text-gray-500">
                   <MdOutlineInbox
                     className="mx-auto text-gray-400 mt-6"
                     size={72}
                   />
-                  <p>No data</p>
+                  <p>
+                    {searchQuery ? "No contacts found matching your search" : "No contacts available"}
+                  </p>
+                  {searchQuery && (
+                    <button
+                      onClick={clearSearch}
+                      className="mt-2 text-yellow-600 hover:text-yellow-700 underline"
+                    >
+                      Clear search
+                    </button>
+                  )}
                 </td>
               </tr>
             ) : (
-              contacts.map((contact, i) => (
+              filteredContacts.map((contact, i) => (
                 <tr key={contact.id} className="hover:bg-gray-50">
                   <td className="px-4 py-2">
                     <input
@@ -239,6 +305,7 @@ const Contacts = () => {
                         setIsAddModalOpen(true);
                         setEditingContact(contact);
                       }}
+                      title="Edit Contact"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -258,6 +325,7 @@ const Contacts = () => {
                     <button
                       className="bg-red-500 hover:bg-red-600 text-white rounded-full p-2"
                       onClick={() => handleDelete(contact.id)}
+                      title="Delete Contact"
                     >
                       <RiDeleteBinLine className="h-4 w-4" />
                     </button>

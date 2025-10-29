@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import apiEndpoints from "../apiconfig";
 import WhatsAppPreview from "./whatsapppreview";
-import { Box } from "@mui/material";
+import { Box, useMediaQuery, useTheme } from "@mui/material";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
 import { FaUpload, FaTimes, FaFileImage, FaFileVideo, FaFilePdf, FaFileAudio } from "react-icons/fa";
 
@@ -13,6 +13,12 @@ const CreateTemplate = () => {
   const location = useLocation();
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
+  
+  // MUI theme for responsive design
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
+  
   const [templateBody, setTemplateBody] = useState("");
   const [templateFooter, setTemplateFooter] = useState("");
   const [showPopup, setShowPopup] = useState(false);
@@ -418,27 +424,27 @@ const CreateTemplate = () => {
 
   return (
     <div
-      className="min-h-screen bg-gray-50 p-6"
+      className="min-h-screen bg-gray-50 p-4 md:p-6"
       style={{ fontFamily: "Montserrat" }}
     >
-      <Box display="flex" gap={2}>
+      <Box display="flex" flexDirection={isMobile ? "column" : "row"} gap={isMobile ? 3 : 2}>
         {/* Left: Form Section */}
-        <Box sx={{ flex: 1 }}>
-          <div className="bg-white shadow-md rounded-lg p-6 w-full">
-            <h1 className="text-2xl font-bold mb-6 text-gray-800">
+        <Box sx={{ flex: 1, order: isMobile ? 1 : 0 }}>
+          <div className="bg-white shadow-md rounded-lg p-4 md:p-6 w-full">
+            <h1 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 text-gray-800">
               Create New Template
             </h1>
 
             {/* Top Section - Basic Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
               {/* Template Name */}
-              <div>
+              <div className="col-span-1 md:col-span-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Template Name
                 </label>
                 <input
                   type="text"
-                  className="border border-gray-300 p-2 rounded w-full"
+                  className="border border-gray-300 p-2 rounded w-full text-sm md:text-base"
                   name="templateName"
                   placeholder="Template Name"
                   value={formData.templateName}
@@ -452,12 +458,12 @@ const CreateTemplate = () => {
               </div>
 
               {/* Category Select */}
-              <div>
+              <div className="col-span-1 md:col-span-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Category
                 </label>
                 <select
-                  className="border border-gray-300 p-2 rounded w-full"
+                  className="border border-gray-300 p-2 rounded w-full text-sm md:text-base"
                   name="categoryName"
                   value={formData.categoryName}
                   onChange={handleChange}
@@ -472,12 +478,12 @@ const CreateTemplate = () => {
               </div>
 
               {/* Language Select */}
-              <div>
+              <div className="col-span-1 md:col-span-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Language
                 </label>
                 <select
-                  className="border border-gray-300 p-2 rounded w-full"
+                  className="border border-gray-300 p-2 rounded w-full text-sm md:text-base"
                   name="languageGuid"
                   value={formData.languageGuid}
                   onChange={handleChange}
@@ -492,12 +498,12 @@ const CreateTemplate = () => {
               </div>
 
               {/* Template Type */}
-              <div>
+              <div className="col-span-1 md:col-span-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Template Type
                 </label>
                 <select
-                  className="border border-gray-300 p-2 rounded w-full"
+                  className="border border-gray-300 p-2 rounded w-full text-sm md:text-base"
                   name="type"
                   value={formData.type}
                   onChange={handleChange}
@@ -509,12 +515,12 @@ const CreateTemplate = () => {
               </div>
 
               {/* Template Category (for Meta) */}
-              <div>
+              <div className="col-span-1 md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Template Category
                 </label>
                 <select
-                  className="border border-gray-300 p-2 rounded w-full"
+                  className="border border-gray-300 p-2 rounded w-full text-sm md:text-base"
                   name="templateCategory"
                   value={formData.templateCategory}
                   onChange={handleChange}
@@ -528,8 +534,8 @@ const CreateTemplate = () => {
 
             {/* Media Section - Show only for MEDIA type */}
             {formData.type === "MEDIA" && (
-              <div className="mb-8 p-4 border-2 border-dashed border-gray-300 rounded-lg bg-blue-50">
-                <h2 className="text-lg font-semibold mb-4 text-gray-800">Media Upload *</h2>
+              <div className="mb-6 md:mb-8 p-3 md:p-4 border-2 border-dashed border-gray-300 rounded-lg bg-blue-50">
+                <h2 className="text-base md:text-lg font-semibold mb-3 md:mb-4 text-gray-800">Media Upload *</h2>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -539,10 +545,10 @@ const CreateTemplate = () => {
                   </label>
                   
                   {!mediaFile ? (
-                    <div className="border-2 border-dashed border-gray-400 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer">
-                      <FaUpload className="mx-auto text-3xl text-gray-400 mb-3" />
-                      <p className="text-gray-600 mb-2">Click to upload or drag and drop</p>
-                      <p className="text-sm text-gray-500">
+                    <div className="border-2 border-dashed border-gray-400 rounded-lg p-4 md:p-8 text-center hover:border-blue-500 transition-colors cursor-pointer">
+                      <FaUpload className="mx-auto text-2xl md:text-3xl text-gray-400 mb-2 md:mb-3" />
+                      <p className="text-gray-600 mb-2 text-sm md:text-base">Click to upload or drag and drop</p>
+                      <p className="text-xs md:text-sm text-gray-500">
                         Supported formats: Images, Videos, Documents, Audio (Max 10MB)
                       </p>
                       <input
@@ -555,13 +561,13 @@ const CreateTemplate = () => {
                       />
                     </div>
                   ) : (
-                    <div className="border border-gray-300 rounded-lg p-4 bg-white">
+                    <div className="border border-gray-300 rounded-lg p-3 md:p-4 bg-white">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-2 md:space-x-3">
                           {getMediaIcon()}
                           <div>
-                            <p className="font-medium text-gray-800">{mediaFile.name}</p>
-                            <p className="text-sm text-gray-500">
+                            <p className="font-medium text-gray-800 text-sm md:text-base">{mediaFile.name}</p>
+                            <p className="text-xs md:text-sm text-gray-500">
                               {(mediaFile.size / (1024 * 1024)).toFixed(2)} MB • {mediaType}
                             </p>
                             {mediaId && (
@@ -574,7 +580,7 @@ const CreateTemplate = () => {
                         <button
                           type="button"
                           onClick={removeMediaFile}
-                          className="p-2 hover:bg-gray-100 rounded-full text-gray-500 hover:text-red-500"
+                          className="p-1 md:p-2 hover:bg-gray-100 rounded-full text-gray-500 hover:text-red-500"
                           disabled={isUploadingMedia}
                         >
                           <FaTimes className="text-lg" />
@@ -588,15 +594,15 @@ const CreateTemplate = () => {
 
             {/* Header Section - Show only for TEXT type */}
             {formData.type === "TEXT" && (
-              <div className="mb-8">
-                <h2 className="text-lg font-semibold mb-2 text-gray-800">Header</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="mb-6 md:mb-8">
+                <h2 className="text-base md:text-lg font-semibold mb-2 text-gray-800">Header</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Header Type
                     </label>
                     <select
-                      className="border border-gray-300 p-2 rounded w-full"
+                      className="border border-gray-300 p-2 rounded w-full text-sm md:text-base"
                       name="headerType"
                       value={formData.headerType}
                       onChange={handleChange}
@@ -613,7 +619,7 @@ const CreateTemplate = () => {
                     </label>
                     <input
                       type="text"
-                      className="border border-gray-300 p-2 rounded w-full"
+                      className="border border-gray-300 p-2 rounded w-full text-sm md:text-base"
                       name="headerText"
                       placeholder="Header Text"
                       value={formData.headerText}
@@ -625,46 +631,46 @@ const CreateTemplate = () => {
             )}
 
             {/* Body Section */}
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold mb-2 text-gray-800">Body</h2>
-              <p className="text-sm text-gray-600 mb-3">
+            <div className="mb-6 md:mb-8">
+              <h2 className="text-base md:text-lg font-semibold mb-2 text-gray-800">Body</h2>
+              <p className="text-xs md:text-sm text-gray-600 mb-3">
                 Make your messages personal using variables like and get more replies!
               </p>
 
               <button
-                className="border border-yellow-500 text-yellow-500 px-4 py-2 rounded mb-3 hover:bg-yellow-50"
+                className="border border-yellow-500 text-yellow-500 px-3 md:px-4 py-2 rounded mb-3 hover:bg-yellow-50 text-sm md:text-base"
                 onClick={() => setShowPopup(true)}
               >
                 Add Variable
               </button>
 
-              <div className="border border-gray-300 rounded-md p-4">
+              <div className="border border-gray-300 rounded-md p-3 md:p-4">
                 <textarea
                   ref={textareaRef}
                   placeholder="Template Body"
-                  className="w-full h-40 border-none outline-none resize-none"
+                  className="w-full h-32 md:h-40 border-none outline-none resize-none text-sm md:text-base"
                   value={templateBody}
                   onChange={(e) => setTemplateBody(e.target.value)}
                 />
               </div>
-              <p className="text-right text-sm text-gray-500 mt-1">
+              <p className="text-right text-xs md:text-sm text-gray-500 mt-1">
                 {templateBody.length}/1024 characters
               </p>
             </div>
 
             {/* Template Buttons Section */}
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold mb-2 text-gray-800">
+            <div className="mb-6 md:mb-8">
+              <h2 className="text-base md:text-lg font-semibold mb-2 text-gray-800">
                 Template Buttons (Optional)
               </h2>
-              <p className="text-sm text-gray-600 mb-3">
+              <p className="text-xs md:text-sm text-gray-600 mb-3">
                 Add buttons for URL, Phone, or Quick Reply actions
               </p>
               
               {/* Add Button Form */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-3">
                 <select
-                  className="border border-gray-300 p-2 rounded"
+                  className="border border-gray-300 p-2 rounded text-sm md:text-base col-span-1 md:col-span-1"
                   value={newButton.type}
                   onChange={(e) => setNewButton({...newButton, type: e.target.value})}
                 >
@@ -675,7 +681,7 @@ const CreateTemplate = () => {
                 
                 <input
                   type="text"
-                  className="border border-gray-300 p-2 rounded"
+                  className="border border-gray-300 p-2 rounded text-sm md:text-base col-span-1 md:col-span-1"
                   placeholder="Button text"
                   value={newButton.text}
                   onChange={(e) => setNewButton({...newButton, text: e.target.value})}
@@ -685,7 +691,7 @@ const CreateTemplate = () => {
                 {newButton.type === "URL" && (
                   <input
                     type="text"
-                    className="border border-gray-300 p-2 rounded"
+                    className="border border-gray-300 p-2 rounded text-sm md:text-base col-span-1 md:col-span-1"
                     placeholder="URL"
                     value={newButton.url}
                     onChange={(e) => setNewButton({...newButton, url: e.target.value})}
@@ -695,7 +701,7 @@ const CreateTemplate = () => {
                 {newButton.type === "PHONE_NUMBER" && (
                   <input
                     type="text"
-                    className="border border-gray-300 p-2 rounded"
+                    className="border border-gray-300 p-2 rounded text-sm md:text-base col-span-1 md:col-span-1"
                     placeholder="Phone number"
                     value={newButton.phone}
                     onChange={(e) => setNewButton({...newButton, phone: e.target.value})}
@@ -703,7 +709,7 @@ const CreateTemplate = () => {
                 )}
                 
                 <button
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled:bg-gray-300"
+                  className="bg-green-500 text-white px-3 md:px-4 py-2 rounded hover:bg-green-600 disabled:bg-gray-300 text-sm md:text-base col-span-1 md:col-span-1"
                   onClick={handleAddButton}
                   disabled={!newButton.text || (newButton.type === "URL" && !newButton.url) || (newButton.type === "PHONE_NUMBER" && !newButton.phone)}
                 >
@@ -714,16 +720,16 @@ const CreateTemplate = () => {
               {/* Display Added Buttons */}
               <div className="space-y-2">
                 {templateButtons.map((button, index) => (
-                  <div key={index} className="flex items-center justify-between bg-gray-100 p-3 rounded">
-                    <div>
-                      <span className="font-medium">{button.type}: </span>
-                      <span>{button.text}</span>
-                      {button.url && <span className="text-blue-600 ml-2">→ {button.url}</span>}
-                      {button.phone && <span className="text-green-600 ml-2">📞 {button.phone}</span>}
+                  <div key={index} className="flex items-center justify-between bg-gray-100 p-2 md:p-3 rounded">
+                    <div className="overflow-hidden">
+                      <span className="font-medium text-xs md:text-sm">{button.type}: </span>
+                      <span className="text-xs md:text-sm">{button.text}</span>
+                      {button.url && <span className="text-blue-600 ml-1 md:ml-2 text-xs md:text-sm">→ {button.url}</span>}
+                      {button.phone && <span className="text-green-600 ml-1 md:ml-2 text-xs md:text-sm">📞 {button.phone}</span>}
                     </div>
                     <button
                       onClick={() => handleRemoveButton(index)}
-                      className="text-red-500 hover:text-red-700"
+                      className="text-red-500 hover:text-red-700 flex-shrink-0 ml-2"
                     >
                       ×
                     </button>
@@ -733,24 +739,24 @@ const CreateTemplate = () => {
             </div>
 
             {/* Quick Replies Section */}
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold mb-2 text-gray-800">
+            <div className="mb-6 md:mb-8">
+              <h2 className="text-base md:text-lg font-semibold mb-2 text-gray-800">
                 Quick Replies (Optional)
               </h2>
-              <p className="text-sm text-gray-600 mb-3">
+              <p className="text-xs md:text-sm text-gray-600 mb-3">
                 Add up to 3 quick reply buttons
               </p>
-              <div className="flex gap-2 mb-3">
+              <div className="flex flex-col sm:flex-row gap-2 mb-3">
                 <input
                   type="text"
-                  className="border border-gray-300 p-2 rounded flex-1"
+                  className="border border-gray-300 p-2 rounded flex-1 text-sm md:text-base"
                   placeholder="Quick reply text"
                   value={newQuickReply}
                   onChange={(e) => setNewQuickReply(e.target.value)}
                   maxLength={20}
                 />
                 <button
-                  className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 disabled:bg-gray-300"
+                  className="bg-yellow-500 text-white px-3 md:px-4 py-2 rounded hover:bg-yellow-600 disabled:bg-gray-300 text-sm md:text-base sm:w-auto w-full"
                   onClick={handleAddQuickReply}
                   disabled={!newQuickReply.trim() || quickReplies.length >= 3}
                 >
@@ -761,7 +767,7 @@ const CreateTemplate = () => {
                 {quickReplies.map((reply, index) => (
                   <div
                     key={index}
-                    className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full flex items-center gap-2"
+                    className="bg-blue-100 text-blue-800 px-2 md:px-3 py-1 rounded-full flex items-center gap-1 md:gap-2 text-xs md:text-sm"
                   >
                     {reply.text}
                     <button
@@ -776,17 +782,17 @@ const CreateTemplate = () => {
             </div>
 
             {/* Template Footer */}
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold mb-2 text-gray-800">
+            <div className="mb-6 md:mb-8">
+              <h2 className="text-base md:text-lg font-semibold mb-2 text-gray-800">
                 Template Footer (Optional)
               </h2>
-              <p className="text-sm text-gray-600 mb-3">
+              <p className="text-xs md:text-sm text-gray-600 mb-3">
                 Footers are great to add any disclaimers or to add a thoughtful
                 PS and only up to 60 characters are allowed.
               </p>
               <input
                 type="text"
-                className="border border-gray-300 p-2 rounded w-full"
+                className="border border-gray-300 p-2 rounded w-full text-sm md:text-base"
                 placeholder="Template Footer"
                 value={templateFooter}
                 onChange={(e) => setTemplateFooter(e.target.value)}
@@ -795,15 +801,15 @@ const CreateTemplate = () => {
             </div>
 
             {/* Buttons */}
-            <div className="flex justify-end space-x-4">
+            <div className="flex flex-col sm:flex-row justify-end gap-3 sm:space-x-4">
               <button
-                className="border border-gray-300 px-4 py-2 rounded text-gray-700 hover:bg-gray-50"
+                className="border border-gray-300 px-4 py-2 rounded text-gray-700 hover:bg-gray-50 text-sm md:text-base order-2 sm:order-1"
                 disabled
               >
                 Save as draft
               </button>
               <button
-                className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 disabled:bg-gray-400"
+                className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 disabled:bg-gray-400 text-sm md:text-base order-1 sm:order-2"
                 onClick={handleSubmit}
                 disabled={isSubmitting || (formData.type === "MEDIA" && !mediaId)}
               >
@@ -812,41 +818,41 @@ const CreateTemplate = () => {
             </div>
           </div>
 
-          {/* Popups remain the same */}
+          {/* Responsive Popups */}
           {showPopup && (
-            <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center transition-opacity duration-300 p-4">
-              <div className="bg-white p-6 rounded-lg shadow-lg w-1/2">
+            <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center transition-opacity duration-300 p-4 z-50">
+              <div className="bg-white p-4 md:p-6 rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                 <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-semibold">Select Attribute</h2>
+                  <h2 className="text-base md:text-lg font-semibold">Select Attribute</h2>
                   <button
                     onClick={() => setShowPopup(false)}
-                    className="text-m font-bold"
+                    className="text-lg md:text-xl font-bold"
                   >
                     X
                   </button>
                 </div>
-                <div className="mt-4 flex items-center gap-2">
+                <div className="mt-4 flex flex-col sm:flex-row items-center gap-2">
                   <input
                     type="text"
                     placeholder="🔍 Search attributes..."
-                    className="w-89 border p-2 rounded"
+                    className="w-full sm:w-64 border p-2 rounded text-sm md:text-base"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                   <button
-                    className="bg-[#D2B887] text-white py-2 px-4 rounded flex ml-20"
+                    className="bg-[#D2B887] text-white py-2 px-3 md:px-4 rounded flex text-sm md:text-base w-full sm:w-auto justify-center mt-2 sm:mt-0 sm:ml-4"
                     onClick={handleAddAttribute}
                   >
                     + Add Attribute
                   </button>
                 </div>
                 {/* Global Variables Section */}
-                <h3 className="font-semibold mt-4">Global Variables</h3>
+                <h3 className="font-semibold mt-4 text-sm md:text-base">Global Variables</h3>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {GLOBAL_ATTRIBUTES.map((attr, index) => (
                     <div
                       key={`global-${index}`}
-                      className="flex items-center bg-blue-500 text-white px-4 py-2 rounded-full border border-blue-400 cursor-pointer"
+                      className="flex items-center bg-blue-500 text-white px-3 py-1 md:px-4 md:py-2 rounded-full border border-blue-400 cursor-pointer text-xs md:text-sm"
                       onClick={() => insertPlaceholderValue(attr.value)}
                     >
                       {attr.name}: {attr.value}
@@ -855,12 +861,12 @@ const CreateTemplate = () => {
                 </div>
 
                 {/* Template Variables Section */}
-                <h3 className="font-semibold mt-4">Template Variables</h3>
+                <h3 className="font-semibold mt-4 text-sm md:text-base">Template Variables</h3>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {attributes.map((attr, index) => (
                     <div
                       key={`local-${index}`}
-                      className="flex items-center bg-green-500 text-white px-4 py-2 rounded-full border border-green-400 cursor-pointer"
+                      className="flex items-center bg-green-500 text-white px-3 py-1 md:px-4 md:py-2 rounded-full border border-green-400 cursor-pointer text-xs md:text-sm"
                       onClick={() => insertPlaceholderValue(attr.value)}
                     >
                       {attr.name}: {attr.value}
@@ -869,7 +875,7 @@ const CreateTemplate = () => {
                           e.stopPropagation();
                           handleDelete(index);
                         }}
-                        className="ml-2 bg-white text-red-500 p-1 rounded-full"
+                        className="ml-1 md:ml-2 bg-white text-red-500 p-0.5 md:p-1 rounded-full text-xs"
                       >
                         🗑
                       </button>
@@ -877,15 +883,15 @@ const CreateTemplate = () => {
                   ))}
                 </div>
 
-                <div className="flex mt-4 items-center gap-2">
-                  <button className="p-2 rounded-md text-gray-600 hover:bg-gray-300">
-                    <HiChevronLeft className="text-2xl" />
+                <div className="flex mt-4 items-center gap-2 justify-center">
+                  <button className="p-1 md:p-2 rounded-md text-gray-600 hover:bg-gray-300">
+                    <HiChevronLeft className="text-xl md:text-2xl" />
                   </button>
-                  <button className="border border-yellow-600 px-4 py-2 rounded-md text-black font-medium">
+                  <button className="border border-yellow-600 px-3 md:px-4 py-1 md:py-2 rounded-md text-black font-medium text-sm md:text-base">
                     1
                   </button>
-                  <button className="p-2 rounded-md text-gray-600 hover:bg-gray-300">
-                    <HiChevronRight className="text-2xl" />
+                  <button className="p-1 md:p-2 rounded-md text-gray-600 hover:bg-gray-300">
+                    <HiChevronRight className="text-xl md:text-2xl" />
                   </button>
                 </div>
               </div>
@@ -893,18 +899,18 @@ const CreateTemplate = () => {
           )}
 
           {showAddAttributePopup && (
-            <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center p-4">
-              <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
+            <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center p-4 z-50">
+              <div className="bg-white p-4 md:p-6 rounded-lg shadow-lg w-full max-w-md">
                 <div className="flex justify-between items-center border-b pb-2">
-                  <h2 className="text-lg font-semibold">Add User Attribute</h2>
-                  <button onClick={handleCloseAddPopup}>&times;</button>
+                  <h2 className="text-base md:text-lg font-semibold">Add User Attribute</h2>
+                  <button onClick={handleCloseAddPopup} className="text-lg md:text-xl">&times;</button>
                 </div>
                 <div className="mt-4">
                   <label className="block text-sm font-medium">Name</label>
                   <input
                     type="text"
                     placeholder="Enter Attribute Name"
-                    className="w-full border p-2 rounded mt-1"
+                    className="w-full border p-2 rounded mt-1 text-sm md:text-base"
                     value={newAttribute.name}
                     onChange={(e) =>
                       setNewAttribute({ ...newAttribute, name: e.target.value })
@@ -916,7 +922,7 @@ const CreateTemplate = () => {
                   <input
                     type="text"
                     placeholder="Enter Attribute Value"
-                    className="w-full border p-2 rounded mt-1"
+                    className="w-full border p-2 rounded mt-1 text-sm md:text-base"
                     value={newAttribute.value}
                     onChange={(e) =>
                       setNewAttribute({
@@ -928,13 +934,13 @@ const CreateTemplate = () => {
                 </div>
                 <div className="mt-6 flex justify-end gap-2">
                   <button
-                    className="border px-4 py-2 rounded"
+                    className="border px-3 md:px-4 py-2 rounded text-sm md:text-base"
                     onClick={handleCloseAddPopup}
                   >
                     Cancel
                   </button>
                   <button
-                    className="bg-[#D2B887] text-white px-4 py-2 rounded"
+                    className="bg-[#D2B887] text-white px-3 md:px-4 py-2 rounded text-sm md:text-base"
                     onClick={handleSaveAttribute}
                   >
                     OK
@@ -944,8 +950,12 @@ const CreateTemplate = () => {
             </div>
           )}
         </Box>
-        <Box flex={1}>
-          <WhatsAppPreview templateData={previewData} />
+        
+        {/* Right: WhatsApp Preview Section */}
+        <Box flex={1} sx={{ order: isMobile ? 0 : 1 }}>
+          <div className={isMobile ? "mb-4" : ""}>
+            <WhatsAppPreview templateData={previewData} />
+          </div>
         </Box>
       </Box>
     </div>
