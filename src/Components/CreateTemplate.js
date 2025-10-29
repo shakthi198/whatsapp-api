@@ -20,12 +20,12 @@ const CreateTemplate = () => {
   const location = useLocation();
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
-  
+
   // MUI theme for responsive design
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
-  
+
   const [templateBody, setTemplateBody] = useState("");
   const [templateFooter, setTemplateFooter] = useState("");
   const [showPopup, setShowPopup] = useState(false);
@@ -553,7 +553,7 @@ const CreateTemplate = () => {
             {formData.type === "MEDIA" && (
               <div className="mb-6 md:mb-8 p-3 md:p-4 border-2 border-dashed border-gray-300 rounded-lg bg-blue-50">
                 <h2 className="text-base md:text-lg font-semibold mb-3 md:mb-4 text-gray-800">Media Upload *</h2>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Upload Media File
@@ -780,77 +780,78 @@ const CreateTemplate = () => {
                 Add up to 3 quick reply buttons
               </p>
               <div className="flex flex-col sm:flex-row gap-2 mb-3">
-              <div className="flex flex-col sm:flex-row gap-2 mb-3">
+                <div className="flex flex-col sm:flex-row gap-2 mb-3">
+                  <input
+                    type="text"
+                    className="border border-gray-300 p-2 rounded flex-1 text-sm md:text-base"
+                    placeholder="Quick reply text"
+                    value={newQuickReply}
+                    onChange={(e) => setNewQuickReply(e.target.value)}
+                    maxLength={20}
+                  />
+                  <button
+                    className="bg-yellow-500 text-white px-3 md:px-4 py-2 rounded hover:bg-yellow-600 disabled:bg-gray-300 text-sm md:text-base sm:w-auto w-full"
+                    onClick={handleAddQuickReply}
+                    disabled={!newQuickReply.trim() || quickReplies.length >= 3}
+                  >
+                    Add
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {quickReplies.map((reply, index) => (
+                    <div
+                      key={index}
+                      className="bg-blue-100 text-blue-800 px-2 md:px-3 py-1 rounded-full flex items-center gap-1 md:gap-2 text-xs md:text-sm"
+                    >
+                      {reply.text}
+                      <button
+                        onClick={() => handleRemoveQuickReply(index)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Template Footer */}
+              <div className="mb-6 md:mb-8">
+                <h2 className="text-base md:text-lg font-semibold mb-2 text-gray-800">
+                  Template Footer (Optional)
+                </h2>
+                <p className="text-xs md:text-sm text-gray-600 mb-3">
+                  Footers are great to add any disclaimers or to add a thoughtful
+                  PS and only up to 60 characters are allowed.
+                </p>
                 <input
                   type="text"
-                  className="border border-gray-300 p-2 rounded flex-1 text-sm md:text-base"
-                  placeholder="Quick reply text"
-                  value={newQuickReply}
-                  onChange={(e) => setNewQuickReply(e.target.value)}
-                  maxLength={20}
+                  className="border border-gray-300 p-2 rounded w-full text-sm md:text-base"
+                  placeholder="Template Footer"
+                  value={templateFooter}
+                  onChange={(e) => setTemplateFooter(e.target.value)}
+                  maxLength={60}
                 />
+              </div>
+
+              {/* Buttons */}
+              <div className="flex flex-col sm:flex-row justify-end gap-3 sm:space-x-4">
                 <button
-                  className="bg-yellow-500 text-white px-3 md:px-4 py-2 rounded hover:bg-yellow-600 disabled:bg-gray-300 text-sm md:text-base sm:w-auto w-full"
-                  onClick={handleAddQuickReply}
-                  disabled={!newQuickReply.trim() || quickReplies.length >= 3}
+                  className="border border-gray-300 px-4 py-2 rounded text-gray-700 hover:bg-gray-50 text-sm md:text-base order-2 sm:order-1"
+                  disabled
                 >
-                  Add
+                  Save as draft
+                </button>
+                <button
+                  className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 disabled:bg-gray-400 text-sm md:text-base order-1 sm:order-2"
+                  onClick={handleSubmit}
+                  disabled={
+                    isSubmitting || (formData.type === "MEDIA" && !mediaId)
+                  }
+                >
+                  {isSubmitting ? "Submitting..." : "Submit Template"}
                 </button>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {quickReplies.map((reply, index) => (
-                  <div
-                    key={index}
-                    className="bg-blue-100 text-blue-800 px-2 md:px-3 py-1 rounded-full flex items-center gap-1 md:gap-2 text-xs md:text-sm"
-                  >
-                    {reply.text}
-                    <button
-                      onClick={() => handleRemoveQuickReply(index)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Template Footer */}
-            <div className="mb-6 md:mb-8">
-              <h2 className="text-base md:text-lg font-semibold mb-2 text-gray-800">
-                Template Footer (Optional)
-              </h2>
-              <p className="text-xs md:text-sm text-gray-600 mb-3">
-                Footers are great to add any disclaimers or to add a thoughtful
-                PS and only up to 60 characters are allowed.
-              </p>
-              <input
-                type="text"
-                className="border border-gray-300 p-2 rounded w-full text-sm md:text-base"
-                placeholder="Template Footer"
-                value={templateFooter}
-                onChange={(e) => setTemplateFooter(e.target.value)}
-                maxLength={60}
-              />
-            </div>
-
-            {/* Buttons */}
-            <div className="flex flex-col sm:flex-row justify-end gap-3 sm:space-x-4">
-              <button
-                className="border border-gray-300 px-4 py-2 rounded text-gray-700 hover:bg-gray-50 text-sm md:text-base order-2 sm:order-1"
-                disabled
-              >
-                Save as draft
-              </button>
-              <button
-                className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 disabled:bg-gray-400 text-sm md:text-base order-1 sm:order-2"
-                onClick={handleSubmit}
-                disabled={
-                  isSubmitting || (formData.type === "MEDIA" && !mediaId)
-                }
-              >
-                {isSubmitting ? "Submitting..." : "Submit Template"}
-              </button>
             </div>
           </div>
 
@@ -986,7 +987,7 @@ const CreateTemplate = () => {
             </div>
           )}
         </Box>
-        
+
         {/* Right: WhatsApp Preview Section */}
         <Box flex={1} sx={{ order: isMobile ? 0 : 1 }}>
           <div className={isMobile ? "mb-4" : ""}>
