@@ -92,7 +92,7 @@ const fetchContacts = async () => {
   const handleSaveMembers = async () => {
     setLoading(true);
     try {
-      const res = await fetch(apiEndpoints.getGroups, {
+      const res = await fetch(apiEndpoints.addContact, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
