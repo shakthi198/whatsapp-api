@@ -33,7 +33,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (!token) return;
 
-    fetch(`${apiEndpoints.getProfile}`, {
+    fetch(``, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -70,7 +70,7 @@ const Dashboard = () => {
 
   // 🔹 Example: Fetch dashboard card data
   useEffect(() => {
-    fetch("YOUR_API_ENDPOINT") // Replace with actual API
+    fetch(`${apiEndpoints.getProfile}`) // Replace with actual API
       .then((res) => res.json())
       .then((data) => {
         setCardData({
@@ -124,7 +124,7 @@ const Dashboard = () => {
           title: "Utility",
           value: cardData.utility,
           backgroundColor: "#b5eaeeff",
-          path: "/utility",
+          // path: "/utility",
         },
         {
           icon: <FiUsers size={50} color="#028A0F" />,
@@ -139,7 +139,7 @@ const Dashboard = () => {
           title: "Balancemessage",
           value: cardData.businessInitiated,
           backgroundColor: "#FFF3CD",
-          path: "/sessions",
+          // path: "/sessions",
         },
       ],
     }),

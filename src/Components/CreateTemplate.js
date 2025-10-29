@@ -6,7 +6,14 @@ import apiEndpoints from "../apiconfig";
 import WhatsAppPreview from "./whatsapppreview";
 import { Box, useMediaQuery, useTheme } from "@mui/material";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
-import { FaUpload, FaTimes, FaFileImage, FaFileVideo, FaFilePdf, FaFileAudio } from "react-icons/fa";
+import {
+  FaUpload,
+  FaTimes,
+  FaFileImage,
+  FaFileVideo,
+  FaFilePdf,
+  FaFileAudio,
+} from "react-icons/fa";
 
 const CreateTemplate = () => {
   const navigate = useNavigate();
@@ -33,7 +40,12 @@ const CreateTemplate = () => {
 
   // New states for template buttons and format
   const [templateButtons, setTemplateButtons] = useState([]);
-  const [newButton, setNewButton] = useState({ type: "URL", text: "", url: "", phone: "" });
+  const [newButton, setNewButton] = useState({
+    type: "URL",
+    text: "",
+    url: "",
+    phone: "",
+  });
 
   const [formData, setFormData] = useState({
     templateName: "",
@@ -108,10 +120,10 @@ const CreateTemplate = () => {
   // Reset header and media when template type changes
   useEffect(() => {
     if (formData.type === "MEDIA") {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         headerType: "text", // Reset to text header for MEDIA type
-        headerText: "" // Clear header text
+        headerText: "", // Clear header text
       }));
       setMediaFile(null);
       setMediaType("");
@@ -122,17 +134,17 @@ const CreateTemplate = () => {
   // Auto-detect media type when file is selected
   useEffect(() => {
     if (mediaFile) {
-      const fileType = mediaFile.type.split('/')[0];
-      if (fileType === 'image') {
-        setMediaType('image');
-      } else if (fileType === 'video') {
-        setMediaType('video');
-      } else if (mediaFile.type === 'application/pdf') {
-        setMediaType('document');
-      } else if (fileType === 'audio') {
-        setMediaType('audio');
+      const fileType = mediaFile.type.split("/")[0];
+      if (fileType === "image") {
+        setMediaType("image");
+      } else if (fileType === "video") {
+        setMediaType("video");
+      } else if (mediaFile.type === "application/pdf") {
+        setMediaType("document");
+      } else if (fileType === "audio") {
+        setMediaType("audio");
       } else {
-        setMediaType('document');
+        setMediaType("document");
       }
     }
   }, [mediaFile]);
@@ -195,15 +207,15 @@ const CreateTemplate = () => {
     if (templateButtons.length < 3) {
       const buttonData = {
         type: newButton.type,
-        text: newButton.text.trim()
+        text: newButton.text.trim(),
       };
-      
+
       if (newButton.type === "URL") {
         buttonData.url = newButton.url;
       } else if (newButton.type === "PHONE_NUMBER") {
         buttonData.phone = newButton.phone;
       }
-      
+
       setTemplateButtons([...templateButtons, buttonData]);
       setNewButton({ type: "URL", text: "", url: "", phone: "" });
     }
@@ -223,28 +235,28 @@ const CreateTemplate = () => {
     try {
       setIsUploadingMedia(true);
       const formData = new FormData();
-      formData.append('media_file', file);
+      formData.append("media_file", file);
 
       console.log("Uploading media file separately...", file);
-      
+
       const response = await fetch(apiEndpoints.managetemplate, {
-        method: 'POST',
+        method: "POST",
         body: formData,
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
-        throw new Error(data.message || 'Media upload failed');
+        throw new Error(data.message || "Media upload failed");
       }
 
       if (!data.media_id) {
-        throw new Error('No media ID received from server');
+        throw new Error("No media ID received from server");
       }
 
       return data.media_id;
     } catch (error) {
-      console.error('Media upload error:', error);
+      console.error("Media upload error:", error);
       throw error;
     } finally {
       setIsUploadingMedia(false);
@@ -255,24 +267,24 @@ const CreateTemplate = () => {
   const submitTemplateToServer = async (templateData) => {
     try {
       console.log("Submitting template data:", templateData);
-      
+
       const response = await fetch(apiEndpoints.managetemplate, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(templateData),
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
-        throw new Error(data.message || 'Template submission failed');
+        throw new Error(data.message || "Template submission failed");
       }
 
       return data;
     } catch (error) {
-      console.error('Template submission error:', error);
+      console.error("Template submission error:", error);
       throw error;
     }
   };
@@ -290,9 +302,9 @@ const CreateTemplate = () => {
       try {
         setMediaFile(file);
         toast.info("Uploading media file...");
-        
+
         const uploadedMediaId = await uploadMediaToServer(file);
-        
+
         setMediaId(uploadedMediaId);
         toast.success("Media uploaded successfully!");
         console.log("Media uploaded with ID:", uploadedMediaId);
@@ -302,7 +314,7 @@ const CreateTemplate = () => {
         setMediaFile(null);
         setMediaId(null);
         if (fileInputRef.current) {
-          fileInputRef.current.value = '';
+          fileInputRef.current.value = "";
         }
       }
     }
@@ -313,24 +325,29 @@ const CreateTemplate = () => {
     setMediaType("");
     setMediaId(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
   const getMediaIcon = () => {
     switch (mediaType) {
-      case 'image': return <FaFileImage className="text-green-500 text-xl" />;
-      case 'video': return <FaFileVideo className="text-red-500 text-xl" />;
-      case 'document': return <FaFilePdf className="text-red-500 text-xl" />;
-      case 'audio': return <FaFileAudio className="text-purple-500 text-xl" />;
-      default: return <FaFileImage className="text-green-500 text-xl" />;
+      case "image":
+        return <FaFileImage className="text-green-500 text-xl" />;
+      case "video":
+        return <FaFileVideo className="text-red-500 text-xl" />;
+      case "document":
+        return <FaFilePdf className="text-red-500 text-xl" />;
+      case "audio":
+        return <FaFileAudio className="text-purple-500 text-xl" />;
+      default:
+        return <FaFileImage className="text-green-500 text-xl" />;
     }
   };
 
   // Main submit handler - Only submits template data
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (isSubmitting) return;
 
     // Validate required fields
@@ -388,12 +405,12 @@ const CreateTemplate = () => {
       const result = await submitTemplateToServer(templateData);
 
       toast.success("Template created successfully!");
-      
+
       if (result.warning) {
         toast.warning(result.warning);
       }
 
-      if (result.data?.meta_status === 'FAILED') {
+      if (result.data?.meta_status === "FAILED") {
         toast.warning("Template saved locally but Meta submission failed");
       }
 
@@ -418,7 +435,7 @@ const CreateTemplate = () => {
     mediaFile: mediaFile,
     mediaType: mediaType,
     mediaUrl: mediaFile ? URL.createObjectURL(mediaFile) : null,
-    fileName: mediaFile ? mediaFile.name : '',
+    fileName: mediaFile ? mediaFile.name : "",
     templateType: formData.type, // Add template type to preview
   };
 
@@ -540,10 +557,14 @@ const CreateTemplate = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Upload Media File
-                    {mediaId && <span className="text-green-600 ml-2">✓ Uploaded</span>}
-                    {isUploadingMedia && <span className="text-yellow-600 ml-2">Uploading...</span>}
+                    {mediaId && (
+                      <span className="text-green-600 ml-2">✓ Uploaded</span>
+                    )}
+                    {isUploadingMedia && (
+                      <span className="text-yellow-600 ml-2">Uploading...</span>
+                    )}
                   </label>
-                  
+
                   {!mediaFile ? (
                     <div className="border-2 border-dashed border-gray-400 rounded-lg p-4 md:p-8 text-center hover:border-blue-500 transition-colors cursor-pointer">
                       <FaUpload className="mx-auto text-2xl md:text-3xl text-gray-400 mb-2 md:mb-3" />
@@ -666,57 +687,69 @@ const CreateTemplate = () => {
               <p className="text-xs md:text-sm text-gray-600 mb-3">
                 Add buttons for URL, Phone, or Quick Reply actions
               </p>
-              
+
               {/* Add Button Form */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-3">
                 <select
                   className="border border-gray-300 p-2 rounded text-sm md:text-base col-span-1 md:col-span-1"
                   value={newButton.type}
-                  onChange={(e) => setNewButton({...newButton, type: e.target.value})}
+                  onChange={(e) =>
+                    setNewButton({ ...newButton, type: e.target.value })
+                  }
                 >
                   <option value="URL">URL Button</option>
                   <option value="PHONE_NUMBER">Call Button</option>
                   <option value="QUICK_REPLY">Quick Reply</option>
                 </select>
-                
+
                 <input
                   type="text"
                   className="border border-gray-300 p-2 rounded text-sm md:text-base col-span-1 md:col-span-1"
                   placeholder="Button text"
                   value={newButton.text}
-                  onChange={(e) => setNewButton({...newButton, text: e.target.value})}
+                  onChange={(e) =>
+                    setNewButton({ ...newButton, text: e.target.value })
+                  }
                   maxLength={20}
                 />
-                
+
                 {newButton.type === "URL" && (
                   <input
                     type="text"
                     className="border border-gray-300 p-2 rounded text-sm md:text-base col-span-1 md:col-span-1"
                     placeholder="URL"
                     value={newButton.url}
-                    onChange={(e) => setNewButton({...newButton, url: e.target.value})}
+                    onChange={(e) =>
+                      setNewButton({ ...newButton, url: e.target.value })
+                    }
                   />
                 )}
-                
+
                 {newButton.type === "PHONE_NUMBER" && (
                   <input
                     type="text"
                     className="border border-gray-300 p-2 rounded text-sm md:text-base col-span-1 md:col-span-1"
                     placeholder="Phone number"
                     value={newButton.phone}
-                    onChange={(e) => setNewButton({...newButton, phone: e.target.value})}
+                    onChange={(e) =>
+                      setNewButton({ ...newButton, phone: e.target.value })
+                    }
                   />
                 )}
-                
+
                 <button
                   className="bg-green-500 text-white px-3 md:px-4 py-2 rounded hover:bg-green-600 disabled:bg-gray-300 text-sm md:text-base col-span-1 md:col-span-1"
                   onClick={handleAddButton}
-                  disabled={!newButton.text || (newButton.type === "URL" && !newButton.url) || (newButton.type === "PHONE_NUMBER" && !newButton.phone)}
+                  disabled={
+                    !newButton.text ||
+                    (newButton.type === "URL" && !newButton.url) ||
+                    (newButton.type === "PHONE_NUMBER" && !newButton.phone)
+                  }
                 >
                   Add Button
                 </button>
               </div>
-              
+
               {/* Display Added Buttons */}
               <div className="space-y-2">
                 {templateButtons.map((button, index) => (
@@ -746,6 +779,7 @@ const CreateTemplate = () => {
               <p className="text-xs md:text-sm text-gray-600 mb-3">
                 Add up to 3 quick reply buttons
               </p>
+              <div className="flex flex-col sm:flex-row gap-2 mb-3">
               <div className="flex flex-col sm:flex-row gap-2 mb-3">
                 <input
                   type="text"
@@ -811,7 +845,9 @@ const CreateTemplate = () => {
               <button
                 className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 disabled:bg-gray-400 text-sm md:text-base order-1 sm:order-2"
                 onClick={handleSubmit}
-                disabled={isSubmitting || (formData.type === "MEDIA" && !mediaId)}
+                disabled={
+                  isSubmitting || (formData.type === "MEDIA" && !mediaId)
+                }
               >
                 {isSubmitting ? "Submitting..." : "Submit Template"}
               </button>

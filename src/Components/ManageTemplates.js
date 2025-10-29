@@ -479,12 +479,13 @@ const ManageTemplates = () => {
             <button
               className="mb-2 w-full text-left hover:bg-gray-100 p-2 rounded text-sm md:text-base"
               onClick={() => {
-                handlePreview(modal.data);
                 closeModal();
+                setTimeout(() => handlePreview(modal.data), 50);
               }}
             >
               Preview
             </button>
+
             <button
               className="mb-2 w-full text-left hover:bg-gray-100 p-2 rounded text-sm md:text-base"
               onClick={() => {
@@ -506,12 +507,13 @@ const ManageTemplates = () => {
             <button
               className="w-full text-left hover:bg-gray-100 p-2 rounded text-sm md:text-base"
               onClick={() => {
-                handleShowCurl(modal.data);
                 closeModal();
+                setTimeout(() => handleShowCurl(modal.data), 50);
               }}
             >
               Show cURL
             </button>
+
             <button
               onClick={closeModal}
               className="mt-2 w-full text-left text-red-500 hover:text-red-700 text-sm md:text-base"

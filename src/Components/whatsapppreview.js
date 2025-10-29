@@ -30,7 +30,7 @@ const WhatsAppPreview = ({ templateData }) => {
     const fileToUse = mediaFile || { name: fileName || 'Media file', size: 0 };
 
     switch (mediaType) {
-      case 'image':
+      case "image":
         return (
           <Box mb={1}>
             <img
@@ -46,7 +46,7 @@ const WhatsAppPreview = ({ templateData }) => {
           </Box>
         );
 
-      case 'video':
+      case "video":
         return (
           <Box mb={1}>
             <video
@@ -63,7 +63,7 @@ const WhatsAppPreview = ({ templateData }) => {
           </Box>
         );
 
-      case 'document':
+      case "document":
         return (
           <Box
             mb={1}
@@ -93,7 +93,7 @@ const WhatsAppPreview = ({ templateData }) => {
           </Box>
         );
 
-      case 'audio':
+      case "audio":
         return (
           <Box
             mb={1}
