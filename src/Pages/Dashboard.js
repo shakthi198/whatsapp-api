@@ -124,7 +124,7 @@ const Dashboard = () => {
           title: "Utility",
           value: cardData.utility,
           backgroundColor: "#b5eaeeff",
-          path: "/utility",
+          // path: "/utility",
         },
         {
           icon: <FiUsers size={50} color="#028A0F" />,
@@ -139,7 +139,7 @@ const Dashboard = () => {
           title: "Balancemessage",
           value: cardData.businessInitiated,
           backgroundColor: "#FFF3CD",
-          path: "/sessions",
+          // path: "/sessions",
         },
       ],
     }),
@@ -228,7 +228,6 @@ const Dashboard = () => {
               backgroundColor: "#E3F2FD",
               cursor: "pointer",
             }}
-            onClick={() => navigate("/usage")}
           >
             <CardContent>
               <Typography variant="h6" sx={{ fontWeight: "medium", color: "#333", fontFamily: "Montserrat, sans-serif" }}>
