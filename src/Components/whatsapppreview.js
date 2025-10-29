@@ -1,6 +1,12 @@
 import React from "react";
 import { Box, Typography, Stack, Button } from "@mui/material";
-import { FaFileImage, FaFileVideo, FaFilePdf, FaFileAudio, FaFile } from "react-icons/fa";
+import {
+  FaFileImage,
+  FaFileVideo,
+  FaFilePdf,
+  FaFileAudio,
+  FaFile,
+} from "react-icons/fa";
 
 const WhatsAppPreview = ({ templateData }) => {
   const {
@@ -13,7 +19,7 @@ const WhatsAppPreview = ({ templateData }) => {
     mediaFile,
     mediaType,
     mediaUrl,
-    fileName
+    fileName,
   } = templateData;
 
   // Function to render media preview based on type
@@ -21,31 +27,31 @@ const WhatsAppPreview = ({ templateData }) => {
     if (!mediaFile) return null;
 
     switch (mediaType) {
-      case 'image':
+      case "image":
         return (
           <Box mb={1}>
             <img
               src={mediaUrl}
               alt="Preview"
               style={{
-                width: '100%',
-                maxHeight: '200px',
-                objectFit: 'contain',
-                borderRadius: '8px'
+                width: "100%",
+                maxHeight: "200px",
+                objectFit: "contain",
+                borderRadius: "8px",
               }}
             />
           </Box>
         );
 
-      case 'video':
+      case "video":
         return (
           <Box mb={1}>
             <video
               controls
               style={{
-                width: '100%',
-                maxHeight: '200px',
-                borderRadius: '8px'
+                width: "100%",
+                maxHeight: "200px",
+                borderRadius: "8px",
               }}
             >
               <source src={mediaUrl} type={mediaFile.type} />
@@ -54,7 +60,7 @@ const WhatsAppPreview = ({ templateData }) => {
           </Box>
         );
 
-      case 'document':
+      case "document":
         return (
           <Box
             mb={1}
@@ -65,7 +71,7 @@ const WhatsAppPreview = ({ templateData }) => {
             alignItems="center"
             gap={2}
           >
-            <FaFilePdf style={{ color: '#e74c3c', fontSize: '24px' }} />
+            <FaFilePdf style={{ color: "#e74c3c", fontSize: "24px" }} />
             <Box flex={1}>
               <Typography variant="body2" fontWeight="bold">
                 {fileName}
@@ -77,7 +83,7 @@ const WhatsAppPreview = ({ templateData }) => {
           </Box>
         );
 
-      case 'audio':
+      case "audio":
         return (
           <Box
             mb={1}
@@ -88,15 +94,12 @@ const WhatsAppPreview = ({ templateData }) => {
             alignItems="center"
             gap={2}
           >
-            <FaFileAudio style={{ color: '#9b59b6', fontSize: '24px' }} />
+            <FaFileAudio style={{ color: "#9b59b6", fontSize: "24px" }} />
             <Box flex={1}>
               <Typography variant="body2" fontWeight="bold">
                 {fileName}
               </Typography>
-              <audio
-                controls
-                style={{ width: '100%', marginTop: '8px' }}
-              >
+              <audio controls style={{ width: "100%", marginTop: "8px" }}>
                 <source src={mediaUrl} type={mediaFile.type} />
                 Your browser does not support the audio tag.
               </audio>
@@ -115,7 +118,7 @@ const WhatsAppPreview = ({ templateData }) => {
             alignItems="center"
             gap={2}
           >
-            <FaFile style={{ color: '#7f8c8d', fontSize: '24px' }} />
+            <FaFile style={{ color: "#7f8c8d", fontSize: "24px" }} />
             <Box flex={1}>
               <Typography variant="body2" fontWeight="bold">
                 {fileName}
@@ -148,7 +151,7 @@ const WhatsAppPreview = ({ templateData }) => {
 
       {/* Chat Header */}
       {/* <Box bgcolor="#f0f0f0" p={2} display="flex" alignItems="center" gap={2}> */}
-        {/* <Box
+      {/* <Box
           width={40}
           height={40}
           bgcolor="#25d366"
@@ -196,12 +199,7 @@ const WhatsAppPreview = ({ templateData }) => {
 
           {/* Footer */}
           {footer && (
-            <Typography
-              variant="caption"
-              display="block"
-              color="gray"
-              mt={1}
-            >
+            <Typography variant="caption" display="block" color="gray" mt={1}>
               {footer}
             </Typography>
           )}
@@ -220,10 +218,10 @@ const WhatsAppPreview = ({ templateData }) => {
                     backgroundColor: "white",
                     border: "1px solid #ddd",
                     borderRadius: "8px",
-                    fontSize: '0.75rem',
-                    '&:hover': {
-                      backgroundColor: '#f8f9fa'
-                    }
+                    fontSize: "0.75rem",
+                    "&:hover": {
+                      backgroundColor: "#f8f9fa",
+                    },
                   }}
                 >
                   {reply.text}
@@ -246,10 +244,10 @@ const WhatsAppPreview = ({ templateData }) => {
                     backgroundColor: "white",
                     border: "1px solid #ddd",
                     borderRadius: "8px",
-                    fontSize: '0.75rem',
-                    '&:hover': {
-                      backgroundColor: '#f8f9fa'
-                    }
+                    fontSize: "0.75rem",
+                    "&:hover": {
+                      backgroundColor: "#f8f9fa",
+                    },
                   }}
                 >
                   {btn}
