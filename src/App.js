@@ -9,6 +9,7 @@ import SingleMsg from "./Components/Compose Message/SingleMsg";
 import Group from "./Components/Compose Message/Group";
 import CSV from "./Components/Compose Message/CSV";
 import ManageTemplates from "./Components/ManageTemplates";
+import UseMetaTemplates from "./Components/UseMetaTemplates";
 import CreateTemplate from "./Components/CreateTemplate";
 import QRCodeGenerator from "./Components/Setttings/QRCodeGenerator";
 import Broadcastlogo from "./Components/Reports/Broadcastlogo";
@@ -80,6 +81,7 @@ function MainContent({ darkMode, setDarkMode }) {
                     <Route path="/profile" element={<ProtectedRoute><ProfilePage></ProfilePage></ProtectedRoute>} />
                     <Route path="/dashboard" element={<ProtectedRoute><Dashboard darkMode={darkMode} /></ProtectedRoute>} />
                     <Route path="/templates" element={<ProtectedRoute><ManageTemplates /></ProtectedRoute>} />
+                    <Route path="/use-templates" element={<ProtectedRoute><UseMetaTemplates/></ProtectedRoute>} />
                     <Route path="/compose" element={<ProtectedRoute><SingleMsg /></ProtectedRoute>} />
                     <Route path="/group" element={<ProtectedRoute><Group /></ProtectedRoute>} />
                     <Route path="/csv" element={<ProtectedRoute><CSV /></ProtectedRoute>} />

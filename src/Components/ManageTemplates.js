@@ -86,10 +86,24 @@ const ManageTemplates = () => {
   useEffect(() => {
     if (location.state?.template) {
       const newTemplate = location.state.template;
-      setTemplates((prev) => [newTemplate, ...prev]);
+      // ensure normalized field names match list schema
+      const normalized = {
+        id: newTemplate.id ?? newTemplate.meta_template_id ?? Date.now(),
+        templateName: newTemplate.templateName ?? newTemplate.name ?? "",
+        category: newTemplate.category ?? newTemplate.template_category ?? "",
+        templateBody: newTemplate.templateBody ?? newTemplate.body ?? "",
+        templateFooter: newTemplate.templateFooter ?? "",
+        meta_status: newTemplate.meta_status ?? "PENDING",
+        createdOn: newTemplate.createdOn ?? new Date().toISOString(),
+        attributes: newTemplate.attributes ?? [],
+        type: newTemplate.type ?? "Promotional",
+      };
+      setTemplates((prev) => [normalized, ...prev]);
+      // clear the state so we don't keep re-adding
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state, navigate, location.pathname]);
+
 
   const handleSyncWithMeta = () => {
     setSyncing(true);
@@ -612,7 +626,14 @@ const ManageTemplates = () => {
                   </p>
                 </div>
               </div>
-              <div className="bg-gray-100 border-2 border-dashed border-green-500 p-4 md:p-6 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors">
+              <div
+                className="bg-gray-100 border-2 border-dashed border-green-500 p-6 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors"
+                onClick={() => {
+                  // navigate to the dedicated page that lists meta templates available to use
+                  closeModal();
+                  navigate("/use-templates");
+                }}
+              >
                 <div className="flex flex-col items-center text-center">
                   <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-100 rounded-full flex items-center justify-center mb-2 md:mb-3">
                     <svg
@@ -639,8 +660,8 @@ const ManageTemplates = () => {
                   <h4 className="text-base md:text-lg font-semibold text-gray-700">
                     Use a template
                   </h4>
-                  <p className="text-xs md:text-sm text-gray-600 mt-1">
-                    Use one of our pre-defined templates and edit them
+                  <p className="text-sm text-gray-600 mt-1">
+                    Use one of our pre-defined meta templates and edit them
                   </p>
                 </div>
               </div>
@@ -648,6 +669,7 @@ const ManageTemplates = () => {
           </div>
         </div>
       )}
+
 
       {/* cURL Modal */}
       {curlModal.open && (
