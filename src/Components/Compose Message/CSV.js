@@ -86,7 +86,7 @@ export default function SingleMsg() {
 
   return (
     <div
-      className="max-w-7xl mx-auto p-4 md:p-6"
+      className="width-full"
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
       {/* Header Section */}
@@ -319,10 +319,14 @@ export default function SingleMsg() {
 
       {/* Message Template Popup */}
       {isPopupOpen && (
-        <MessagePopup
-          onClose={() => setIsPopupOpen(false)}
-          onSelectTemplate={handleSelectTemplate}
-        />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-auto">
+          <div className="w-full flex justify-center items-start mt-10 md:items-center">
+            <MessagePopup
+              onClose={() => setIsPopupOpen(false)}
+              onSelectTemplate={handleSelectTemplate}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

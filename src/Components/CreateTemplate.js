@@ -4,13 +4,28 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import apiEndpoints from "../apiconfig";
 import WhatsAppPreview from "./whatsapppreview";
-import { Box, Typography, Button, Stack } from "@mui/material";
+import { Box, useMediaQuery, useTheme } from "@mui/material";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
+import {
+  FaUpload,
+  FaTimes,
+  FaFileImage,
+  FaFileVideo,
+  FaFilePdf,
+  FaFileAudio,
+} from "react-icons/fa";
 
 const CreateTemplate = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const textareaRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  // MUI theme for responsive design
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
+
   const [templateBody, setTemplateBody] = useState("");
   const [templateFooter, setTemplateFooter] = useState("");
   const [showPopup, setShowPopup] = useState(false);
@@ -20,10 +35,21 @@ const CreateTemplate = () => {
   const [newAttribute, setNewAttribute] = useState({ name: "", value: "" });
   const [quickReplies, setQuickReplies] = useState([]);
   const [newQuickReply, setNewQuickReply] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+
+  // New states for template buttons and format
+  const [templateButtons, setTemplateButtons] = useState([]);
+  const [newButton, setNewButton] = useState({
+    type: "URL",
+    text: "",
+    url: "",
+    phone: "",
+  });
 
   const [formData, setFormData] = useState({
     templateName: "",
-    categoryName: "", // Changed from categoryGuid to categoryName
+    categoryName: "",
     languageGuid: "",
     type: "",
     erpCategory: "",
@@ -31,7 +57,14 @@ const CreateTemplate = () => {
     createdOn: new Date().toLocaleString(),
     headerType: "text",
     headerText: "",
+    templateCategory: "UTILITY",
   });
+
+  // Media state
+  const [mediaFile, setMediaFile] = useState(null);
+  const [mediaType, setMediaType] = useState("");
+  const [mediaId, setMediaId] = useState(null);
+
   const [categories, setCategories] = useState([]);
   const [languages, setLanguages] = useState([]);
 
@@ -84,80 +117,37 @@ const CreateTemplate = () => {
     fetchLanguages();
   }, []);
 
-  // Populate form when editing
+  // Reset header and media when template type changes
   useEffect(() => {
-    if (location.state?.template) {
-      const { template } = location.state;
-
-      // If template has template_json, use that
-      if (template.template_json) {
-        const templateJson = template.template_json;
-
-        // Extract components from JSON
-        templateJson.components.forEach(component => {
-          switch (component.type) {
-            case 'BODY':
-              setTemplateBody(component.text || '');
-              break;
-            case 'FOOTER':
-              setTemplateFooter(component.text || '');
-              break;
-            case 'HEADER':
-              if (component.format === 'TEXT') {
-                setFormData(prev => ({
-                  ...prev,
-                  headerText: component.text || '',
-                  headerType: 'text'
-                }));
-              }
-              break;
-            case 'BUTTONS':
-              if (component.buttons) {
-                const replies = component.buttons
-                  .filter(btn => btn.type === 'QUICK_REPLY')
-                  .map(btn => ({ text: btn.text }));
-                setQuickReplies(replies);
-              }
-              break;
-          }
-        });
-
-        setFormData(prev => ({
-          ...prev,
-          templateName: templateJson.name || template.template_name,
-          type: templateJson.category === 'TRANSACTIONAL' ? 'TEXT' : 'MEDIA'
-        }));
-      } else {
-        // Fallback to legacy fields - UPDATED for categoryName
-        setFormData({
-          templateName: template.template_name,
-          categoryName: template.categoryName || "", // Use categoryName instead of categoryGuid
-          languageGuid: template.languageGuid,
-          type: template.template_type === 1 ? 'TEXT' : 'MEDIA',
-          erpCategory: template.erpCategoryGuid,
-          status: "Approved",
-          createdOn: template.createdOn,
-          headerType: "text",
-          headerText: "",
-        });
-        setTemplateBody(template.body);
-        setTemplateFooter(template.template_footer);
-      }
-
-      // Parse attributes
-      let attrs = [];
-      try {
-        attrs =
-          typeof template.attributes === "string"
-            ? JSON.parse(template.attributes)
-            : template.attributes;
-      } catch (err) {
-        console.error("Failed to parse attributes:", err);
-        attrs = [];
-      }
-      setAttributes(Array.isArray(attrs) ? attrs : []);
+    if (formData.type === "MEDIA") {
+      setFormData((prev) => ({
+        ...prev,
+        headerType: "text", // Reset to text header for MEDIA type
+        headerText: "", // Clear header text
+      }));
+      setMediaFile(null);
+      setMediaType("");
+      setMediaId(null);
     }
-  }, [location.state]);
+  }, [formData.type]);
+
+  // Auto-detect media type when file is selected
+  useEffect(() => {
+    if (mediaFile) {
+      const fileType = mediaFile.type.split("/")[0];
+      if (fileType === "image") {
+        setMediaType("image");
+      } else if (fileType === "video") {
+        setMediaType("video");
+      } else if (mediaFile.type === "application/pdf") {
+        setMediaType("document");
+      } else if (fileType === "audio") {
+        setMediaType("audio");
+      } else {
+        setMediaType("document");
+      }
+    }
+  }, [mediaFile]);
 
   const handleAddAttribute = () => {
     setNewAttribute({ name: "", value: "" });
@@ -212,73 +202,72 @@ const CreateTemplate = () => {
     setQuickReplies(quickReplies.filter((_, i) => i !== index));
   };
 
+  // New button handlers
+  const handleAddButton = () => {
+    if (templateButtons.length < 3) {
+      const buttonData = {
+        type: newButton.type,
+        text: newButton.text.trim(),
+      };
+
+      if (newButton.type === "URL") {
+        buttonData.url = newButton.url;
+      } else if (newButton.type === "PHONE_NUMBER") {
+        buttonData.phone = newButton.phone;
+      }
+
+      setTemplateButtons([...templateButtons, buttonData]);
+      setNewButton({ type: "URL", text: "", url: "", phone: "" });
+    }
+  };
+
+  const handleRemoveButton = (index) => {
+    setTemplateButtons(templateButtons.filter((_, i) => i !== index));
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // Validate required fields
-    const requiredFields = [
-      "templateName",
-      "categoryName", // Updated field name
-      "languageGuid",
-      "type",
-    ];
-    const missing = requiredFields.filter((field) => !formData[field]);
-    if (missing.length) {
-      toast.error(`Please fill: ${missing.join(", ")}`);
-      return;
-    }
-
-    // Prepare data - NO HEADERS since not in target format
-    const templateData = {
-      name: formData.templateName,
-      categoryName: formData.categoryName, // Send category name instead of GUID
-      languageGuid: formData.languageGuid,
-      typeId: formData.type === "TEXT" ? 1 : 2,
-      isFile: formData.type === "MEDIA" ? 1 : 0,
-      body: templateBody,
-      templateFooter: templateFooter,
-      templateHeaders: JSON.stringify({}), // Empty headers
-      erpCategoryGuid: formData.erpCategory || null,
-      isVariable: attributes.length > 0 ? 1 : 0,
-      bodyStyle: "",
-      actionId: null,
-      actionGuid: null,
-      fileGuids: JSON.stringify([]),
-      status: formData.status,
-      attributes: JSON.stringify(attributes),
-      quickReplies: JSON.stringify(quickReplies),
-    };
-
-    console.log("Submitting data to backend:", templateData);
-    console.log("This will be sent to Meta as:", {
-      name: templateData.name.toLowerCase().replace(/[^a-zA-Z0-9_]/g, '_') + '_' + Date.now(),
-      category: "UTILITY", // Always UTILITY as per requirement
-      language: "en",
-      components: [
-        {
-          type: "BODY",
-          text: templateData.body // With variables transformed to {{1}}, {{2}}
-        },
-        ...(templateData.templateFooter ? [{
-          type: "FOOTER",
-          text: templateData.templateFooter
-        }] : []),
-        ...(quickReplies.length > 0 ? [{
-          type: "BUTTONS",
-          buttons: quickReplies.map(reply => ({
-            type: "QUICK_REPLY",
-            text: reply.text
-          }))
-        }] : [])
-      ]
-    });
-
+  // SEPARATE MEDIA UPLOAD FUNCTION
+  const uploadMediaToServer = async (file) => {
     try {
+      setIsUploadingMedia(true);
+      const formData = new FormData();
+      formData.append("media_file", file);
+
+      console.log("Uploading media file separately...", file);
+
+      const response = await fetch(apiEndpoints.managetemplate, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Media upload failed");
+      }
+
+      if (!data.media_id) {
+        throw new Error("No media ID received from server");
+      }
+
+      return data.media_id;
+    } catch (error) {
+      console.error("Media upload error:", error);
+      throw error;
+    } finally {
+      setIsUploadingMedia(false);
+    }
+  };
+
+  // SEPARATE TEMPLATE SUBMISSION FUNCTION
+  const submitTemplateToServer = async (templateData) => {
+    try {
+      console.log("Submitting template data:", templateData);
+
       const response = await fetch(apiEndpoints.managetemplate, {
         method: "POST",
         headers: {
@@ -290,51 +279,189 @@ const CreateTemplate = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to save template");
+        throw new Error(data.message || "Template submission failed");
       }
 
-      toast.success("Template saved successfully!");
-      navigate("/templates");
+      return data;
     } catch (error) {
-      console.error("Submission error:", error);
-      toast.error(
-        error.message ||
-        "Failed to save template. Please check console for details."
-      );
+      console.error("Template submission error:", error);
+      throw error;
     }
   };
 
+  // Media handling - Auto-upload when file is selected
+  const handleMediaUpload = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file size (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("File size must be less than 10MB");
+        return;
+      }
+
+      try {
+        setMediaFile(file);
+        toast.info("Uploading media file...");
+
+        const uploadedMediaId = await uploadMediaToServer(file);
+
+        setMediaId(uploadedMediaId);
+        toast.success("Media uploaded successfully!");
+        console.log("Media uploaded with ID:", uploadedMediaId);
+      } catch (error) {
+        console.error("Media upload failed:", error);
+        toast.error("Media upload failed: " + error.message);
+        setMediaFile(null);
+        setMediaId(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      }
+    }
+  };
+
+  const removeMediaFile = () => {
+    setMediaFile(null);
+    setMediaType("");
+    setMediaId(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const getMediaIcon = () => {
+    switch (mediaType) {
+      case "image":
+        return <FaFileImage className="text-green-500 text-xl" />;
+      case "video":
+        return <FaFileVideo className="text-red-500 text-xl" />;
+      case "document":
+        return <FaFilePdf className="text-red-500 text-xl" />;
+      case "audio":
+        return <FaFileAudio className="text-purple-500 text-xl" />;
+      default:
+        return <FaFileImage className="text-green-500 text-xl" />;
+    }
+  };
+
+  // Main submit handler - Only submits template data
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (isSubmitting) return;
+
+    // Validate required fields
+    const requiredFields = [
+      "templateName",
+      "categoryName",
+      "languageGuid",
+      "type",
+    ];
+    const missing = requiredFields.filter((field) => !formData[field]);
+    if (missing.length) {
+      toast.error(`Please fill: ${missing.join(", ")}`);
+      return;
+    }
+
+    // Validate media for MEDIA type
+    if (formData.type === "MEDIA" && !mediaId) {
+      toast.error("Please upload a media file first");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Prepare template data
+      const templateData = {
+        name: formData.templateName,
+        categoryName: formData.categoryName,
+        languageGuid: formData.languageGuid,
+        typeId: formData.type === "TEXT" ? 1 : 2, // 1 for TEXT, 2 for MEDIA
+        isFile: formData.type === "MEDIA" ? 1 : 0,
+        body: templateBody,
+        templateFooter: templateFooter,
+        templateHeaders: JSON.stringify({
+          headerType: formData.headerType,
+          headerText: formData.headerText,
+        }),
+        erpCategoryGuid: formData.erpCategory || null,
+        isVariable: attributes.length > 0 ? 1 : 0,
+        bodyStyle: "",
+        actionId: null,
+        actionGuid: null,
+        fileGuids: JSON.stringify([]),
+        status: formData.status,
+        attributes: JSON.stringify(attributes),
+        quickReplies: JSON.stringify(quickReplies),
+        templateButtons: JSON.stringify(templateButtons),
+        templateCategory: formData.templateCategory,
+        media_id: mediaId, // Include the uploaded media ID
+      };
+
+      console.log("Submitting template with data:", templateData);
+
+      // Submit template data (SEPARATE API CALL - JSON format)
+      const result = await submitTemplateToServer(templateData);
+
+      toast.success("Template created successfully!");
+
+      if (result.warning) {
+        toast.warning(result.warning);
+      }
+
+      if (result.data?.meta_status === "FAILED") {
+        toast.warning("Template saved locally but Meta submission failed");
+      }
+
+      console.log("Template creation result:", result);
+      navigate("/templates");
+    } catch (error) {
+      console.error("Template submission error:", error);
+      toast.error(error.message || "Failed to create template");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Update preview data
   const previewData = {
     headerType: formData.headerType,
     headerText: formData.headerText,
     body: templateBody,
     footer: templateFooter,
     quickReplies: quickReplies,
+    templateButtons: templateButtons,
+    mediaFile: mediaFile,
+    mediaType: mediaType,
+    mediaUrl: mediaFile ? URL.createObjectURL(mediaFile) : null,
+    fileName: mediaFile ? mediaFile.name : "",
+    templateType: formData.type, // Add template type to preview
   };
 
   return (
     <div
-      className="min-h-screen bg-gray-50 p-6"
+      className="min-h-screen bg-gray-50 p-4 md:p-6"
       style={{ fontFamily: "Montserrat" }}
     >
-      <Box display="flex" gap={2}>
+      <Box display="flex" flexDirection={isMobile ? "column" : "row"} gap={isMobile ? 3 : 2}>
         {/* Left: Form Section */}
-        <Box sx={{ flex: 1 }}>
-          <div className="bg-white shadow-md rounded-lg p-6 w-full">
-            <h1 className="text-2xl font-bold mb-6 text-gray-800">
+        <Box sx={{ flex: 1, order: isMobile ? 1 : 0 }}>
+          <div className="bg-white shadow-md rounded-lg p-4 md:p-6 w-full">
+            <h1 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 text-gray-800">
               Create New Template
             </h1>
 
             {/* Top Section - Basic Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
               {/* Template Name */}
-              <div>
+              <div className="col-span-1 md:col-span-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Template Name
                 </label>
                 <input
                   type="text"
-                  className="border border-gray-300 p-2 rounded w-full"
+                  className="border border-gray-300 p-2 rounded w-full text-sm md:text-base"
                   name="templateName"
                   placeholder="Template Name"
                   value={formData.templateName}
@@ -347,13 +474,13 @@ const CreateTemplate = () => {
                 )}
               </div>
 
-              {/* Category Select - Updated to use categoryName */}
-              <div>
+              {/* Category Select */}
+              <div className="col-span-1 md:col-span-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Category
                 </label>
                 <select
-                  className="border border-gray-300 p-2 rounded w-full"
+                  className="border border-gray-300 p-2 rounded w-full text-sm md:text-base"
                   name="categoryName"
                   value={formData.categoryName}
                   onChange={handleChange}
@@ -368,12 +495,12 @@ const CreateTemplate = () => {
               </div>
 
               {/* Language Select */}
-              <div>
+              <div className="col-span-1 md:col-span-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Language
                 </label>
                 <select
-                  className="border border-gray-300 p-2 rounded w-full"
+                  className="border border-gray-300 p-2 rounded w-full text-sm md:text-base"
                   name="languageGuid"
                   value={formData.languageGuid}
                   onChange={handleChange}
@@ -388,12 +515,12 @@ const CreateTemplate = () => {
               </div>
 
               {/* Template Type */}
-              <div>
+              <div className="col-span-1 md:col-span-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Template Type
                 </label>
                 <select
-                  className="border border-gray-300 p-2 rounded w-full"
+                  className="border border-gray-300 p-2 rounded w-full text-sm md:text-base"
                   name="type"
                   value={formData.type}
                   onChange={handleChange}
@@ -403,106 +530,239 @@ const CreateTemplate = () => {
                   <option value="MEDIA">Media</option>
                 </select>
               </div>
-            </div>
 
-            {/* Header Section */}
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold mb-2 text-gray-800">Header</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Header Type
-                  </label>
-                  <select
-                    className="border border-gray-300 p-2 rounded w-full"
-                    name="headerType"
-                    value={formData.headerType}
-                    onChange={handleChange}
-                  >
-                    <option value="text">Text</option>
-                    <option value="image">Image</option>
-                    <option value="document">Document</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Header Text
-                  </label>
-                  <input
-                    type="text"
-                    className="border border-gray-300 p-2 rounded w-full"
-                    name="headerText"
-                    placeholder="Header Text"
-                    value={formData.headerText}
-                    onChange={handleChange}
-                  />
-                </div>
+              {/* Template Category (for Meta) */}
+              <div className="col-span-1 md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Template Category
+                </label>
+                <select
+                  className="border border-gray-300 p-2 rounded w-full text-sm md:text-base"
+                  name="templateCategory"
+                  value={formData.templateCategory}
+                  onChange={handleChange}
+                >
+                  <option value="UTILITY">Utility</option>
+                  <option value="AUTHENTICATION">Authentication</option>
+                  <option value="MARKETING">Marketing</option>
+                </select>
               </div>
             </div>
 
+            {/* Media Section - Show only for MEDIA type */}
+            {formData.type === "MEDIA" && (
+              <div className="mb-6 md:mb-8 p-3 md:p-4 border-2 border-dashed border-gray-300 rounded-lg bg-blue-50">
+                <h2 className="text-base md:text-lg font-semibold mb-3 md:mb-4 text-gray-800">Media Upload *</h2>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Upload Media File
+                    {mediaId && (
+                      <span className="text-green-600 ml-2">✓ Uploaded</span>
+                    )}
+                    {isUploadingMedia && (
+                      <span className="text-yellow-600 ml-2">Uploading...</span>
+                    )}
+                  </label>
+
+                  {!mediaFile ? (
+                    <div className="border-2 border-dashed border-gray-400 rounded-lg p-4 md:p-8 text-center hover:border-blue-500 transition-colors cursor-pointer">
+                      <FaUpload className="mx-auto text-2xl md:text-3xl text-gray-400 mb-2 md:mb-3" />
+                      <p className="text-gray-600 mb-2 text-sm md:text-base">Click to upload or drag and drop</p>
+                      <p className="text-xs md:text-sm text-gray-500">
+                        Supported formats: Images, Videos, Documents, Audio (Max 10MB)
+                      </p>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        onChange={handleMediaUpload}
+                        accept="image/*,video/*,.pdf,.doc,.docx,.txt,audio/*"
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        disabled={isUploadingMedia}
+                      />
+                    </div>
+                  ) : (
+                    <div className="border border-gray-300 rounded-lg p-3 md:p-4 bg-white">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2 md:space-x-3">
+                          {getMediaIcon()}
+                          <div>
+                            <p className="font-medium text-gray-800 text-sm md:text-base">{mediaFile.name}</p>
+                            <p className="text-xs md:text-sm text-gray-500">
+                              {(mediaFile.size / (1024 * 1024)).toFixed(2)} MB • {mediaType}
+                            </p>
+                            {mediaId && (
+                              <p className="text-xs text-green-600 font-mono">
+                                Media ID: {mediaId}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={removeMediaFile}
+                          className="p-1 md:p-2 hover:bg-gray-100 rounded-full text-gray-500 hover:text-red-500"
+                          disabled={isUploadingMedia}
+                        >
+                          <FaTimes className="text-lg" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Header Section - Show only for TEXT type */}
+            {formData.type === "TEXT" && (
+              <div className="mb-6 md:mb-8">
+                <h2 className="text-base md:text-lg font-semibold mb-2 text-gray-800">Header</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Header Type
+                    </label>
+                    <select
+                      className="border border-gray-300 p-2 rounded w-full text-sm md:text-base"
+                      name="headerType"
+                      value={formData.headerType}
+                      onChange={handleChange}
+                    >
+                      <option value="text">Text</option>
+                      <option value="image">Image</option>
+                      <option value="document">Document</option>
+                      <option value="video">Video</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Header Text
+                    </label>
+                    <input
+                      type="text"
+                      className="border border-gray-300 p-2 rounded w-full text-sm md:text-base"
+                      name="headerText"
+                      placeholder="Header Text"
+                      value={formData.headerText}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Body Section */}
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold mb-2 text-gray-800">Body</h2>
-              <p className="text-sm text-gray-600 mb-3">
+            <div className="mb-6 md:mb-8">
+              <h2 className="text-base md:text-lg font-semibold mb-2 text-gray-800">Body</h2>
+              <p className="text-xs md:text-sm text-gray-600 mb-3">
                 Make your messages personal using variables like and get more replies!
               </p>
 
               <button
-                className="border border-yellow-500 text-yellow-500 px-4 py-2 rounded mb-3 hover:bg-yellow-50"
+                className="border border-yellow-500 text-yellow-500 px-3 md:px-4 py-2 rounded mb-3 hover:bg-yellow-50 text-sm md:text-base"
                 onClick={() => setShowPopup(true)}
               >
                 Add Variable
               </button>
 
-              <div className="border border-gray-300 rounded-md p-4">
+              <div className="border border-gray-300 rounded-md p-3 md:p-4">
                 <textarea
                   ref={textareaRef}
                   placeholder="Template Body"
-                  className="w-full h-40 border-none outline-none resize-none"
+                  className="w-full h-32 md:h-40 border-none outline-none resize-none text-sm md:text-base"
                   value={templateBody}
                   onChange={(e) => setTemplateBody(e.target.value)}
                 />
               </div>
-              <p className="text-right text-sm text-gray-500 mt-1">
+              <p className="text-right text-xs md:text-sm text-gray-500 mt-1">
                 {templateBody.length}/1024 characters
               </p>
             </div>
 
-            {/* Quick Replies Section */}
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold mb-2 text-gray-800">
-                Quick Replies (Optional)
+            {/* Template Buttons Section */}
+            <div className="mb-6 md:mb-8">
+              <h2 className="text-base md:text-lg font-semibold mb-2 text-gray-800">
+                Template Buttons (Optional)
               </h2>
-              <p className="text-sm text-gray-600 mb-3">
-                Add up to 3 quick reply buttons
+              <p className="text-xs md:text-sm text-gray-600 mb-3">
+                Add buttons for URL, Phone, or Quick Reply actions
               </p>
-              <div className="flex gap-2 mb-3">
+
+              {/* Add Button Form */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-3">
+                <select
+                  className="border border-gray-300 p-2 rounded text-sm md:text-base col-span-1 md:col-span-1"
+                  value={newButton.type}
+                  onChange={(e) =>
+                    setNewButton({ ...newButton, type: e.target.value })
+                  }
+                >
+                  <option value="URL">URL Button</option>
+                  <option value="PHONE_NUMBER">Call Button</option>
+                  <option value="QUICK_REPLY">Quick Reply</option>
+                </select>
+
                 <input
                   type="text"
-                  className="border border-gray-300 p-2 rounded flex-1"
-                  placeholder="Quick reply text"
-                  value={newQuickReply}
-                  onChange={(e) => setNewQuickReply(e.target.value)}
+                  className="border border-gray-300 p-2 rounded text-sm md:text-base col-span-1 md:col-span-1"
+                  placeholder="Button text"
+                  value={newButton.text}
+                  onChange={(e) =>
+                    setNewButton({ ...newButton, text: e.target.value })
+                  }
                   maxLength={20}
                 />
+
+                {newButton.type === "URL" && (
+                  <input
+                    type="text"
+                    className="border border-gray-300 p-2 rounded text-sm md:text-base col-span-1 md:col-span-1"
+                    placeholder="URL"
+                    value={newButton.url}
+                    onChange={(e) =>
+                      setNewButton({ ...newButton, url: e.target.value })
+                    }
+                  />
+                )}
+
+                {newButton.type === "PHONE_NUMBER" && (
+                  <input
+                    type="text"
+                    className="border border-gray-300 p-2 rounded text-sm md:text-base col-span-1 md:col-span-1"
+                    placeholder="Phone number"
+                    value={newButton.phone}
+                    onChange={(e) =>
+                      setNewButton({ ...newButton, phone: e.target.value })
+                    }
+                  />
+                )}
+
                 <button
-                  className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 disabled:bg-gray-300"
-                  onClick={handleAddQuickReply}
-                  disabled={!newQuickReply.trim() || quickReplies.length >= 3}
+                  className="bg-green-500 text-white px-3 md:px-4 py-2 rounded hover:bg-green-600 disabled:bg-gray-300 text-sm md:text-base col-span-1 md:col-span-1"
+                  onClick={handleAddButton}
+                  disabled={
+                    !newButton.text ||
+                    (newButton.type === "URL" && !newButton.url) ||
+                    (newButton.type === "PHONE_NUMBER" && !newButton.phone)
+                  }
                 >
-                  Add
+                  Add Button
                 </button>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {quickReplies.map((reply, index) => (
-                  <div
-                    key={index}
-                    className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full flex items-center gap-2"
-                  >
-                    {reply.text}
+
+              {/* Display Added Buttons */}
+              <div className="space-y-2">
+                {templateButtons.map((button, index) => (
+                  <div key={index} className="flex items-center justify-between bg-gray-100 p-2 md:p-3 rounded">
+                    <div className="overflow-hidden">
+                      <span className="font-medium text-xs md:text-sm">{button.type}: </span>
+                      <span className="text-xs md:text-sm">{button.text}</span>
+                      {button.url && <span className="text-blue-600 ml-1 md:ml-2 text-xs md:text-sm">→ {button.url}</span>}
+                      {button.phone && <span className="text-green-600 ml-1 md:ml-2 text-xs md:text-sm">📞 {button.phone}</span>}
+                    </div>
                     <button
-                      onClick={() => handleRemoveQuickReply(index)}
-                      className="text-red-500 hover:text-red-700"
+                      onClick={() => handleRemoveButton(index)}
+                      className="text-red-500 hover:text-red-700 flex-shrink-0 ml-2"
                     >
                       ×
                     </button>
@@ -511,76 +771,125 @@ const CreateTemplate = () => {
               </div>
             </div>
 
-            {/* Template Footer */}
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold mb-2 text-gray-800">
-                Template Footer (Optional)
+            {/* Quick Replies Section */}
+            <div className="mb-6 md:mb-8">
+              <h2 className="text-base md:text-lg font-semibold mb-2 text-gray-800">
+                Quick Replies (Optional)
               </h2>
-              <p className="text-sm text-gray-600 mb-3">
-                Footers are great to add any disclaimers or to add a thoughtful
-                PS and only up to 60 characters are allowed.
+              <p className="text-xs md:text-sm text-gray-600 mb-3">
+                Add up to 3 quick reply buttons
               </p>
-              <input
-                type="text"
-                className="border border-gray-300 p-2 rounded w-full"
-                placeholder="Template Footer"
-                value={templateFooter}
-                onChange={(e) => setTemplateFooter(e.target.value)}
-                maxLength={60}
-              />
-            </div>
+              <div className="flex flex-col sm:flex-row gap-2 mb-3">
+                <div className="flex flex-col sm:flex-row gap-2 mb-3">
+                  <input
+                    type="text"
+                    className="border border-gray-300 p-2 rounded flex-1 text-sm md:text-base"
+                    placeholder="Quick reply text"
+                    value={newQuickReply}
+                    onChange={(e) => setNewQuickReply(e.target.value)}
+                    maxLength={20}
+                  />
+                  <button
+                    className="bg-yellow-500 text-white px-3 md:px-4 py-2 rounded hover:bg-yellow-600 disabled:bg-gray-300 text-sm md:text-base sm:w-auto w-full"
+                    onClick={handleAddQuickReply}
+                    disabled={!newQuickReply.trim() || quickReplies.length >= 3}
+                  >
+                    Add
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {quickReplies.map((reply, index) => (
+                    <div
+                      key={index}
+                      className="bg-blue-100 text-blue-800 px-2 md:px-3 py-1 rounded-full flex items-center gap-1 md:gap-2 text-xs md:text-sm"
+                    >
+                      {reply.text}
+                      <button
+                        onClick={() => handleRemoveQuickReply(index)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-            {/* Buttons */}
-            <div className="flex justify-end space-x-4">
-              <button
-                className="border border-gray-300 px-4 py-2 rounded text-gray-700 hover:bg-gray-50"
-                disabled
-              >
-                Save as draft
-              </button>
-              <button
-                className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
-                onClick={handleSubmit}
-              >
-                Submit Template
-              </button>
+              {/* Template Footer */}
+              <div className="mb-6 md:mb-8">
+                <h2 className="text-base md:text-lg font-semibold mb-2 text-gray-800">
+                  Template Footer (Optional)
+                </h2>
+                <p className="text-xs md:text-sm text-gray-600 mb-3">
+                  Footers are great to add any disclaimers or to add a thoughtful
+                  PS and only up to 60 characters are allowed.
+                </p>
+                <input
+                  type="text"
+                  className="border border-gray-300 p-2 rounded w-full text-sm md:text-base"
+                  placeholder="Template Footer"
+                  value={templateFooter}
+                  onChange={(e) => setTemplateFooter(e.target.value)}
+                  maxLength={60}
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="flex flex-col sm:flex-row justify-end gap-3 sm:space-x-4">
+                <button
+                  className="border border-gray-300 px-4 py-2 rounded text-gray-700 hover:bg-gray-50 text-sm md:text-base order-2 sm:order-1"
+                  disabled
+                >
+                  Save as draft
+                </button>
+                <button
+                  className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 disabled:bg-gray-400 text-sm md:text-base order-1 sm:order-2"
+                  onClick={handleSubmit}
+                  disabled={
+                    isSubmitting || (formData.type === "MEDIA" && !mediaId)
+                  }
+                >
+                  {isSubmitting ? "Submitting..." : "Submit Template"}
+                </button>
+              </div>
             </div>
           </div>
 
+          {/* Responsive Popups */}
           {showPopup && (
-            <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center transition-opacity duration-300 p-4">
-              <div className="bg-white p-6 rounded-lg shadow-lg w-1/2">
+            <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center transition-opacity duration-300 p-4 z-50">
+              <div className="bg-white p-4 md:p-6 rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                 <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-semibold">Select Attribute</h2>
+                  <h2 className="text-base md:text-lg font-semibold">Select Attribute</h2>
                   <button
                     onClick={() => setShowPopup(false)}
-                    className="text-m font-bold"
+                    className="text-lg md:text-xl font-bold"
                   >
                     X
                   </button>
                 </div>
-                <div className="mt-4 flex items-center gap-2">
+                <div className="mt-4 flex flex-col sm:flex-row items-center gap-2">
                   <input
                     type="text"
                     placeholder="🔍 Search attributes..."
-                    className="w-89 border p-2 rounded"
+                    className="w-full sm:w-64 border p-2 rounded text-sm md:text-base"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                   <button
-                    className="bg-[#D2B887] text-white py-2 px-4 rounded flex ml-20"
+                    className="bg-[#D2B887] text-white py-2 px-3 md:px-4 rounded flex text-sm md:text-base w-full sm:w-auto justify-center mt-2 sm:mt-0 sm:ml-4"
                     onClick={handleAddAttribute}
                   >
                     + Add Attribute
                   </button>
                 </div>
-                {/* ✅ Global Variables Section */}
-                <h3 className="font-semibold mt-4">Global Variables</h3>
+                {/* Global Variables Section */}
+                <h3 className="font-semibold mt-4 text-sm md:text-base">Global Variables</h3>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {GLOBAL_ATTRIBUTES.map((attr, index) => (
                     <div
                       key={`global-${index}`}
-                      className="flex items-center bg-blue-500 text-white px-4 py-2 rounded-full border border-blue-400 cursor-pointer"
+                      className="flex items-center bg-blue-500 text-white px-3 py-1 md:px-4 md:py-2 rounded-full border border-blue-400 cursor-pointer text-xs md:text-sm"
                       onClick={() => insertPlaceholderValue(attr.value)}
                     >
                       {attr.name}: {attr.value}
@@ -588,13 +897,13 @@ const CreateTemplate = () => {
                   ))}
                 </div>
 
-                {/* ✅ Template Variables Section */}
-                <h3 className="font-semibold mt-4">Template Variables</h3>
+                {/* Template Variables Section */}
+                <h3 className="font-semibold mt-4 text-sm md:text-base">Template Variables</h3>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {attributes.map((attr, index) => (
                     <div
                       key={`local-${index}`}
-                      className="flex items-center bg-green-500 text-white px-4 py-2 rounded-full border border-green-400 cursor-pointer"
+                      className="flex items-center bg-green-500 text-white px-3 py-1 md:px-4 md:py-2 rounded-full border border-green-400 cursor-pointer text-xs md:text-sm"
                       onClick={() => insertPlaceholderValue(attr.value)}
                     >
                       {attr.name}: {attr.value}
@@ -603,7 +912,7 @@ const CreateTemplate = () => {
                           e.stopPropagation();
                           handleDelete(index);
                         }}
-                        className="ml-2 bg-white text-red-500 p-1 rounded-full"
+                        className="ml-1 md:ml-2 bg-white text-red-500 p-0.5 md:p-1 rounded-full text-xs"
                       >
                         🗑
                       </button>
@@ -611,15 +920,15 @@ const CreateTemplate = () => {
                   ))}
                 </div>
 
-                <div className="flex mt-4 items-center gap-2">
-                  <button className="p-2 rounded-md text-gray-600 hover:bg-gray-300">
-                    <HiChevronLeft className="text-2xl" />
+                <div className="flex mt-4 items-center gap-2 justify-center">
+                  <button className="p-1 md:p-2 rounded-md text-gray-600 hover:bg-gray-300">
+                    <HiChevronLeft className="text-xl md:text-2xl" />
                   </button>
-                  <button className="border border-yellow-600 px-4 py-2 rounded-md text-black font-medium">
+                  <button className="border border-yellow-600 px-3 md:px-4 py-1 md:py-2 rounded-md text-black font-medium text-sm md:text-base">
                     1
                   </button>
-                  <button className="p-2 rounded-md text-gray-600 hover:bg-gray-300">
-                    <HiChevronRight className="text-2xl" />
+                  <button className="p-1 md:p-2 rounded-md text-gray-600 hover:bg-gray-300">
+                    <HiChevronRight className="text-xl md:text-2xl" />
                   </button>
                 </div>
               </div>
@@ -627,18 +936,18 @@ const CreateTemplate = () => {
           )}
 
           {showAddAttributePopup && (
-            <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center p-4">
-              <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
+            <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center p-4 z-50">
+              <div className="bg-white p-4 md:p-6 rounded-lg shadow-lg w-full max-w-md">
                 <div className="flex justify-between items-center border-b pb-2">
-                  <h2 className="text-lg font-semibold">Add User Attribute</h2>
-                  <button onClick={handleCloseAddPopup}>&times;</button>
+                  <h2 className="text-base md:text-lg font-semibold">Add User Attribute</h2>
+                  <button onClick={handleCloseAddPopup} className="text-lg md:text-xl">&times;</button>
                 </div>
                 <div className="mt-4">
                   <label className="block text-sm font-medium">Name</label>
                   <input
                     type="text"
                     placeholder="Enter Attribute Name"
-                    className="w-full border p-2 rounded mt-1"
+                    className="w-full border p-2 rounded mt-1 text-sm md:text-base"
                     value={newAttribute.name}
                     onChange={(e) =>
                       setNewAttribute({ ...newAttribute, name: e.target.value })
@@ -650,7 +959,7 @@ const CreateTemplate = () => {
                   <input
                     type="text"
                     placeholder="Enter Attribute Value"
-                    className="w-full border p-2 rounded mt-1"
+                    className="w-full border p-2 rounded mt-1 text-sm md:text-base"
                     value={newAttribute.value}
                     onChange={(e) =>
                       setNewAttribute({
@@ -662,13 +971,13 @@ const CreateTemplate = () => {
                 </div>
                 <div className="mt-6 flex justify-end gap-2">
                   <button
-                    className="border px-4 py-2 rounded"
+                    className="border px-3 md:px-4 py-2 rounded text-sm md:text-base"
                     onClick={handleCloseAddPopup}
                   >
                     Cancel
                   </button>
                   <button
-                    className="bg-[#D2B887] text-white px-4 py-2 rounded"
+                    className="bg-[#D2B887] text-white px-3 md:px-4 py-2 rounded text-sm md:text-base"
                     onClick={handleSaveAttribute}
                   >
                     OK
@@ -678,8 +987,12 @@ const CreateTemplate = () => {
             </div>
           )}
         </Box>
-        <Box flex={1}>
-          <WhatsAppPreview templateData={previewData} />
+
+        {/* Right: WhatsApp Preview Section */}
+        <Box flex={1} sx={{ order: isMobile ? 0 : 1 }}>
+          <div className={isMobile ? "mb-4" : ""}>
+            <WhatsAppPreview templateData={previewData} />
+          </div>
         </Box>
       </Box>
     </div>
