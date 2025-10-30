@@ -1,60 +1,65 @@
 <?php
-/*************************************************
- * meta_templates.php
- * Fetches ONLY Meta-provided WhatsApp message templates 
- * (excludes all custom templates created by the user)
- * Returns JSON grouped by normalized categories
- *************************************************/
+// ----------------- CORS Handling -----------------
+$allowed_origins = [
+    "http://localhost:3000",     // Local React
+    "https://yourfrontend.com"   // Production domain
+];
 
-ini_set('display_errors', '0');
-error_reporting(E_ALL);
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
-// CORS (change for production)
-$allowed_origin = "http://localhost:3000";
-header("Access-Control-Allow-Origin: $allowed_origin");
+if (in_array($origin, $allowed_origins)) {
+    header("Access-Control-Allow-Origin: $origin");
+    header("Access-Control-Allow-Credentials: true");
+} else {
+    // Fallback for testing without credentials
+    header("Access-Control-Allow-Origin: *");
+}
+
 header("Access-Control-Allow-Methods: GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
-header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json; charset=utf-8");
 
+// Handle preflight request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit;
 }
 
-// ----------------- Include config -----------------
-$configPath = __DIR__ . '/config.php';
-if (!file_exists($configPath)) {
-    http_response_code(500);
-    echo json_encode(["status"=>"error","message"=>"Missing config.php with META_WABA_ID and META_ACCESS_TOKEN."], JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE);
+// ----------------- Database Config -----------------
+require_once "config.php";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+if ($conn->connect_error) {
+    echo json_encode(["status" => false, "message" => "DB connection failed"]);
     exit;
 }
+// ----------------- Fetch Config from Database -----------------
+$query = "SELECT * FROM api_settings ORDER BY id DESC LIMIT 1"; // Assuming latest row is active
+$result = $conn->query($query);
 
-// prevent accidental output
-ob_start();
-require_once $configPath;
-$buf = ob_get_clean();
-if ($buf !== '') {
+if (!$result || $result->num_rows === 0) {
     http_response_code(500);
     echo json_encode([
-        "status"=>"error",
-        "message"=>"config.php produced unexpected output. Remove echo/print or BOM.",
-        "debug_preview" => substr($buf, 0, 500)
-    ], JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE);
+        "status" => "error",
+        "message" => "No configuration found in database table 'meta_config'."
+    ]);
     exit;
 }
 
-// ----------------- Read config safely -----------------
-$WABA_ID = defined('META_WABA_ID') ? constant('META_WABA_ID') : getenv('META_WABA_ID');
-$ACCESS_TOKEN = defined('META_ACCESS_TOKEN') ? constant('META_ACCESS_TOKEN') : getenv('META_ACCESS_TOKEN');
-$GRAPH_VERSION = defined('META_GRAPH_VERSION') ? constant('META_GRAPH_VERSION') : (getenv('META_GRAPH_VERSION') ?: 'v17.0');
+$config = $result->fetch_assoc();
+$conn->close();
+
+// Extract Meta credentials
+$WABA_ID = $config['waba_id'] ?? '';
+$ACCESS_TOKEN = $config['access_token'] ?? '';
+$GRAPH_VERSION = 'v20.0'; // You can make this dynamic if needed
 
 if (empty($WABA_ID) || empty($ACCESS_TOKEN)) {
     http_response_code(500);
     echo json_encode([
         "status" => "error",
-        "message" => "Server not configured. Please set META_WABA_ID and META_ACCESS_TOKEN in config.php or env."
-    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        "message" => "Missing Meta credentials in database (waba_id or access_token)."
+    ]);
     exit;
 }
 
@@ -110,52 +115,24 @@ function fetch_all_meta_templates(string $waba, string $token, string $graphVers
 // ----------------- Identify and EXCLUDE user-created templates -----------------
 function is_user_created_template(array $template): bool {
     $name = strtolower($template['name'] ?? '');
-    
-    // User-created templates typically DON'T have these patterns
     $metaPatterns = [
         'sample_', 'example_', 'meta_', 'whatsapp_', 'default_',
         'utility_', 'auth_', 'authentication_', 'marketing_',
         'transaction_', 'shipping_', 'appointment_', 'issue_',
         'reservation_', 'ticket_', 'payment_', 'order_'
     ];
-    
-    // If it matches Meta patterns, it's NOT user-created
     foreach ($metaPatterns as $pattern) {
         if (strpos($name, $pattern) === 0) {
-            return false; // This is a Meta template
+            return false; // Meta template
         }
     }
-    
-    // User-created templates often have custom names without these patterns
-    // They might be in your business language, brand names, etc.
-    
-    // Additional checks for user-created templates:
-    
-    // 1. Check if name contains your business name or custom terms
-    $customTerms = ['my_', 'custom_', 'brand_', 'company_']; // Add your business terms here
-    
-    // 2. Templates without Meta patterns are likely user-created
-    $hasNoMetaPatterns = true;
-    foreach ($metaPatterns as $pattern) {
-        if (strpos($name, $pattern) !== false) {
-            $hasNoMetaPatterns = false;
-            break;
-        }
-    }
-    
-    // 3. If it doesn't have Meta patterns and looks custom, it's user-created
-    if ($hasNoMetaPatterns) {
-        return true;
-    }
-    
-    return false;
+    return true;
 }
 
-// ----------------- Helpers -----------------
 function normalize_category(string $cat): string {
     $map = [
         'UTILITY' => 'utility',
-        'AUTHENTICATION' => 'authentication', 
+        'AUTHENTICATION' => 'authentication',
         'MARKETING' => 'marketing',
         'TRANSACTIONAL' => 'transactional',
         'OTP' => 'authentication',
@@ -185,7 +162,7 @@ if ($result['error']) {
         "status" => "error",
         "message" => $result['message'],
         "detail" => $result['detail'] ?? null
-    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    ]);
     exit;
 }
 
@@ -193,7 +170,6 @@ $allTemplates = $result['data'] ?? [];
 $metaTemplates = [];
 $userTemplates = [];
 
-// Separate Meta templates from user-created templates
 foreach ($allTemplates as $template) {
     if (is_user_created_template($template)) {
         $userTemplates[] = $template;
@@ -202,14 +178,12 @@ foreach ($allTemplates as $template) {
     }
 }
 
-// If we still have too many, use a stricter approach
-if (count($metaTemplates) > 20) { // If we have more than 20 "meta" templates, be stricter
+if (count($metaTemplates) > 20) {
     $strictMetaTemplates = [];
     $knownMetaNames = [
         'sample_', 'example_', 'utility_', 'authentication_', 'marketing_',
         'shipping_', 'appointment_', 'issue_', 'reservation_', 'payment_'
     ];
-    
     foreach ($metaTemplates as $template) {
         $name = strtolower($template['name'] ?? '');
         foreach ($knownMetaNames as $pattern) {
@@ -222,7 +196,6 @@ if (count($metaTemplates) > 20) { // If we have more than 20 "meta" templates, b
     $metaTemplates = $strictMetaTemplates;
 }
 
-// Group by category
 $byCategory = [];
 foreach ($metaTemplates as $t) {
     $cat = normalize_category($t['category'] ?? 'unknown');
@@ -239,7 +212,7 @@ foreach ($metaTemplates as $t) {
         'body' => $components['body'],
         'footer' => $components['footer'],
         'buttons' => $components['buttons'],
-        'template_type' => 'meta_provided' // Clear indication
+        'template_type' => 'meta_provided'
     ];
     $byCategory[$cat][] = $item;
 }
@@ -251,7 +224,7 @@ $response = [
         "user_created_templates_excluded" => count($userTemplates),
         "meta_provided_templates_included" => count($metaTemplates)
     ],
-    "note" => "This endpoint returns ONLY official Meta-provided templates. All custom templates created by you have been excluded.",
+    "note" => "Fetched credentials from database and returned ONLY official Meta-provided templates.",
     "available_categories" => array_keys($byCategory),
     "byCategory" => $byCategory
 ];
