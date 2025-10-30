@@ -83,15 +83,14 @@ const UserApiReport = () => {
       "Recipient Number": item.recipient_id,
       Status: (
         <span
-          className={`px-2 py-1 text-white font-semibold rounded ${
-            item.status === "delivered"
-              ? "bg-green-500"
-              : item.status === "read"
+          className={`px-2 py-1 text-white font-semibold rounded ${item.status === "delivered"
+            ? "bg-green-500"
+            : item.status === "read"
               ? "bg-blue-500"
               : item.status === "sent"
-              ? "bg-yellow-500"
-              : "bg-red-500"
-          }`}
+                ? "bg-yellow-500"
+                : "bg-red-500"
+            }`}
         >
           {item.status}
         </span>
@@ -102,7 +101,7 @@ const UserApiReport = () => {
 
   return (
     <div
-      className="p-6 bg-gray-100 xl:w-full lg:w-2xl md:w-md"
+      className="w-full py-6"
       style={{ fontFamily: "Montserrat" }}
     >
       {/* Header*/}
@@ -119,34 +118,8 @@ const UserApiReport = () => {
           <span className="whitespace-nowrap">Reports</span>
         </div>
       </div>
-      {/* <Card
-        sx={{
-          mb: 4,
-          boxShadow: 4,
-          borderRadius: 3,
-        }}
-      >
-        <CardContent>
-          <Typography
-            variant="h5"
-            fontWeight="bold"
-            style={{ fontFamily: "Montserrat" }}
-          >
-            {userInfo?.companyName || "User"} — WhatsApp API Report
-          </Typography>
-          <Typography
-            variant="subtitle1"
-            sx={{ opacity: 0.9 }}
-            style={{ fontFamily: "Montserrat" }}
-          >
-            Registered Number: <b>{phone || "-"}</b>
-          </Typography>
-        </CardContent>
-      </Card>  */}
 
-      {/* Summary + Usage Cards */}
-      {/* SUMMARY CARDS */}
-      {/* SUMMARY CARDS */}
+      {/* Summary Cards */}
       <Grid container spacing={2} mb={4}>
         {[
           {
@@ -185,7 +158,8 @@ const UserApiReport = () => {
           else value = data.filter((d) => d.status === key).length;
 
           return (
-           <Grid item xs={12} sm={4} md={4} lg={2.4} key={key}>
+            <Grid item sx={{ width: { xs: "100%", sm: "50%", md: "50%", lg: "20%", xl: "20%" } }}
+              key={key} >
 
               <Card
                 sx={{
@@ -220,58 +194,56 @@ const UserApiReport = () => {
         })}
       </Grid>
 
-      {/* Usage Card
-      <Card sx={{ mb: 4, borderRadius: 3, boxShadow: 3 }}>
-        <CardContent>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-            Usage Overview
-          </Typography>
-          <LinearProgress
-            variant="determinate"
-            value={usagePercentage}
-            sx={{
-              height: 10,
-              borderRadius: 5,
-              backgroundColor: "#e2e8f0",
-              "& .MuiLinearProgress-bar": { backgroundColor: "#3b82f6" },
-            }}
-          />
-          <Typography align="center" sx={{ mt: 1.5, color: "#555" }}>
-            {usage.used} / {usage.total} Messages Used (
-            {usagePercentage.toFixed(1)}%)
-          </Typography>
-        </CardContent>
-      </Card> */}
+      {/* Chart and Table Cards Container */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
+        {/* Chart Card */}
+        <Card sx={{ 
+          borderRadius: 3, 
+          boxShadow: 3, 
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column"
+        }}>
+          <CardContent sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
+            <Typography
+              variant="h6"
+              sx={{ fontWeight: 600, mb: 2 }}
+              style={{ fontFamily: "Montserrat" }}
+            >
+              Message Delivery Trends
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Box sx={{ flex: 1 }}>
+              <Apilogoschartui data={chartData} tableData={modifiedData} />
+            </Box>
+          </CardContent>
+        </Card>
 
-      {/* Chart */}
-      <Card sx={{ borderRadius: 3, boxShadow: 3, mb: 4 }}>
-        <CardContent>
-          <Typography
-            variant="h6"
-            sx={{ fontWeight: 600, mb: 2 }}
-            style={{ fontFamily: "Montserrat" }}
-          >
-            Message Delivery Trends
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
-          <Apilogoschartui data={chartData} tableData={modifiedData} />
-        </CardContent>
-      </Card>
-
-      {/* Logs Table */}
-      <Card sx={{ borderRadius: 3, boxShadow: 3 }}>
-        <CardContent>
-          <Typography
-            variant="h6"
-            sx={{ fontWeight: 600, mb: 2 }}
-            style={{ fontFamily: "Montserrat" }}
-          >
-            Detailed Message Logs
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
-          <ReusableTable columns={columns} data={modifiedData} />
-        </CardContent>
-      </Card>
+        {/* Logs Table Card */}
+        <Card sx={{ 
+          borderRadius: 3, 
+          boxShadow: 3, 
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column"
+        }}>
+          <CardContent sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
+            <Typography
+              variant="h6"
+              sx={{ fontWeight: 600, mb: 2 }}
+              style={{ fontFamily: "Montserrat" }}
+            >
+              Detailed Message Logs
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Box sx={{ flex: 1, overflow: "auto" }}>
+              <ReusableTable columns={columns} data={modifiedData} />
+            </Box>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

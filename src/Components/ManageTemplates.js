@@ -217,7 +217,7 @@ const ManageTemplates = () => {
 
   if (isLoading) {
     return (
-      <div className="p-6 bg-gray-100" style={{ fontFamily: "Montserrat" }}>
+      <div className="p-4 md:p-6 bg-gray-100 min-h-screen" style={{ fontFamily: "Montserrat" }}>
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-600"></div>
         </div>
@@ -227,7 +227,7 @@ const ManageTemplates = () => {
 
   if (error) {
     return (
-      <div className="p-6 bg-gray-100" style={{ fontFamily: "Montserrat" }}>
+      <div className="p-4 md:p-6 bg-gray-100 min-h-screen" style={{ fontFamily: "Montserrat" }}>
         <div className="bg-white p-4 rounded-lg shadow-md border border-red-300">
           <div className="text-red-500 font-medium">{error}</div>
           <button
@@ -242,251 +242,242 @@ const ManageTemplates = () => {
   }
 
   return (
-    <div
-      className="width-full"
-      style={{ fontFamily: "Montserrat" }}
-    >
+    <div className="width-full h-full" style={{ fontFamily: "Montserrat" }}>
       {/* Header */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center mb-4 gap-2">
-        <h2 className="text-3xl font-semibold text-gray-700 whitespace-wrap">
-          Manage Template
-        </h2>
-        <div className="flex items-center flex-nowrap text-yellow-600 text-md gap-1">
-          <div className="flex items-center text-lg text-gray-600 flex-wrap gap-1">
-            <span className="hidden md:inline">|</span>
+        <div className="flex flex-col lg:flex-row items-start lg:items-center mb-4 gap-2">
+          <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 whitespace-wrap">
+            Manage Template
+          </h2>
+          <div className="flex items-center flex-nowrap text-yellow-600 text-sm md:text-md gap-1">
+            <div className="flex items-center text-sm md:text-lg text-gray-600 flex-wrap gap-1">
+              <span className="hidden md:inline">|</span>
+            </div>
+            <span className="whitespace-nowrap">Home</span>
+            <HiChevronRight className="mx-1 text-black text-sm md:text-md" />
+            <span className="whitespace-nowrap">Manage Template</span>
           </div>
-          <span className="whitespace-nowrap">Home</span>
-          <HiChevronRight className="mx-1 text-black text-md" />
-          <span className="whitespace-nowrap">Manage Template</span>
         </div>
-      </div>
 
-      {/* Table and Filters */}
-      <div className="bg-white p-4 shadow rounded-lg border border-gray-300">
-        <div className="flex justify-between items-center pb-4 flex-wrap gap-2">
-          <div className="flex gap-2 flex-wrap">
-            <input
-              type="text"
-              placeholder="Search Template"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="border border-gray-300 px-3 py-2 rounded-md"
-            />
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="border text-gray-500 border-gray-300 px-3 py-2 rounded-md"
-            >
-              <option value="">Select Category</option>
-              {categories.map((category, index) => (
-                <option key={index} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-            <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="border text-gray-500 border-gray-300 px-3 py-2 rounded-md"
-            >
-              <option value="">Select Type</option>
-              {types.map((type, index) => (
-                <option key={index} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-            {/* <button className="text-white px-4 py-2 rounded-md bg-yellow-600">
-              📺 Watch Tutorial
-            </button> */}
+        {/* Table and Filters */}
+        <div className="bg-white p-3 shadow rounded-lg border border-gray-300">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center pb-4 gap-3">
+            <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
+              <input
+                type="text"
+                placeholder="Search Template"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="border border-gray-300 px-3 py-2 rounded-md text-sm md:text-base w-full sm:w-auto"
+              />
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="border text-gray-500 border-gray-300 px-3 py-2 rounded-md text-sm md:text-base w-full sm:w-auto"
+              >
+                <option value="">Select Category</option>
+                {categories.map((category, index) => (
+                  <option key={index} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                className="border text-gray-500 border-gray-300 px-3 py-2 rounded-md text-sm md:text-base w-full sm:w-auto"
+              >
+                <option value="">Select Type</option>
+                {types.map((type, index) => (
+                  <option key={index} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={handleCreateTemplate}
+                className="text-white px-4 py-2 rounded-md bg-yellow-600 text-sm md:text-base w-full sm:w-auto"
+              >
+                + Create New Template
+              </button>
+            </div>
             <button
-              onClick={handleCreateTemplate}
-              className="text-white px-4 py-2 rounded-md bg-yellow-600"
+              onClick={handleSyncWithMeta}
+              disabled={syncing}
+              className="flex items-center gap-2 text-white px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-sm md:text-base w-full lg:w-auto justify-center"
             >
-              + Create New Template
+              <FontAwesomeIcon 
+                icon={faSync} 
+                className={syncing ? "animate-spin" : ""} 
+              />
+              {syncing ? "Syncing..." : "Sync Meta Status"}
             </button>
           </div>
-          <button
-            onClick={handleSyncWithMeta}
-            disabled={syncing}
-            className="flex items-center gap-2 text-white px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
-          >
-            <FontAwesomeIcon 
-              icon={faSync} 
-              className={syncing ? "animate-spin" : ""} 
-            />
-            {syncing ? "Syncing..." : "Sync Meta Status"}
-          </button>
-        </div>
 
-        {/* Table */}
-        <div className="w-full max-w-full overflow-x-auto mt-4">
-          <table className="min-w-[700px] w-full border-collapse border border-gray-300">
-            <thead>
-              <tr className="bg-gray-200 text-left">
-                <th className="p-3 text-gray-600 font-medium whitespace-nowrap">
-                  S.No.
-                </th>
-                <th className="p-3 text-gray-600 font-medium whitespace-nowrap">
-                  Template Name
-                </th>
-                <th className="p-3 text-gray-600 font-medium whitespace-nowrap">
-                  Category
-                </th>
-                <th className="p-3 text-gray-600 font-medium whitespace-nowrap">
-                  Meta Status
-                </th>
-                <th className="p-3 text-gray-600 font-medium whitespace-nowrap">
-                  Type
-                </th>
-                <th className="p-3 text-gray-600 font-medium whitespace-nowrap">
-                  Created On
-                </th>
-                <th className="p-3 text-gray-600 font-medium whitespace-nowrap">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentTemplates.length > 0 ? (
-                currentTemplates.map((template, index) => (
-                  <tr
-                    key={template.id}
-                    className="border border-gray-300 hover:bg-gray-50 text-sm md:text-base"
-                  >
-                    <td className="p-3">{indexOfFirstTemplate + index + 1}</td>
-                    <td className="p-3">{template.templateName}</td>
-                    <td className="p-3">{template.category}</td>
-                    <td className="p-3">
-                      <span
-                        className={`px-2 py-1 rounded text-xs md:text-sm ${
-                          template.meta_status === 'APPROVED'
-                            ? 'bg-green-500 text-white'
-                            : template.meta_status === 'REJECTED'
-                            ? 'bg-red-500 text-white'
-                            : template.meta_status === 'IN_REVIEW'
-                            ? 'bg-yellow-500 text-white'
-                            : template.meta_status === 'PENDING'
-                            ? 'bg-gray-500 text-white'
-                            : 'bg-blue-500 text-white'
-                        }`}
-                      >
-                        {template.meta_status || 'PENDING'}
-                      </span>
-                    </td>
-                    <td className="p-3">{template.type}</td>
-                    <td className="p-3">
-                      {new Date(template.createdOn).toLocaleString()}
-                    </td>
-                    <td className="p-3">
-                      {/* Desktop: show buttons only on large screens */}
-                      <div className="hidden lg:flex space-x-2">
-                        <button
-                          className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
-                          onClick={() => handlePreview(template)}
-                          title="Preview"
+          <div className="w-full overflow-x-auto mt-4">
+            <table className="w-full border-collapse border border-gray-300 text-sm md:text-base">
+              <thead>
+                <tr className="bg-gray-200 text-left">
+                  <th className="p-2 md:p-3 text-gray-600 font-medium whitespace-nowrap">
+                    S.No.
+                  </th>
+                  <th className="p-2 md:p-3 text-gray-600 font-medium whitespace-nowrap">
+                    Template Name
+                  </th>
+                  <th className="p-2 md:p-3 text-gray-600 font-medium whitespace-nowrap">
+                    Category
+                  </th>
+                  <th className="p-2 md:p-3 text-gray-600 font-medium whitespace-nowrap">
+                    Meta Status
+                  </th>
+                  <th className="p-2 md:p-3 text-gray-600 font-medium whitespace-nowrap">
+                    Type
+                  </th>
+                  <th className="p-2 md:p-3 text-gray-600 font-medium whitespace-nowrap">
+                    Created On
+                  </th>
+                  <th className="p-2 md:p-3 text-gray-600 font-medium whitespace-nowrap">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentTemplates.length > 0 ? (
+                  currentTemplates.map((template, index) => (
+                    <tr
+                      key={template.id}
+                      className="border border-gray-300 hover:bg-gray-50 text-xs md:text-sm"
+                    >
+                      <td className="p-2 md:p-3">{indexOfFirstTemplate + index + 1}</td>
+                      <td className="p-2 md:p-3 font-medium">{template.templateName}</td>
+                      <td className="p-2 md:p-3">{template.category}</td>
+                      <td className="p-2 md:p-3">
+                        <span
+                          className={`px-2 py-1 rounded text-xs ${
+                            template.meta_status === 'APPROVED'
+                              ? 'bg-green-500 text-white'
+                              : template.meta_status === 'REJECTED'
+                              ? 'bg-red-500 text-white'
+                              : template.meta_status === 'IN_REVIEW'
+                              ? 'bg-yellow-500 text-white'
+                              : template.meta_status === 'PENDING'
+                              ? 'bg-gray-500 text-white'
+                              : 'bg-blue-500 text-white'
+                          }`}
                         >
-                          <FontAwesomeIcon
-                            icon={faEye}
-                            className="text-yellow-600"
-                          />
-                        </button>
-                        <button
-                          className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
-                          onClick={() => handleCopy(template)}
-                          title="Copy"
-                        >
-                          <FontAwesomeIcon
-                            icon={faCopy}
-                            className="text-yellow-600"
-                          />
-                        </button>
-                        <button
-                          className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
-                          onClick={() => handleDelete(template.id)}
-                          title="Delete"
-                        >
-                          <FontAwesomeIcon
-                            icon={faTrash}
-                            className="text-yellow-600"
-                          />
-                        </button>
-                        <button
-                          className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
-                          onClick={() => handleShowCurl(template)}
-                          title="Show cURL"
-                        >
-                          <FontAwesomeIcon
-                            icon={faAngleLeft}
-                            className="text-yellow-600"
-                          />
-                          <FontAwesomeIcon
-                            icon={faAngleRight}
-                            className="text-yellow-600 ml-1"
-                          />
-                        </button>
-                      </div>
+                          {template.meta_status || 'PENDING'}
+                        </span>
+                      </td>
+                      <td className="p-2 md:p-3">{template.type}</td>
+                      <td className="p-2 md:p-3 whitespace-nowrap">
+                        {new Date(template.createdOn).toLocaleString()}
+                      </td>
+                      <td className="p-2 md:p-3">
+                        <div className="hidden lg:flex space-x-1">
+                          <button
+                            className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
+                            onClick={() => handlePreview(template)}
+                            title="Preview"
+                          >
+                            <FontAwesomeIcon
+                              icon={faEye}
+                              className="text-yellow-600 text-sm"
+                            />
+                          </button>
+                          <button
+                            className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
+                            onClick={() => handleCopy(template)}
+                            title="Copy"
+                          >
+                            <FontAwesomeIcon
+                              icon={faCopy}
+                              className="text-yellow-600 text-sm"
+                            />
+                          </button>
+                          <button
+                            className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
+                            onClick={() => handleDelete(template.id)}
+                            title="Delete"
+                          >
+                            <FontAwesomeIcon
+                              icon={faTrash}
+                              className="text-yellow-600 text-sm"
+                            />
+                          </button>
+                          <button
+                            className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
+                            onClick={() => handleShowCurl(template)}
+                            title="Show cURL"
+                          >
+                            <FontAwesomeIcon
+                              icon={faAngleLeft}
+                              className="text-yellow-600 text-sm"
+                            />
+                            <FontAwesomeIcon
+                              icon={faAngleRight}
+                              className="text-yellow-600 text-sm ml-1"
+                            />
+                          </button>
+                        </div>
 
-                      {/* Mobile/Tablet: three dots dropdown */}
-                      <div className="relative lg:hidden">
-                        <button
-                          className="p-2 border border-gray-300 rounded hover:bg-gray-100"
-                          onClick={() =>
-                            setModal({ type: "actions", data: template })
-                          }
-                        >
-                          &#x22EE;
-                        </button>
-                      </div>
+                        <div className="lg:hidden">
+                          <button
+                            className="p-1 border border-gray-300 rounded hover:bg-gray-100 text-lg"
+                            onClick={() =>
+                              setModal({ type: "actions", data: template })
+                            }
+                          >
+                            &#x22EE;
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="p-4 text-center text-gray-500">
+                      No templates found
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7" className="p-4 text-center text-gray-500">
-                    No templates found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                )}
+              </tbody>
+            </table>
+          </div>
 
-        {/* Pagination */}
-        <div className="flex justify-between items-center mt-4">
-          <div className="text-sm text-gray-500">
-            Showing {indexOfFirstTemplate + 1} to{" "}
-            {Math.min(indexOfLastTemplate, filteredTemplates.length)} of{" "}
-            {filteredTemplates.length} entries
+          {/* Pagination */}
+          <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-3">
+            <div className="text-xs md:text-sm text-gray-500">
+              Showing {indexOfFirstTemplate + 1} to{" "}
+              {Math.min(indexOfLastTemplate, filteredTemplates.length)} of{" "}
+              {filteredTemplates.length} entries
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+                className="p-1 md:p-2 rounded-md text-gray-600 hover:bg-gray-300 disabled:opacity-50"
+              >
+                <HiChevronLeft className="text-xl md:text-2xl" />
+              </button>
+              <button className="border border-yellow-600 px-3 md:px-4 py-1 md:py-2 rounded-md text-black font-medium text-sm md:text-base">
+                {currentPage}
+              </button>
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages || totalPages === 0}
+                className="p-1 md:p-2 rounded-md text-gray-600 hover:bg-gray-300 disabled:opacity-50"
+              >
+                <HiChevronRight className="text-xl md:text-2xl" />
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handlePrevPage}
-              disabled={currentPage === 1}
-              className="p-2 rounded-md text-gray-600 hover:bg-gray-300 disabled:opacity-50"
-            >
-              <HiChevronLeft className="text-2xl" />
-            </button>
-            <button className="border border-yellow-600 px-4 py-2 rounded-md text-black font-medium">
-              {currentPage}
-            </button>
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages || totalPages === 0}
-              className="p-2 rounded-md text-gray-600 hover:bg-gray-300 disabled:opacity-50"
-            >
-              <HiChevronRight className="text-2xl" />
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* Actions Modal */}
       {modal.type === "actions" && modal.data && (
-        <div className="fixed inset-0 bg-[rgba(0,0,0,0.3)] flex justify-center items-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-4 w-64 border border-gray-300">
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.3)] flex justify-center items-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg p-4 w-full max-w-xs border border-gray-300">
             <button
-              className="mb-2 w-full text-left hover:bg-gray-100 p-2 rounded"
+              className="mb-2 w-full text-left hover:bg-gray-100 p-2 rounded text-sm md:text-base"
               onClick={() => {
                 closeModal();
                 setTimeout(() => handlePreview(modal.data), 50);
@@ -496,7 +487,7 @@ const ManageTemplates = () => {
             </button>
 
             <button
-              className="mb-2 w-full text-left hover:bg-gray-100 p-2 rounded"
+              className="mb-2 w-full text-left hover:bg-gray-100 p-2 rounded text-sm md:text-base"
               onClick={() => {
                 handleCopy(modal.data);
                 closeModal();
@@ -505,7 +496,7 @@ const ManageTemplates = () => {
               Duplicate
             </button>
             <button
-              className="mb-2 w-full text-left hover:bg-gray-100 p-2 rounded"
+              className="mb-2 w-full text-left hover:bg-gray-100 p-2 rounded text-sm md:text-base"
               onClick={() => {
                 handleDelete(modal.data.id);
                 closeModal();
@@ -514,7 +505,7 @@ const ManageTemplates = () => {
               Delete
             </button>
             <button
-              className="w-full text-left hover:bg-gray-100 p-2 rounded"
+              className="w-full text-left hover:bg-gray-100 p-2 rounded text-sm md:text-base"
               onClick={() => {
                 closeModal();
                 setTimeout(() => handleShowCurl(modal.data), 50);
@@ -525,7 +516,7 @@ const ManageTemplates = () => {
 
             <button
               onClick={closeModal}
-              className="mt-2 w-full text-left text-red-500 hover:text-red-700"
+              className="mt-2 w-full text-left text-red-500 hover:text-red-700 text-sm md:text-base"
             >
               Cancel
             </button>
@@ -536,32 +527,32 @@ const ManageTemplates = () => {
       {/* Preview Modal */}
       {modal.type === "preview" && (
         <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center p-4 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl border border-gray-300 relative">
+          <div className="bg-white p-4 md:p-6 rounded-lg shadow-lg w-full max-w-2xl border border-gray-300 relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={closeModal}
               className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl"
             >
               &times;
             </button>
-            <h2 className="text-xl font-semibold mb-4">
+            <h2 className="text-lg md:text-xl font-semibold mb-4">
               {modal.data?.templateName || "Template Preview"}
             </h2>
-            <div className="border border-gray-300 p-4 rounded-md bg-gray-50">
-              <div className="whitespace-pre-wrap mb-4">
+            <div className="border border-gray-300 p-3 md:p-4 rounded-md bg-gray-50">
+              <div className="whitespace-pre-wrap mb-4 text-sm md:text-base">
                 {modal.data?.templateBody || "No content available"}
               </div>
               {modal.data?.templateFooter && (
-                <div className="text-sm text-gray-500 border-t pt-2 mt-2">
+                <div className="text-xs md:text-sm text-gray-500 border-t pt-2 mt-2">
                   {modal.data.templateFooter}
                 </div>
               )}
               {modal.data?.attributes?.length > 0 && (
                 <div className="mt-4">
-                  <h3 className="font-medium mb-2">Attributes:</h3>
+                  <h3 className="font-medium mb-2 text-sm md:text-base">Attributes:</h3>
                   <ul className="space-y-1">
                     {modal.data.attributes.map((attr, index) => (
-                      <li key={index} className="flex">
-                        <span className="font-medium w-24">{attr.name}:</span>
+                      <li key={index} className="flex text-sm md:text-base">
+                        <span className="font-medium w-20 md:w-24">{attr.name}:</span>
                         <span>{attr.value}</span>
                       </li>
                     ))}
@@ -576,9 +567,9 @@ const ManageTemplates = () => {
       {/* Create Template Modal */}
       {modal.type === "create" && (
         <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center p-4 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl border border-gray-300">
+          <div className="bg-white p-4 md:p-6 rounded-lg shadow-lg w-full max-w-2xl border border-gray-300">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-700">
+              <h2 className="text-lg md:text-xl font-semibold text-gray-700">
                 Create New Template
               </h2>
               <button
@@ -588,19 +579,19 @@ const ManageTemplates = () => {
                 &times;
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               <div
-                className="bg-gray-100 border-2 border-dashed border-green-500 p-6 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors"
+                className="bg-gray-100 border-2 border-dashed border-green-500 p-4 md:p-6 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors"
                 onClick={() => {
                   closeModal();
                   navigate("/create-template");
                 }}
               >
                 <div className="flex flex-col items-center text-center">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-3">
+                  <div className="w-12 h-12 md:w-16 md:h-16 bg-green-100 rounded-full flex items-center justify-center mb-2 md:mb-3">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-8 w-8 text-green-600"
+                      className="h-6 w-6 md:h-8 md:w-8 text-green-600"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -613,20 +604,20 @@ const ManageTemplates = () => {
                       />
                     </svg>
                   </div>
-                  <h4 className="text-lg font-semibold text-gray-700">
+                  <h4 className="text-base md:text-lg font-semibold text-gray-700">
                     Start from scratch
                   </h4>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-xs md:text-sm text-gray-600 mt-1">
                     Start from a blank template
                   </p>
                 </div>
               </div>
-              <div className="bg-gray-100 border-2 border-dashed border-green-500 p-6 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors">
+              <div className="bg-gray-100 border-2 border-dashed border-green-500 p-4 md:p-6 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors">
                 <div className="flex flex-col items-center text-center">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-3">
+                  <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-100 rounded-full flex items-center justify-center mb-2 md:mb-3">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-8 w-8 text-blue-600"
+                      className="h-6 w-6 md:h-8 md:w-8 text-blue-600"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -645,10 +636,10 @@ const ManageTemplates = () => {
                       />
                     </svg>
                   </div>
-                  <h4 className="text-lg font-semibold text-gray-700">
+                  <h4 className="text-base md:text-lg font-semibold text-gray-700">
                     Use a template
                   </h4>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-xs md:text-sm text-gray-600 mt-1">
                     Use one of our pre-defined templates and edit them
                   </p>
                 </div>
@@ -660,26 +651,26 @@ const ManageTemplates = () => {
 
       {/* cURL Modal */}
       {curlModal.open && (
-        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center p-2 sm:p-4 z-50 overflow-auto">
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg w-full max-w-[95%] sm:max-w-3xl border border-gray-300 relative">
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center p-4 z-50">
+          <div className="bg-white p-4 md:p-6 rounded-lg shadow-lg w-full max-w-3xl border border-gray-300 relative max-h-[90vh] overflow-hidden flex flex-col">
             <button
               onClick={() => setCurlModal({ open: false, data: null })}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl"
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl z-10"
             >
               &times;
             </button>
-            <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">
+            <h2 className="text-lg md:text-xl font-semibold mb-4">
               Generated cURL Command
             </h2>
-            <div className="bg-gray-100 p-3 sm:p-4 rounded-md text-xs sm:text-sm overflow-x-auto whitespace-pre-wrap max-h-[70vh]">
-              <pre className="break-words">{curlModal.data}</pre>
-            </div>
+            <pre className="bg-gray-100 p-3 md:p-4 rounded-md text-xs md:text-sm overflow-x-auto flex-1">
+              {curlModal.data}
+            </pre>
             <button
               onClick={() => {
                 navigator.clipboard.writeText(curlModal.data);
                 alert("Copied to clipboard!");
               }}
-              className="mt-4 bg-yellow-600 text-white px-3 sm:px-4 py-2 rounded hover:bg-yellow-700 text-sm sm:text-base"
+              className="mt-4 bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 text-sm md:text-base"
             >
               Copy to Clipboard
             </button>
