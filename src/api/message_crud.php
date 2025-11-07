@@ -79,11 +79,17 @@ class MessageAPI {
             $status = $this->conn->real_escape_string($input['status']);
             $message_type = $this->conn->real_escape_string($input['message_type'] ?? 'text');
             
-            // Handle response_data (store as JSON)
-            $response_data = null;
-            if (!empty($input['response_data'])) {
-                $response_data = $this->conn->real_escape_string(json_encode($input['response_data']));
-            }
+            // Handle response_data (store as JSON safely)
+$response_data = null;
+if (!empty($input['response_data'])) {
+    // If it's already a string, decode and re-encode to ensure valid JSON
+    if (is_string($input['response_data'])) {
+        $decoded = json_decode($input['response_data'], true);
+        $response_data = $decoded ? json_encode($decoded, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : json_encode($input['response_data']);
+    } else {
+        $response_data = json_encode($input['response_data'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+}
             
             // Handle sent_at - convert ISO format to MySQL datetime
             $sent_at = $this->convertToMySQLDateTime($input['sent_at'] ?? null);

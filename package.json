@@ -30,6 +30,7 @@
     "react-scripts": "^5.0.1",
     "react-toastify": "^11.0.5",
     "reactflow": "^11.11.4",
+    "recharts": "^3.3.0",
     "tailwindcss": "^4.0.12",
     "web-vitals": "^2.1.4"
   },
@@ -56,8 +57,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "react-refresh": "^0.16.0"
   }
 }
