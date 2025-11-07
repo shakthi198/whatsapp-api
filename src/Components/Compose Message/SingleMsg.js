@@ -19,12 +19,12 @@ export default function SingleMsg() {
   const location = useLocation();
   const navigate = useNavigate();
   const tabs = ["Single MSG", "Group", "CSV"];
-  
+
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     handleResize(); // Set initial value
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -34,11 +34,11 @@ export default function SingleMsg() {
   const activeTab = currentPath.includes("compose")
     ? "Single MSG"
     : currentPath.includes("group")
-    ? "Group"
-    : currentPath.includes("csv")
-    ? "CSV"
-    : "Single MSG";
-  
+      ? "Group"
+      : currentPath.includes("csv")
+        ? "CSV"
+        : "Single MSG";
+
   const handleTabClick = (tab) => {
     if (tab === "Single MSG") navigate("/compose");
     else if (tab === "CSV") navigate("/csv");
@@ -125,7 +125,7 @@ export default function SingleMsg() {
       }
 
       const data = await response.json();
-      
+
       if (data.status === "success") {
         return data.data;
       } else {
@@ -138,34 +138,114 @@ export default function SingleMsg() {
   };
 
   // Function to send WhatsApp message
+  // Function to send WhatsApp message (Dynamic payload for all template types)
   const sendWhatsAppMessage = async (credentials, isScheduled = false) => {
     try {
-      debugger
       const fullPhoneNumber = countryCode + mobileNumber;
-      
-      // Prepare the request body for WhatsApp API
-      // const requestBody = {
-      //   messaging_product: "whatsapp",
-      //   to: fullPhoneNumber,
-      //   type: "text",
-      //   text: {
-      //     body: messageContent
-      //   }
-      // };
 
-      // If using template instead of text message, use this structure:
+      if (!selectedTemplate) {
+        throw new Error("Please select a template before sending");
+      }
+
+      console.log("Selected Template:", selectedTemplate);
+
+      // 1️⃣ Parse template JSON safely
+      let templateComponents;
+      try {
+        templateComponents = JSON.parse(selectedTemplate.template_json);
+      } catch (parseError) {
+        console.error("Error parsing template JSON:", parseError);
+        throw new Error("Invalid template format");
+      }
+
+      // 2️⃣ Dynamically build WhatsApp API components
+      const processedComponents = [];
+
+      if (templateComponents.components && Array.isArray(templateComponents.components)) {
+        templateComponents.components.forEach((component) => {
+          const { type } = component;
+          const newComponent = { type };
+
+          // Handle HEADER text or media
+          if (type === "HEADER") {
+            if (component.format === "TEXT" && component.example?.header_text?.length) {
+              newComponent.parameters = [
+                { type: "text", text: component.example.header_text[0] },
+              ];
+            } else if (component.format === "IMAGE" && component.example?.header_handle) {
+              newComponent.parameters = [
+                { type: "image", image: { link: component.example.header_handle } },
+              ];
+            } else if (component.format === "DOCUMENT" && component.example?.header_handle) {
+              newComponent.parameters = [
+                { type: "document", document: { link: component.example.header_handle } },
+              ];
+            } else if (component.format === "VIDEO" && component.example?.header_handle) {
+              newComponent.parameters = [
+                { type: "video", video: { link: component.example.header_handle } },
+              ];
+            }
+          }
+
+          // Handle BODY placeholders
+          if (type === "BODY" && component.example?.body_text?.length) {
+            newComponent.parameters = component.example.body_text[0].map((textValue) => ({
+              type: "text",
+              text: textValue,
+            }));
+          }
+
+          // Handle BUTTON placeholders (Quick Reply / URL / OTP)
+          if (type === "BUTTONS" && Array.isArray(component.buttons)) {
+            component.buttons.forEach((btn, index) => {
+              const btnComponent = {
+                type: "BUTTON",
+                sub_type: btn.type === "URL" ? "URL" : "QUICK_REPLY",
+                index: index.toString(),
+                parameters: [],
+              };
+
+              if (btn.type === "URL" && btn.example?.length) {
+                btnComponent.parameters.push({
+                  type: "text",
+                  text: btn.example[0],
+                });
+              } else if (btn.type === "QUICK_REPLY") {
+                btnComponent.parameters.push({
+                  type: "payload",
+                  payload: btn.text || `button_${index + 1}`,
+                });
+              }
+
+              processedComponents.push(btnComponent);
+            });
+            return; // skip adding the parent BUTTONS component
+          }
+
+          // Push component only if it has parameters
+          if (newComponent.parameters && newComponent.parameters.length > 0) {
+            processedComponents.push(newComponent);
+          }
+        });
+      }
+
+      // 3️⃣ Build final request body
       const requestBody = {
         messaging_product: "whatsapp",
         to: fullPhoneNumber,
         type: "template",
         template: {
-          name: selectedTemplate?.name || "hello_world",
+          name: templateComponents.name || selectedTemplate.name,
           language: {
-            code: "en_US"
-          }
-        }
+            code: templateComponents.language || "en",
+          },
+          ...(processedComponents.length > 0 ? { components: processedComponents } : {}),
+        },
       };
 
+      console.log("✅ WhatsApp API Request Body:", JSON.stringify(requestBody, null, 2));
+
+      // 4️⃣ Send API request
       const response = await fetch(
         `${credentials.base_url}${credentials.number_id}/messages`,
         {
@@ -180,10 +260,17 @@ export default function SingleMsg() {
 
       const result = await response.json();
 
+      // 5️⃣ Handle error response
       if (!response.ok) {
-        throw new Error(result.error?.message || "Failed to send message");
+        console.error("❌ WhatsApp API Error:", result);
+        throw new Error(
+          result.error?.message ||
+          result.error?.error_data?.details ||
+          "Failed to send WhatsApp message"
+        );
       }
 
+      console.log("✅ WhatsApp API Success:", result);
       return result;
     } catch (error) {
       console.error("Error sending WhatsApp message:", error);
@@ -191,41 +278,42 @@ export default function SingleMsg() {
     }
   };
 
+
   // Function to store message response in your database
   const storeMessageResponse = async (whatsappResponse, isScheduled = false) => {
-  try {
-    const storeResponse = await fetch(apiEndpoints.fetchmessage, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        phone_number: countryCode + mobileNumber,
-        country_code: countryCode,
-        mobile_number: mobileNumber,
-        message_content: messageContent,
-        template_used: selectedTemplate?.name || null,
-        template_id: selectedTemplate?.meta_template_id || null,
-        whatsapp_message_id: whatsappResponse.messages?.[0]?.id,
-        status: isScheduled ? "scheduled" : "sent",
-        message_type: selectedTemplate ? "template" : "text",
-        response_data: whatsappResponse,
-        sent_at: new Date().toISOString()
-      }),
-    });
+    try {
+      const storeResponse = await fetch(apiEndpoints.fetchmessage, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phone_number: countryCode + mobileNumber,
+          country_code: countryCode,
+          mobile_number: mobileNumber,
+          message_content: messageContent,
+          template_used: selectedTemplate?.name || null,
+          template_id: selectedTemplate?.meta_template_id || null,
+          whatsapp_message_id: whatsappResponse.messages?.[0]?.id,
+          status: isScheduled ? "scheduled" : "sent",
+          message_type: selectedTemplate ? "template" : "text",
+          response_data: whatsappResponse,
+          sent_at: new Date().toISOString()
+        }),
+      });
 
-    const result = await storeResponse.json();
-    
-    if (result.status === "success") {
-      return result;
-    } else {
-      throw new Error(result.message || "Failed to store message");
+      const result = await storeResponse.json();
+
+      if (result.status === "success") {
+        return result;
+      } else {
+        throw new Error(result.message || "Failed to store message");
+      }
+    } catch (error) {
+      console.error("Error storing message response:", error);
+      return null;
     }
-  } catch (error) {
-    console.error("Error storing message response:", error);
-    return null;
-  }
-};
+  };
 
   const handleSendMessage = async (isScheduled = false) => {
     if (!validateForm()) {
@@ -234,25 +322,25 @@ export default function SingleMsg() {
     }
 
     setLoading(true);
-    
+
     try {
       // Step 1: Get WhatsApp credentials
       const credentials = await getWhatsAppCredentials();
-      
+
       // Step 2: Send WhatsApp message
       const whatsappResponse = await sendWhatsAppMessage(credentials, isScheduled);
-      
+
       // Step 3: Store the response in your database
       await storeMessageResponse(whatsappResponse, isScheduled);
-      
+
       // Step 4: Show success message
       alert(`Message ${isScheduled ? 'scheduled' : 'sent'} successfully!`);
-      
+
       // Step 5: Clear form if it's not scheduled
       if (!isScheduled) {
         handleClear();
       }
-      
+
     } catch (error) {
       console.error("Error in sending message:", error);
       alert(`Failed to ${isScheduled ? 'schedule' : 'send'} message: ${error.message}`);
@@ -276,7 +364,7 @@ export default function SingleMsg() {
       setIsDropdownOpen(false);
       return;
     }
-    
+
     // If validation passes, open dropdown
     setIsDropdownOpen(!isDropdownOpen);
   };
@@ -300,7 +388,7 @@ export default function SingleMsg() {
           <span className="whitespace-nowrap">Compose Message</span>
         </div>
       </div>
-      
+
       {/* Navigation Tabs */}
       <div className="mb-6">
         <nav className="flex overflow-x-auto mb-4 border-b border-gray-200">
@@ -308,11 +396,10 @@ export default function SingleMsg() {
             <button
               key={tab}
               onClick={() => handleTabClick(tab)}
-              className={`px-4 py-2 md:px-6 md:py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
-                activeTab === tab
-                  ? "border-yellow-600 text-yellow-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
+              className={`px-4 py-2 md:px-6 md:py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${activeTab === tab
+                ? "border-yellow-600 text-yellow-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
             >
               {tab}
             </button>
@@ -331,9 +418,8 @@ export default function SingleMsg() {
                 <span className="text-red-500 ml-1">*</span>
               </label>
               <select
-                className={`w-full p-2 md:p-3 border rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm md:text-base ${
-                  errors.countryCode ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full p-2 md:p-3 border rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm md:text-base ${errors.countryCode ? "border-red-500" : "border-gray-300"
+                  }`}
                 value={countryCode}
                 onChange={handleCountryCodeChange}
                 required
@@ -358,9 +444,8 @@ export default function SingleMsg() {
               <div className="relative">
                 <input
                   type="tel"
-                  className={`w-full p-2 md:p-3 border rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm md:text-base ${
-                    errors.mobileNumber ? "border-red-500" : "border-gray-300"
-                  }`}
+                  className={`w-full p-2 md:p-3 border rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm md:text-base ${errors.mobileNumber ? "border-red-500" : "border-gray-300"
+                    }`}
                   placeholder="Enter 10-digit number"
                   value={mobileNumber}
                   onChange={handleMobileNumberChange}
@@ -399,9 +484,8 @@ export default function SingleMsg() {
               )}
             </div>
             <textarea
-              className={`w-full p-3 border bg-gray-50 rounded-md h-40 cursor-pointer focus:ring-2 focus:ring-yellow-500 text-sm md:text-base ${
-                errors.messageContent ? "border-red-500" : "border-yellow-600"
-              }`}
+              className={`w-full p-3 border bg-gray-50 rounded-md h-40 cursor-pointer focus:ring-2 focus:ring-yellow-500 text-sm md:text-base ${errors.messageContent ? "border-red-500" : "border-yellow-600"
+                }`}
               readOnly
               onClick={() => setIsPopupOpen(true)}
               value={messageContent}
