@@ -220,7 +220,7 @@ const WhatsAppPreview = ({ templateData }) => {
           textAlign={isMobile ? "center" : "left"}
         >
           WhatsApp Preview
-          {templateType && (
+          {/* {templateType && (
             <Typography 
               component="span" 
               variant="caption" 
@@ -230,7 +230,7 @@ const WhatsAppPreview = ({ templateData }) => {
             >
               {templateType} Template
             </Typography>
-          )}
+          )} */}
         </Typography>
       </Box>
 
@@ -263,7 +263,7 @@ const WhatsAppPreview = ({ templateData }) => {
           {(mediaFile || mediaUrl) && renderMediaPreview()}
 
           {/* Body */}
-          <Typography 
+          {/* <Typography 
             variant={isMobile ? "caption" : "body2"} 
             mb={1}
             sx={{
@@ -272,7 +272,7 @@ const WhatsAppPreview = ({ templateData }) => {
             }}
           >
             {body || "Hey {{name}}, your appointment is on {{date}}."}
-          </Typography>
+          </Typography> */}
 
           {/* Footer */}
           {footer && (
@@ -363,7 +363,7 @@ const WhatsAppPreview = ({ templateData }) => {
       </Box>
 
       {/* Preview Status Bar */}
-      <Box 
+      {/* <Box 
         p={1} 
         bgcolor="#f8f9fa" 
         borderTop="1px solid #ddd"
@@ -392,7 +392,7 @@ const WhatsAppPreview = ({ templateData }) => {
         >
           {templateButtons?.length || 0} buttons
         </Typography>
-      </Box>
+      </Box> */}
     </Box>
   );
 };
