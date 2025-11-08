@@ -18,18 +18,64 @@ require_once "config.php";
 class WhatsAppBusinessAPI {
     private $conn;
     private $whatsappConfig;
-    
+
     public function __construct($conn) {
         $this->conn = $conn;
-        $this->whatsappConfig = [
-            'base_url' => 'https://graph.facebook.com/v21.0',
-            'phone_number_id' => '779927621877990',
-            'access_token' => 'Bearer EAAS5pfUImY8BPzhZBJ9EHZC3BfZCQvjcxzvli0teHq59N6Uew3ZBL3csExyuvxO0JR429d5zuReQGZBCI4w0bQQ4mqNBOqu7TWZCpm5znkhkdPIYhvpSp5rmsPBYrqWtfmq6XqnhQPJlGPvXkLA87hS5thL4r6M4byF1KduAN1UVwaYaEMkqujTvftNI8pCaXVOggakZBztZAmG80ZBZAJEWyl9uHUHaXMxl7hh2b95yNeFiXue2mUZAA9TotAXv8KcyJphwPC8gX30ZCZCfV86gxnamnsp8CuQ36FZBLX1vgnPi0ZD',
-            'waba_id' => '1354293032712286'
-        ];
+        $this->whatsappConfig = $this->loadAPISettings();
     }
-    
-    // Method to sync all templates status
+
+    // ✅ Fetch WhatsApp API credentials dynamically from api_settings table
+    private function loadAPISettings() {
+        $sql = "SELECT base_url, access_token, number_id, waba_id 
+                FROM api_settings 
+                ORDER BY id DESC 
+                LIMIT 1";
+        $result = $this->conn->query($sql);
+
+        if ($result && $result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            return [
+                'base_url' => rtrim($row['base_url'], '/'),
+                'access_token' => 'Bearer ' . trim($row['access_token']),
+                'phone_number_id' => trim($row['number_id']),
+                'waba_id' => trim($row['waba_id'])
+            ];
+        } else {
+            error_log("⚠️ WhatsApp API Settings not found in database!");
+            // Return placeholder values to prevent PHP notices
+            return [
+                'base_url' => '',
+                'access_token' => '',
+                'phone_number_id' => '',
+                'waba_id' => ''
+            ];
+        }
+    }
+
+    // ================= Existing methods =================
+
+    // ✅ Helper: get language code using languageGuid
+private function getLanguageCode($languageGuid) {
+    if (empty($languageGuid)) return 'en'; // default fallback
+
+    $sql = "SELECT code FROM language WHERE guid = ? AND isDelete = 0 AND isActive = 1 LIMIT 1";
+    $stmt = $this->conn->prepare($sql);
+    if (!$stmt) return 'en';
+
+    $stmt->bind_param("s", $languageGuid);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $code = 'en';
+    if ($row = $result->fetch_assoc()) {
+        $code = $row['code'];
+    }
+    $stmt->close();
+
+    return $code ?: 'en';
+}
+
+
+    // Sync templates with Meta
     public function syncAllTemplatesStatus() {
         $url = $this->whatsappConfig['base_url'] . '/' . $this->whatsappConfig['waba_id'] . '/message_templates';
         
@@ -81,56 +127,43 @@ class WhatsAppBusinessAPI {
             'message' => 'Failed to fetch templates from Meta'
         ];
     }
-    
-    // Method to upload media to Meta and get media ID
+
+    // Upload media
     public function uploadMediaToMeta($mediaFile) {
         $url = $this->whatsappConfig['base_url'] . '/' . $this->whatsappConfig['phone_number_id'] . '/media';
         
         error_log("Media Upload URL: " . $url);
         error_log("Media File Info: " . print_r($mediaFile, true));
         
-        // Validate file type and size
         $maxFileSize = 10 * 1024 * 1024; // 10MB
         if ($mediaFile['size'] > $maxFileSize) {
-            return [
-                'success' => false,
-                'error' => 'File size exceeds 10MB limit'
-            ];
+            return ['success' => false, 'error' => 'File size exceeds 10MB limit'];
         }
-        
-        // Validate file type
+
         $allowedTypes = [
             'image/jpeg', 'image/jpg', 'image/png', 'image/gif',
             'video/mp4', 'video/3gp', 
             'audio/aac', 'audio/mp4', 'audio/mpeg', 'audio/amr', 'audio/ogg',
             'application/pdf', 'text/plain'
         ];
-        
         if (!in_array($mediaFile['type'], $allowedTypes)) {
-            return [
-                'success' => false,
-                'error' => 'File type not supported: ' . $mediaFile['type']
-            ];
+            return ['success' => false, 'error' => 'File type not supported: ' . $mediaFile['type']];
         }
-        
-        // Create CURLFile object for file upload
+
         $cfile = new CURLFile($mediaFile['tmp_name'], $mediaFile['type'], $mediaFile['name']);
-        
         $postData = [
             'messaging_product' => 'whatsapp',
             'file' => $cfile,
             'type' => $mediaFile['type']
         ];
-        
+
         $ch = curl_init();
         curl_setopt_array($ch, [
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => $postData,
-            CURLOPT_HTTPHEADER => [
-                'Authorization: ' . $this->whatsappConfig['access_token']
-            ],
+            CURLOPT_HTTPHEADER => ['Authorization: ' . $this->whatsappConfig['access_token']],
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_TIMEOUT => 30
         ]);
@@ -145,11 +178,7 @@ class WhatsAppBusinessAPI {
         
         if ($httpCode === 200) {
             $responseData = json_decode($response, true);
-            return [
-                'success' => true,
-                'media_id' => $responseData['id'] ?? null,
-                'response' => $responseData
-            ];
+            return ['success' => true, 'media_id' => $responseData['id'] ?? null, 'response' => $responseData];
         } else {
             $errorData = json_decode($response, true);
             return [
@@ -161,12 +190,10 @@ class WhatsAppBusinessAPI {
             ];
         }
     }
-    
-    // Method to create template on Meta with media support
+
+    // Create template on Meta (unchanged)
     public function createTemplateOnMeta($templateData) {
         $url = $this->whatsappConfig['base_url'] . '/' . $this->whatsappConfig['waba_id'] . '/message_templates';
-        
-        // Add messaging_product to template data
         $templateData['messaging_product'] = 'whatsapp';
         
         error_log("Meta API Request URL: " . $url);
@@ -180,7 +207,7 @@ class WhatsAppBusinessAPI {
             CURLOPT_POSTFIELDS => json_encode($templateData),
             CURLOPT_HTTPHEADER => [
                 'Authorization: ' . $this->whatsappConfig['access_token'],
-                'Content-Type: ' . 'application/json'
+                'Content-Type: application/json'
             ],
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_TIMEOUT => 30
@@ -200,15 +227,14 @@ class WhatsAppBusinessAPI {
             'curl_error' => $curlError
         ];
     }
-    
     // Method to format template for Meta API with media support
     public function formatTemplateForMeta($templateData, $mediaId = null) {
         $components = [];
         
         // Determine category
         $category = 'UTILITY';
-        if (isset($templateData['categoryName'])) {
-            $catName = strtolower($templateData['categoryName']);
+        if (isset($templateData['templateCategory'])) {
+            $catName = strtolower($templateData['templateCategory']);
             if (strpos($catName, 'utility') !== false) {
                 $category = 'UTILITY';
             } elseif (strpos($catName, 'market') !== false) {
@@ -222,7 +248,7 @@ class WhatsAppBusinessAPI {
         $templateType = $templateData['typeId'] ?? 1;
         
         // Handle HEADER component based on template type
-        $headers = json_decode($templateData['templateHeaders'] ?? '[]', true);
+        $headers = json_decode($templateData['templateHeaders'] ?? '{}', true);
         $headerType = $headers['headerType'] ?? 'text';
         
         if ($templateType == 1) { 
@@ -268,28 +294,31 @@ class WhatsAppBusinessAPI {
                 'text' => $bodyText
             ];
             
-            // Transform custom variables to Meta's format and add example
-            if (!empty($templateData['attributes'])) {
-                $attributes = json_decode($templateData['attributes'], true);
-                if (is_array($attributes) && !empty($attributes)) {
-                    $variableIndex = 1;
-                    foreach ($attributes as $attribute) {
-                        $placeholder = '{{' . ($attribute['value'] ?? $attribute['name'] ?? '') . '}}';
-                        $metaFormat = '{{' . $variableIndex . '}}';
-                        $bodyText = str_replace($placeholder, $metaFormat, $bodyText);
-                        $variableIndex++;
-                    }
-                    
-                    // Add example for body text
-                    $exampleValues = array_map(function($attr) {
-                        return $attr['value'] ?? $attr['name'] ?? 'example';
-                    }, $attributes);
-                    
-                    $bodyComponent['example'] = [
-                        'body_text' => [$exampleValues]
-                    ];
-                }
-            }
+            // ✅ Handle variable samples from frontend for Meta examples
+$exampleValues = [];
+if (!empty($templateData['variableSamples'])) {
+    $samples = json_decode($templateData['variableSamples'], true);
+    if (is_array($samples)) {
+        // Sort by placeholder order like {{1}}, {{2}}
+        usort($samples, function ($a, $b) {
+            preg_match('/\d+/', $a['placeholder'] ?? '', $ma);
+            preg_match('/\d+/', $b['placeholder'] ?? '', $mb);
+            return ($ma[0] ?? 0) <=> ($mb[0] ?? 0);
+        });
+
+        // Collect sample text values for Meta example
+        foreach ($samples as $s) {
+            $exampleValues[] = $s['sample'] ?? '';
+        }
+    }
+}
+
+// If example values exist, add them in Meta's expected format
+if (!empty($exampleValues)) {
+    $bodyComponent['example'] = ['body_text' => [$exampleValues]];
+}
+
+
             
             $bodyComponent['text'] = $bodyText;
             $components[] = $bodyComponent;
@@ -364,13 +393,18 @@ class WhatsAppBusinessAPI {
             }
         }
         
-        return [
-            'name' => $this->generateMetaTemplateName($templateData['name']),
-            'category' => $category,
-            'language' => 'en',
-            'messaging_product' => 'whatsapp',
-            'components' => $components
-        ];
+       // ✅ Get language code from input or database
+$langCode = $templateData['languageCode'] 
+    ?? $this->getLanguageCode($templateData['languageGuid'] ?? null);
+
+return [
+    'name' => $templateData['name'],
+    'category' => $category,
+   'language' => $langCode,
+    'messaging_product' => 'whatsapp',
+    'components' => $components
+];
+
     }
     
     // Helper method to determine media format
@@ -497,8 +531,8 @@ class WhatsAppBusinessAPI {
         
         // Determine category
         $category = 'UTILITY';
-        if (isset($templateData['categoryName'])) {
-            $catName = strtolower($templateData['categoryName']);
+        if (isset($templateData['templateCategory'])) {
+            $catName = strtolower($templateData['templateCategory']);
             if (strpos($catName, 'utility') !== false) {
                 $category = 'UTILITY';
             } elseif (strpos($catName, 'market') !== false) {
@@ -508,18 +542,19 @@ class WhatsAppBusinessAPI {
             }
         }
         
-        return [
-            'name' => $templateData['name'],
-            'category' => $category,
-            'language' => 'en',
-            'components' => $components
-        ];
+        // ✅ Get language code from input or DB
+$langCode = $templateData['languageCode'] 
+    ?? $this->getLanguageCode($templateData['languageGuid'] ?? null);
+
+return [
+    'name' => $templateData['name'],
+    'category' => $category,
+    'language' => $langCode,
+    'components' => $components
+];
+
     }
     
-    private function generateMetaTemplateName($name) {
-        $name = preg_replace('/[^a-zA-Z0-9_]/', '_', $name);
-        return strtolower($name) . '_' . time();
-    }
 }
 
 $conn = new mysqli($servername, $username, $password, $dbname);
@@ -594,7 +629,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             'guid' => $row['guid'],
             'template_name' => $row['template_name'],
             'category' => $row['category'],
-            'categoryName' => $row['categoryName'],
+            'templateCategory' => $row['categoryName'],
             'languageGuid' => $row['languageGuid'],
             'template_type' => (int)$row['template_type'],
             'isFile' => (bool)$row['isFile'],
@@ -673,7 +708,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_FILES['media_file'])) {
         exit();
     }
 
-    $requiredFields = ['name', 'categoryName', 'languageGuid', 'typeId'];
+    $requiredFields = ['name', 'templateCategory', 'languageGuid', 'typeId'];
     $missingFields = [];
 
     foreach ($requiredFields as $field) {
@@ -738,7 +773,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_FILES['media_file'])) {
     }
 
     $name = $data['name'];
-    $categoryName = $data['categoryName'];
+    $categoryName = $data['templateCategory'];
     $languageGuid = $data['languageGuid'];
     $typeId = (int)$data['typeId'];
     $isFile = isset($data['isFile']) ? (int)$data['isFile'] : 0;
