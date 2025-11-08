@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost/phpValidation/whatsapp";
+const API_BASE_URL = "http://localhost/whatsapp";
 
 
 const apiEndpoints = {
@@ -18,6 +18,8 @@ const apiEndpoints = {
     apiurl : `${API_BASE_URL}/api_settings.php`,
     fetchmessage : `${API_BASE_URL}/message_crud.php`,
     metaTemplates: `${API_BASE_URL}/meta_templates.php`,
+    Reports: `${API_BASE_URL}/reports.php`,
+    dashboard: `${API_BASE_URL}/dashboard.php`,    
     sendmessage: `${API_BASE_URL}/send_message.php`,
 
   };

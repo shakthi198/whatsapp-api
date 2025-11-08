@@ -11,26 +11,26 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import LoopIcon from "@mui/icons-material/Loop";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
-
-const clientData = [
-  
-  {
-    title: "Overview Summary of API Message",
-    sent: 0,
-    delivered: 0,
-    read: 0,
-  },
-];
-
-const ClientOverview = () => {
+const ClientOverview = ({ clientOverview }) => {
+  // :white_check_mark: Use live data from props or fallback to defaults
+  const { sent = 0, delivered = 0, read = 0 } = clientOverview || {};
+  // :white_check_mark: Update the clientData array to use dynamic values
+  const clientData = [
+    {
+      title: "Overview Summary of API Message",
+      sent,
+      delivered,
+      read,
+    },
+  ];
   return (
     <Box sx={{ marginTop: "30px", fontFamily: "Montserrat, sans-serif" }}>
-      <Typography 
-        variant="h5" 
-        sx={{ 
-          fontWeight: "medium", 
+      <Typography
+        variant="h5"
+        sx={{
+          fontWeight: "medium",
           marginBottom: "20px",
-          fontFamily: "Montserrat, sans-serif" 
+          fontFamily: "Montserrat, sans-serif",
         }}
       >
         Client Overview
@@ -47,17 +47,16 @@ const ClientOverview = () => {
               }}
             >
               <CardContent>
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    fontWeight: "bold", 
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: "bold",
                     marginBottom: "10px",
-                    fontFamily: "Montserrat, sans-serif" 
+                    fontFamily: "Montserrat, sans-serif",
                   }}
                 >
                   {data.title}
                 </Typography>
-
                 {/* Icons & Data */}
                 <Grid container spacing={2} alignItems="center">
                   <Grid item xs={4} sx={{ textAlign: "center" }}>
@@ -75,10 +74,16 @@ const ClientOverview = () => {
                     >
                       <CheckCircleIcon sx={{ color: "#888" }} />
                     </Box>
-                    <Typography variant="h6" sx={{ fontFamily: "Montserrat, sans-serif" }}> 
-                      {data.sent} 
+                    <Typography
+                      variant="h6"
+                      sx={{ fontFamily: "Montserrat, sans-serif" }}
+                    >
+                      {data.sent}
                     </Typography>
-                    <Typography variant="body2" sx={{ fontFamily: "Montserrat, sans-serif" }}>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontFamily: "Montserrat, sans-serif" }}
+                    >
                       Sent
                     </Typography>
                   </Grid>
@@ -97,10 +102,16 @@ const ClientOverview = () => {
                     >
                       <LoopIcon sx={{ color: "#888" }} />
                     </Box>
-                    <Typography variant="h6" sx={{ fontFamily: "Montserrat, sans-serif" }}> 
-                      {data.delivered} 
+                    <Typography
+                      variant="h6"
+                      sx={{ fontFamily: "Montserrat, sans-serif" }}
+                    >
+                      {data.delivered}
                     </Typography>
-                    <Typography variant="body2" sx={{ fontFamily: "Montserrat, sans-serif" }}>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontFamily: "Montserrat, sans-serif" }}
+                    >
                       Delivered
                     </Typography>
                   </Grid>
@@ -119,10 +130,16 @@ const ClientOverview = () => {
                     >
                       <RemoveRedEyeIcon sx={{ color: "#888" }} />
                     </Box>
-                    <Typography variant="h6" sx={{ fontFamily: "Montserrat, sans-serif" }}> 
-                      {data.read} 
+                    <Typography
+                      variant="h6"
+                      sx={{ fontFamily: "Montserrat, sans-serif" }}
+                    >
+                      {data.read}
                     </Typography>
-                    <Typography variant="body2" sx={{ fontFamily: "Montserrat, sans-serif" }}>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontFamily: "Montserrat, sans-serif" }}
+                    >
                       Read
                     </Typography>
                   </Grid>
@@ -135,5 +152,14 @@ const ClientOverview = () => {
     </Box>
   );
 };
-
 export default ClientOverview;
+
+
+
+
+
+
+
+
+
+

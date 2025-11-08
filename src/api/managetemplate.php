@@ -247,183 +247,160 @@ private function getLanguageCode($languageGuid) {
             'curl_error' => $curlError
         ];
     }
-    // Method to format template for Meta API with media support
-    public function formatTemplateForMeta($templateData, $mediaId = null) {
-        $components = [];
-        
-        // Determine category
-        $category = 'UTILITY';
-        if (isset($templateData['templateCategory'])) {
-            $catName = strtolower($templateData['templateCategory']);
-            if (strpos($catName, 'utility') !== false) {
-                $category = 'UTILITY';
-            } elseif (strpos($catName, 'market') !== false) {
-                $category = 'MARKETING';
-            } elseif (strpos($catName, 'auth') !== false) {
-                $category = 'AUTHENTICATION';
-            }
-        }
-        
-        // Get template type (1 for TEXT, 2 for MEDIA)
-        $templateType = $templateData['typeId'] ?? 1;
-        
-        // Handle HEADER component based on template type
-        $headers = json_decode($templateData['templateHeaders'] ?? '{}', true);
-        $headerType = $headers['headerType'] ?? 'text';
-        
-        if ($templateType == 1) { 
-            // TEXT type template - use existing method with headers
-            if ($headerType !== 'text' && $mediaId) {
-                // Media header (IMAGE, DOCUMENT, VIDEO) with media ID for TEXT type
-                $headerComponent = [
-                    'type' => 'HEADER',
-                    'format' => strtoupper($headerType),
-                    'example' => [
-                        'header_handle' => [$mediaId]
-                    ]
-                ];
-                $components[] = $headerComponent;
-            } elseif (!empty($headers['headerText'])) {
-                // Text header for TEXT type
-                $components[] = [
-                    'type' => 'HEADER',
-                    'format' => 'TEXT',
-                    'text' => $headers['headerText']
-                ];
-            }
-        } elseif ($templateType == 2 && $mediaId) { 
-            // MEDIA type template - ALWAYS use media in header
-            // Determine media format from the uploaded file or use default
-            $mediaFormat = $this->determineMediaFormat($templateData, $headers);
-            
-            $headerComponent = [
-                'type' => 'HEADER',
-                'format' => $mediaFormat,
-                'example' => [
-                    'header_handle' => [$mediaId]
-                ]
-            ];
-            $components[] = $headerComponent;
-        }
-        
-        // ✅ BODY component (Meta-compliant for all categories)
-if (!empty($templateData['body'])) {
-    $bodyText = $templateData['body'];
-    $bodyComponent = [
-        'type' => 'BODY',
-        'text' => $bodyText
-    ];
 
-    // Extract variable samples ({{1}}, {{2}}, etc.)
-    $exampleValues = [];
-    if (!empty($templateData['variableSamples'])) {
-        $samples = json_decode($templateData['variableSamples'], true);
-        if (is_array($samples)) {
-            usort($samples, function ($a, $b) {
-                preg_match('/\d+/', $a['placeholder'] ?? '', $ma);
-                preg_match('/\d+/', $b['placeholder'] ?? '', $mb);
-                return ($ma[0] ?? 0) <=> ($mb[0] ?? 0);
-            });
-            foreach ($samples as $s) {
-                $exampleValues[] = $s['sample'] ?? '';
-            }
-        }
+    
+public function formatTemplateForMeta($templateData, $mediaId = null) {
+    $components = [];
+
+    // Determine Meta category
+    $category = 'UTILITY';
+    if (!empty($templateData['templateCategory'])) {
+        $cat = strtolower($templateData['templateCategory']);
+        if (strpos($cat, 'market') !== false) $category = 'MARKETING';
+        elseif (strpos($cat, 'auth') !== false) $category = 'AUTHENTICATION';
     }
 
-    // ✅ Add Meta-compatible example field
-    if (!empty($exampleValues)) {
-        $bodyComponent['example'] = [
-            'body_text' => [$exampleValues]
+    $templateType = $templateData['typeId'] ?? 1;
+    $headers = json_decode($templateData['templateHeaders'] ?? '{}', true);
+    $headerType = $headers['headerType'] ?? 'text';
+
+    // ✅ HEADER (only for UTILITY & MARKETING)
+if ($category === 'AUTHENTICATION') {
+    $expiryMinutes = 5;
+
+    $components = [
+        [
+            'type' => 'BODY',
+            'add_security_recommendation' => true
+        ],
+        [
+            'type' => 'FOOTER',
+            'code_expiration_minutes' => $expiryMinutes
+        ],
+        [
+            'type' => 'BUTTONS',
+            'buttons' => [
+                [
+                    'type' => 'OTP',
+                    'otp_type' => 'COPY_CODE',
+                    'text' => 'Copy Code'
+                ]
+            ]
+        ]
+    ];
+
+    return [
+        'messaging_product' => 'whatsapp',
+        'name' => $templateData['name'],
+        'language' => $templateData['languageCode'] ?? 'en_US',
+        'category' => 'AUTHENTICATION',
+        'components' => $components
+    ];
+}
+
+
+
+
+    // ✅ BODY
+    $bodyText = trim($templateData['body'] ?? '');
+ 
+        $bodyComponent = ['type' => 'BODY', 'text' => $bodyText];
+
+        // Add variable examples if present
+        $exampleValues = [];
+        if (!empty($templateData['variableSamples'])) {
+            $samples = json_decode($templateData['variableSamples'], true);
+            if (is_array($samples)) {
+                usort($samples, function ($a, $b) {
+                    preg_match('/\d+/', $a['placeholder'] ?? '', $ma);
+                    preg_match('/\d+/', $b['placeholder'] ?? '', $mb);
+                    return ($ma[0] ?? 0) <=> ($mb[0] ?? 0);
+                });
+                foreach ($samples as $s) {
+                    $exampleValues[] = $s['sample'] ?? '';
+                }
+            }
+        
+
+        if (!empty($exampleValues)) {
+            $bodyComponent['example'] = ['body_text' => [$exampleValues]];
+        }
+
+        $components[] = $bodyComponent;
+    }
+
+    // ✅ FOOTER (only for UTILITY & MARKETING)
+    if (!empty($templateData['templateFooter']) && $category !== 'AUTHENTICATION') {
+        $components[] = [
+            'type' => 'FOOTER',
+            'text' => $templateData['templateFooter']
         ];
     }
 
-    // ✅ Add to components
-    $components[] = $bodyComponent;
+        $buttons = [];
+
+        // Add template buttons
+        if (!empty($templateData['templateButtons'])) {
+            $templateButtons = json_decode($templateData['templateButtons'], true);
+            if (is_array($templateButtons)) {
+                foreach ($templateButtons as $b) {
+                    if ($b['type'] === 'URL' && !empty($b['text']) && !empty($b['url'])) {
+                        $urlButton = [
+                            'type' => 'URL',
+                            'text' => $b['text'],
+                            'url' => $b['url']
+                        ];
+                        if (strpos($b['url'], '{{1}}') !== false) {
+                            $urlButton['example'] = ['A12345'];
+                        }
+                        $buttons[] = $urlButton;
+                    } elseif ($b['type'] === 'PHONE_NUMBER' && !empty($b['phone'])) {
+                        $buttons[] = [
+                            'type' => 'PHONE_NUMBER',
+                            'text' => $b['text'],
+                            'phone_number' => $b['phone']
+                        ];
+                    } elseif ($b['type'] === 'QUICK_REPLY' && !empty($b['text'])) {
+                        $buttons[] = [
+                            'type' => 'QUICK_REPLY',
+                            'text' => $b['text']
+                        ];
+                    }
+                }
+            }
+        
+
+        // Add quick replies if any
+        if (!empty($templateData['quickReplies'])) {
+            $quickReplies = json_decode($templateData['quickReplies'], true);
+            if (is_array($quickReplies)) {
+                foreach ($quickReplies as $qr) {
+                    if (!empty($qr['text'])) {
+                        $buttons[] = ['type' => 'QUICK_REPLY', 'text' => $qr['text']];
+                    }
+                }
+            }
+        }
+
+        if (!empty($buttons)) {
+            $components[] = ['type' => 'BUTTONS', 'buttons' => $buttons];
+        }
+    }
+
+    // ✅ Language
+    $langCode = $templateData['languageCode'] ??
+        $this->getLanguageCode($templateData['languageGuid'] ?? null);
+
+    // ✅ Final Meta Payload
+    return [
+        'name' => $templateData['name'],
+        'category' => $category,
+        'language' => $langCode,
+        'messaging_product' => 'whatsapp',
+        'components' => $components
+    ];
 }
 
-        
-        // FOOTER component
-        if (!empty($templateData['templateFooter']) && $category !== 'AUTHENTICATION') {
-            $components[] = [
-                'type' => 'FOOTER',
-                'text' => $templateData['templateFooter']
-            ];
-        }
-        
-        // BUTTONS component
-        if ($category !== 'AUTHENTICATION') {
-            $buttons = [];
-            
-            // Add template buttons
-            if (!empty($templateData['templateButtons'])) {
-                $templateButtons = json_decode($templateData['templateButtons'], true);
-                if (is_array($templateButtons)) {
-                    foreach ($templateButtons as $button) {
-                        if ($button['type'] === 'URL' && !empty($button['text']) && !empty($button['url'])) {
-                            $urlButton = [
-                                'type' => 'URL',
-                                'text' => $button['text'],
-                                'url' => $button['url']
-                            ];
-                            
-                            // Add example for URL variables if needed
-                            if (strpos($button['url'], '{{1}}') !== false) {
-                                $urlButton['example'] = ['A12345'];
-                            }
-                            
-                            $buttons[] = $urlButton;
-                        } elseif ($button['type'] === 'PHONE_NUMBER' && !empty($button['text']) && !empty($button['phone'])) {
-                            $buttons[] = [
-                                'type' => 'PHONE_NUMBER',
-                                'text' => $button['text'],
-                                'phone_number' => $button['phone']
-                            ];
-                        } elseif ($button['type'] === 'QUICK_REPLY' && !empty($button['text'])) {
-                            $buttons[] = [
-                                'type' => 'QUICK_REPLY',
-                                'text' => $button['text']
-                            ];
-                        }
-                    }
-                }
-            }
-            
-            // Add quick reply buttons
-            if (!empty($templateData['quickReplies'])) {
-                $quickReplies = json_decode($templateData['quickReplies'], true);
-                if (is_array($quickReplies)) {
-                    foreach ($quickReplies as $reply) {
-                        if (!empty($reply['text'])) {
-                            $buttons[] = [
-                                'type' => 'QUICK_REPLY',
-                                'text' => $reply['text']
-                            ];
-                        }
-                    }
-                }
-            }
-            
-            if (!empty($buttons)) {
-                $components[] = [
-                    'type' => 'BUTTONS',
-                    'buttons' => $buttons
-                ];
-            }
-        }
-        
-       // ✅ Get language code from input or database
-$langCode = $templateData['languageCode'] 
-    ?? $this->getLanguageCode($templateData['languageGuid'] ?? null);
-
-return [
-    'name' => $templateData['name'],
-    'category' => $category,
-   'language' => $langCode,
-    'messaging_product' => 'whatsapp',
-    'components' => $components
-];
-
-    }
     
     // Helper method to determine media format
     private function determineMediaFormat($templateData, $headers) {
@@ -849,6 +826,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_FILES['media_file'])) {
     
     exit();
 }
+
 
 
 // ================= DELETE (Delete from Meta) =================

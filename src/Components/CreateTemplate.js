@@ -90,25 +90,29 @@ const CreateTemplate = () => {
       allowMedia: false,
       allowButtons: true,
       allowQuickReplies: true,
-      allowedTypes: ["TEXT"],
+      allowedButtonTypes: ["URL", "PHONE_NUMBER", "QUICK_REPLY"],
       allowHeader: true,
       allowFooter: true,
+      mustHaveOTPButton: false,
     },
     AUTHENTICATION: {
       allowMedia: false,
-      allowButtons: false,
+      allowButtons: false, // ✅ users cannot add buttons manually
       allowQuickReplies: false,
-      allowedTypes: ["TEXT"],
+      allowedButtonTypes: [], // no manual buttons
       allowHeader: false,
       allowFooter: false,
+      mustHaveOTPButton: true,
     },
+
     MARKETING: {
       allowMedia: true,
       allowButtons: true,
       allowQuickReplies: true,
-      allowedTypes: ["TEXT", "MEDIA"],
+      allowedButtonTypes: ["URL", "PHONE_NUMBER", "QUICK_REPLY"],
       allowHeader: true,
       allowFooter: true,
+      mustHaveOTPButton: false,
     },
   };
 
@@ -737,7 +741,6 @@ const CreateTemplate = () => {
   };
 
   const validateWhatsAppTemplate = () => {
-    // Template Name
     const nameRegex = /^[a-z0-9_]+$/;
     if (!formData.templateName || !nameRegex.test(formData.templateName)) {
       throw new Error(
@@ -745,89 +748,62 @@ const CreateTemplate = () => {
       );
     }
 
-    // Body Text
-    const body = templateBody.trim();
+    const body = (templateBody || "").trim();
     if (!body) throw new Error("Template body cannot be empty.");
     if (body.length > 1024)
       throw new Error("Template body exceeds 1024 characters.");
-    if (body.includes("http://") || body.includes("https://")) {
-      throw new Error(
-        "Body text cannot contain URLs. Use a URL button instead."
-      );
+
+    const placeholders = [...new Set(body.match(/\{\{\d+\}\}/g) || [])];
+    if (
+      placeholders.length > 0 &&
+      placeholderValues.length < placeholders.length
+    ) {
+      throw new Error("Please provide sample text for all placeholders.");
     }
 
-    // Placeholders
-    const placeholderMatches = body.match(/\{\{\d+\}\}/g) || [];
-    const uniquePlaceholders = [...new Set(placeholderMatches)];
-    // Ensure sample present for every placeholder
-    if (uniquePlaceholders.length > 0) {
-      if (placeholderValues.length < uniquePlaceholders.length) {
-        throw new Error(
-          "Please add sample text for each variable in Variable Samples."
-        );
-      }
-      for (let i = 0; i < uniquePlaceholders.length; i++) {
-        if (!placeholderValues[i] || placeholderValues[i].trim() === "") {
-          throw new Error(`Please provide sample for ${uniquePlaceholders[i]}`);
-        }
-      }
-    }
+   if (formData.templateCategory === "AUTHENTICATION") {
+     // ✅ must have one variable
+     if (placeholders.length !== 1 || placeholders[0] !== "{{1}}") {
+       throw new Error(
+         "Authentication templates must contain exactly one variable {{1}}."
+       );
+     }
 
-    if (formData.templateCategory === "AUTHENTICATION") {
-      if (uniquePlaceholders.length !== 1)
-        throw new Error(
-          "Authentication templates must contain exactly one placeholder {{1}}."
-        );
-    } else {
-      // Sequential check
-      for (let i = 0; i < uniquePlaceholders.length; i++) {
-        if (uniquePlaceholders[i] !== `{{${i + 1}}}`)
+     // ✅ No header/footer allowed
+     if (formData.headerText || templateFooter) {
+       throw new Error(
+         "Authentication templates cannot have headers or footers."
+       );
+     }
+
+     // ✅ We don't require users to add OTP buttons manually anymore
+     // The backend will automatically attach the Copy Code button
+   }
+
+
+    if (formData.templateCategory === "UTILITY") {
+      // can have header/footer/buttons, but only Meta-supported types
+      templateButtons.forEach((b) => {
+        if (!["URL", "PHONE_NUMBER", "QUICK_REPLY"].includes(b.type)) {
           throw new Error(
-            `Placeholders must be sequential starting from {{1}} without skipping numbers.`
+            "Utility templates only support URL, PHONE_NUMBER, and QUICK_REPLY buttons."
           );
+        }
+      });
+    }
+
+    if (formData.templateCategory === "MARKETING") {
+      // marketing allows all but must have at least BODY
+      if (!body) {
+        throw new Error("Marketing templates must contain a body section.");
       }
     }
 
-    // Header
-    if (showHeader && formData.headerType === "text") {
-      if (formData.headerText.length > 60)
-        throw new Error("Header text cannot exceed 60 characters.");
-    }
-
-    // Footer
-    if (showFooter && templateFooter.length > 60)
+    // header/footer validation
+    if (formData.headerText && formData.headerText.length > 60)
+      throw new Error("Header text cannot exceed 60 characters.");
+    if (templateFooter && templateFooter.length > 60)
       throw new Error("Footer text cannot exceed 60 characters.");
-
-    // Buttons
-    if (templateButtons.length > 3)
-      throw new Error("Maximum of 3 buttons allowed.");
-    const urlButtons = templateButtons.filter((b) => b.type === "URL");
-    if (urlButtons.length > 1)
-      throw new Error("Only one URL button is allowed.");
-    const callButtons = templateButtons.filter(
-      (b) => b.type === "PHONE_NUMBER"
-    );
-    if (callButtons.length > 1)
-      throw new Error("Only one Call button is allowed.");
-    templateButtons.forEach((b) => {
-      if (b.text.length > 20)
-        throw new Error("Button text cannot exceed 20 characters.");
-    });
-
-    // Quick replies
-    if (quickReplies.length > 3)
-      throw new Error("Maximum 3 quick replies allowed.");
-    quickReplies.forEach((q) => {
-      if (q.text.length > 20)
-        throw new Error("Quick reply text cannot exceed 20 characters.");
-    });
-
-    // Media
-    if (formData.type === "MEDIA") {
-      if (!mediaId) throw new Error("Please upload a media file.");
-      if (!showMediaSection)
-        throw new Error("Media is not allowed for this category.");
-    }
   };
 
   // Main submit handler - Only submits template data
@@ -898,6 +874,31 @@ const CreateTemplate = () => {
     setIsSubmitting(true);
 
     try {
+      if (formData.templateCategory === "AUTHENTICATION") {
+        // force body structure
+        let body = templateBody.trim();
+        if (!/\{\{1\}\}/.test(body)) {
+          body = "Use code {{1}} to verify your login.";
+          setTemplateBody(body);
+        }
+
+        // override buttons to OTP type
+        setTemplateButtons([
+          {
+            type: "OTP",
+            otp_type: "COPY_CODE",
+          },
+        ]);
+
+        // remove header/footer automatically
+        setFormData((prev) => ({
+          ...prev,
+          headerText: "",
+          headerType: "text",
+        }));
+        setTemplateFooter("");
+      }
+
       if (!validateSamplesBeforeSubmit()) {
         toast.error("Please fill sample text for all variables.");
         setIsSubmitting(false);
@@ -1021,7 +1022,6 @@ const CreateTemplate = () => {
         components: components, // keep WhatsApp JSON
       };
 
-
       console.log("✅ Final WhatsApp Template JSON:", templateData);
 
       console.log("Submitting template with data:", templateData);
@@ -1081,11 +1081,11 @@ const CreateTemplate = () => {
   // Helper booleans for UI visibility
   const currentRules =
     CATEGORY_RULES[formData.templateCategory] || CATEGORY_RULES.UTILITY;
-  const showHeader = formData.type === "TEXT" && currentRules.allowHeader;
+  const showHeader = currentRules.allowHeader && formData.type === "TEXT";
   const showFooter = currentRules.allowFooter;
   const showButtons = currentRules.allowButtons;
   const showMediaSection = formData.type === "MEDIA" && currentRules.allowMedia;
-
+  const showQuickReplies = currentRules.allowQuickReplies;
   return (
     <>
       <ToastContainer
@@ -1220,23 +1220,29 @@ const CreateTemplate = () => {
                       )}
                     </label>
                     {!mediaFile ? (
-                      <div className="border-2 border-dashed border-gray-400 rounded-lg p-4 md:p-8 text-center hover:border-blue-500 transition-colors cursor-pointer">
+                      <div className="border-2 border-dashed border-gray-400 rounded-lg p-4 md:p-8 text-center hover:border-blue-500 transition-colors">
                         <FaUpload className="mx-auto text-2xl md:text-3xl text-gray-400 mb-2 md:mb-3" />
                         <p className="text-gray-600 mb-2 text-sm md:text-base">
-                          Click to upload or drag and drop
+                          Click below to upload or drag and drop
                         </p>
-                        <p className="text-xs md:text-sm text-gray-500">
+                        <p className="text-xs md:text-sm text-gray-500 mb-3">
                           Supported formats: Images, Videos, Documents, Audio
                           (Max 10MB)
                         </p>
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          onChange={handleMediaUpload}
-                          accept="image/*,video/*,.pdf,.doc,.docx,.txt,audio/*"
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          disabled={isUploadingMedia || isReadOnly}
-                        />
+
+                        {/* ✅ Only this button triggers file selection */}
+                        <div className="flex justify-center">
+                          <label className="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-yellow-600 text-sm md:text-base">
+                            Upload File
+                            <input
+                              ref={fileInputRef}
+                              type="file"
+                              onChange={handleMediaUpload}
+                              accept="image/*,video/*,.pdf,.doc,.docx,.txt,audio/*"
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
                       </div>
                     ) : (
                       <div className="border border-gray-300 rounded-lg p-3 md:p-4 bg-white">
@@ -1274,12 +1280,15 @@ const CreateTemplate = () => {
               )}
 
               {/* Header Section (only if allowed) */}
+              {/* Header Section (only if allowed) */}
               {showHeader && (
                 <div className="mb-6 md:mb-8">
                   <h2 className="text-base md:text-lg font-semibold mb-2 text-gray-800">
                     Header
                   </h2>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                    {/* Header Type Dropdown */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Header Type
@@ -1288,30 +1297,132 @@ const CreateTemplate = () => {
                         className="border border-gray-300 p-2 rounded w-full text-sm md:text-base"
                         name="headerType"
                         value={formData.headerType}
-                        onChange={handleChange}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          handleChange(e);
+
+                          // 🧠 When user selects media header, clear header text
+                          if (["image", "video", "document"].includes(value)) {
+                            setFormData((prev) => ({
+                              ...prev,
+                              headerText: "",
+                            }));
+                          } else {
+                            setMediaFile(null);
+                            setMediaId(null);
+                            setMediaType("");
+                            if (fileInputRef.current)
+                              fileInputRef.current.value = "";
+                          }
+                        }}
                         disabled={isReadOnly}
                       >
                         <option value="text">Text</option>
-                        <option value="image">Image</option>
-                        <option value="document">Document</option>
-                        <option value="video">Video</option>
+                        {formData.templateCategory === "MARKETING" && (
+                          <>
+                            <option value="image">Image</option>
+                            <option value="video">Video</option>
+                            <option value="document">Document</option>
+                          </>
+                        )}
                       </select>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Header Text
-                      </label>
-                      <input
-                        type="text"
-                        className="border border-gray-300 p-2 rounded w-full text-sm md:text-base"
-                        name="headerText"
-                        placeholder="Header Text"
-                        value={formData.headerText}
-                        onChange={handleChange}
-                        disabled={isReadOnly}
+
+                    {/* Header Text Input (only for text header) */}
+                    {formData.headerType === "text" && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Header Text
+                        </label>
+                        <input
+                          type="text"
+                          className="border border-gray-300 p-2 rounded w-full text-sm md:text-base"
+                          name="headerText"
+                          placeholder="Header Text"
+                          value={formData.headerText}
+                          onChange={handleChange}
+                          disabled={isReadOnly}
                       />
-                    </div>
+                      </div>
+                    )}
                   </div>
+
+                  {/* 🧩 Show Media Upload Section if headerType is image/video/document */}
+                  {["image", "video", "document"].includes(
+                    formData.headerType
+                  ) &&
+                    formData.templateCategory === "MARKETING" && (
+                      <div className="mt-4">
+                        <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                          Header Media Upload *
+                        </h3>
+
+                        {!mediaFile ? (
+                          <div className="border-2 border-dashed border-gray-400 rounded-lg p-4 md:p-8 text-center hover:border-blue-500 transition-colors">
+                            <FaUpload className="mx-auto text-2xl md:text-3xl text-gray-400 mb-2 md:mb-3" />
+                            <p className="text-gray-600 mb-2 text-sm md:text-base">
+                              Click below to upload header {formData.headerType}
+                            </p>
+                            <p className="text-xs md:text-sm text-gray-500 mb-3">
+                              Supported formats: {formData.headerType} (Max
+                              10MB)
+                            </p>
+
+                            <div className="flex justify-center">
+                              <label className="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-yellow-600 text-sm md:text-base">
+                                Upload {formData.headerType}
+                                <input
+                                  ref={fileInputRef}
+                                  type="file"
+                                  onChange={handleMediaUpload}
+                                  accept={
+                                    formData.headerType === "image"
+                                      ? "image/*"
+                                      : formData.headerType === "video"
+                                      ? "video/*"
+                                      : ".pdf,.doc,.docx"
+                                  }
+                                  className="hidden"
+                                  disabled={isUploadingMedia}
+                                />
+                              </label>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="border border-gray-300 rounded-lg p-3 md:p-4 bg-white">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2 md:space-x-3">
+                                {getMediaIcon()}
+                                <div>
+                                  <p className="font-medium text-gray-800 text-sm md:text-base">
+                                    {mediaFile.name}
+                                  </p>
+                                  <p className="text-xs md:text-sm text-gray-500">
+                                    {(mediaFile.size / (1024 * 1024)).toFixed(
+                                      2
+                                    )}{" "}
+                                    MB • {mediaType}
+                                  </p>
+                                  {mediaId && (
+                                    <p className="text-xs text-green-600 font-mono">
+                                      Media ID: {mediaId}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={removeMediaFile}
+                                className="p-1 md:p-2 hover:bg-gray-100 rounded-full text-gray-500 hover:text-red-500"
+                                disabled={isUploadingMedia}
+                              >
+                                <FaTimes className="text-lg" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                 </div>
               )}
 
@@ -1344,8 +1455,13 @@ const CreateTemplate = () => {
                     className="w-full h-32 md:h-40 border-none outline-none resize-none text-sm md:text-base"
                     value={templateBody}
                     onChange={(e) => handleBodyChange(e.target.value)}
-                    disabled={isReadOnly}
                   />
+                  {formData.templateCategory === "AUTHENTICATION" && (
+                    <p className="mt-2 text-xs text-blue-600">
+                      🔒 A “Copy Code” button will be automatically added for
+                      authentication templates.
+                    </p>
+                  )}
                 </div>
                 <p className="text-right text-xs md:text-sm text-gray-500 mt-1">
                   {templateBody.length}/1024 characters
@@ -1461,115 +1577,130 @@ const CreateTemplate = () => {
                 )}
 
               {/* Template Buttons Section (only if allowed) */}
-              {showButtons && (
-                <div className="mb-6 md:mb-8">
-                  <h2 className="text-base md:text-lg font-semibold mb-2 text-gray-800">
-                    Template Buttons (Optional)
-                  </h2>
-                  <p className="text-xs md:text-sm text-gray-600 mb-3">
-                    Add buttons for URL, Phone, or Quick Reply actions
-                  </p>
+              {showButtons &&
+                formData.templateCategory !== "AUTHENTICATION" && (
+                  <div className="mb-6 md:mb-8">
+                    <h2 className="text-base md:text-lg font-semibold mb-2 text-gray-800">
+                      Template Buttons (Optional)
+                    </h2>
+                    <p className="text-xs md:text-sm text-gray-600 mb-3">
+                      Add buttons for URL, Phone, or Quick Reply actions
+                    </p>
 
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-3">
-                    <select
-                      className="border border-gray-300 p-2 rounded text-sm md:text-base col-span-1 md:col-span-1"
-                      value={newButton.type}
-                      disabled={isReadOnly}
-                      onChange={(e) =>
-                        setNewButton({ ...newButton, type: e.target.value })
-                      }
-                    >
-                      <option value="URL">URL Button</option>
-                      <option value="PHONE_NUMBER">Call Button</option>
-                      <option value="QUICK_REPLY">Quick Reply</option>
-                    </select>
-
-                    <input
-                      type="text"
-                      className="border border-gray-300 p-2 rounded text-sm md:text-base col-span-1 md:col-span-1"
-                      placeholder="Button text"
-                      value={newButton.text}
-                      disabled={isReadOnly}
-                      onChange={(e) =>
-                        setNewButton({ ...newButton, text: e.target.value })
-                      }
-                      maxLength={20}
-                    />
-
-                    {newButton.type === "URL" && (
-                      <input
-                        type="text"
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-3">
+                      <select
                         className="border border-gray-300 p-2 rounded text-sm md:text-base col-span-1 md:col-span-1"
-                        placeholder="URL"
-                        value={newButton.url}
+                        value={newButton.type}
                         disabled={isReadOnly}
                         onChange={(e) =>
-                          setNewButton({ ...newButton, url: e.target.value })
+                          setNewButton({ ...newButton, type: e.target.value })
                         }
-                      />
-                    )}
-
-                    {newButton.type === "PHONE_NUMBER" && (
-                      <input
-                        type="text"
-                        className="border border-gray-300 p-2 rounded text-sm md:text-base col-span-1 md:col-span-1"
-                        placeholder="Phone number"
-                        value={newButton.phone}
-                        disabled={isReadOnly}
-                        onChange={(e) =>
-                          setNewButton({ ...newButton, phone: e.target.value })
-                        }
-                      />
-                    )}
-
-                    <button
-                      className="bg-green-500 text-white px-3 md:px-4 py-2 rounded hover:bg-green-600 disabled:bg-gray-300 text-sm md:text-base col-span-1 md:col-span-1"
-                      onClick={handleAddButton}
-                      disabled={
-                        !newButton.text ||
-                        (newButton.type === "URL" && !newButton.url) ||
-                        (newButton.type === "PHONE_NUMBER" && !newButton.phone || isReadOnly)
-                      }
-                    >
-                      Add Button
-                    </button>
-                  </div>
-
-                  <div className="space-y-2">
-                    {templateButtons.map((button, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between bg-gray-100 p-2 md:p-3 rounded"
                       >
-                        <div className="overflow-hidden">
-                          <span className="font-medium text-xs md:text-sm">
-                            {button.type}:{" "}
-                          </span>
-                          <span className="text-xs md:text-sm">
-                            {button.text}
-                          </span>
-                          {button.url && (
-                            <span className="text-blue-600 ml-1 md:ml-2 text-xs md:text-sm">
-                              → {button.url}
-                            </span>
-                          )}
-                          {button.phone && (
-                            <span className="text-green-600 ml-1 md:ml-2 text-xs md:text-sm">
-                              📞 {button.phone}
-                            </span>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => handleRemoveButton(index)}
-                          className="text-red-500 hover:text-red-700 flex-shrink-0 ml-2"
+                        {CATEGORY_RULES[
+                          formData.templateCategory
+                        ].allowedButtonTypes.map((type) => (
+                          <option key={type} value={type}>
+                            {type === "URL"
+                              ? "URL Button"
+                              : type === "PHONE_NUMBER"
+                              ? "Call Button"
+                              : type === "QUICK_REPLY"
+                              ? "Quick Reply"
+                              : "OTP"}
+                          </option>
+                        ))}
+                      </select>
+
+                      <input
+                        type="text"
+                        className="border border-gray-300 p-2 rounded text-sm md:text-base col-span-1 md:col-span-1"
+                        placeholder="Button text"
+                        value={newButton.text}
+                        disabled={isReadOnly}
+                      onChange={(e) =>
+                          setNewButton({ ...newButton, text: e.target.value })
+                        }
+                        maxLength={20}
+                      />
+
+                      {newButton.type === "URL" && (
+                        <input
+                          type="text"
+                          className="border border-gray-300 p-2 rounded text-sm md:text-base col-span-1 md:col-span-1"
+                          placeholder="URL"
+                          value={newButton.url}
+                          disabled={isReadOnly}
+                        onChange={(e) =>
+                            setNewButton({ ...newButton, url: e.target.value })
+                          }
+                        />
+                      )}
+
+                      {newButton.type === "PHONE_NUMBER" && (
+                        <input
+                          type="text"
+                          className="border border-gray-300 p-2 rounded text-sm md:text-base col-span-1 md:col-span-1"
+                          placeholder="Phone number"
+                          value={newButton.phone}
+                          disabled={isReadOnly}
+                        onChange={(e) =>
+                            setNewButton({
+                              ...newButton,
+                              phone: e.target.value,
+                            })
+                          }
+                        />
+                      )}
+
+                      <button
+                        className="bg-green-500 text-white px-3 md:px-4 py-2 rounded hover:bg-green-600 disabled:bg-gray-300 text-sm md:text-base col-span-1 md:col-span-1"
+                        onClick={handleAddButton}
+                        disabled={
+                          !newButton.text ||
+                          (newButton.type === "URL" && !newButton.url) ||
+                          (newButton.type === "PHONE_NUMBER" &&
+                            !newButton.phone || isReadOnly)
+                        }
+                      >
+                        Add Button
+                      </button>
+                    </div>
+
+                    <div className="space-y-2">
+                      {templateButtons.map((button, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between bg-gray-100 p-2 md:p-3 rounded"
                         >
-                          ×
-                        </button>
-                      </div>
-                    ))}
+                          <div className="overflow-hidden">
+                            <span className="font-medium text-xs md:text-sm">
+                              {button.type}:{" "}
+                            </span>
+                            <span className="text-xs md:text-sm">
+                              {button.text}
+                            </span>
+                            {button.url && (
+                              <span className="text-blue-600 ml-1 md:ml-2 text-xs md:text-sm">
+                                → {button.url}
+                              </span>
+                            )}
+                            {button.phone && (
+                              <span className="text-green-600 ml-1 md:ml-2 text-xs md:text-sm">
+                                📞 {button.phone}
+                              </span>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => handleRemoveButton(index)}
+                            className="text-red-500 hover:text-red-700 flex-shrink-0 ml-2"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Quick Replies */}
               {currentRules.allowQuickReplies && (

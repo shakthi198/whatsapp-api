@@ -1,15 +1,32 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Typography, Card, CardContent, Grid, LinearProgress } from "@mui/material";
-import { FiUsers, FiTool, FiBell, FiSmile, FiCheckCircle } from "react-icons/fi";
-import { MdSupportAgent, MdAssignment, MdPendingActions, MdOutlineCancel } from "react-icons/md";
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  Grid,
+  LinearProgress,
+} from "@mui/material";
+import {
+  FiUsers,
+  FiTool,
+  FiBell,
+  FiSmile,
+  FiCheckCircle,
+} from "react-icons/fi";
+import {
+  MdSupportAgent,
+  MdAssignment,
+  MdPendingActions,
+  MdOutlineCancel,
+} from "react-icons/md";
 import CardComponent from "../Components/Card.js";
 import ClientOverview from "../Components/ClientOverview";
 import ReminderPopup from "../Components/ReminderPopup";
 import apiEndpoints from "../apiconfig";
 const Dashboard = () => {
   const navigate = useNavigate();
-
   const [cardData, setCardData] = useState({
     marketing: 0,
     userInitiated: 0,
@@ -17,22 +34,24 @@ const Dashboard = () => {
     businessInitiated: 0,
     utility: 0,
   });
-
   const [currentPlan, setCurrentPlan] = useState({
     planName: "Current Plan",
     features: "No features available.",
     upgradeText: "Upgrade Now",
   });
-
+  const [clientOverview, setClientOverview] = useState({
+    sent: 0,
+    delivered: 0,
+    read: 0,
+  });
   const [usage, setUsage] = useState({ used: 0, total: 1000 });
-
   const [showReminder, setShowReminder] = useState(false);
   const [token, setToken] = useState(localStorage.getItem("token") || "");
-
-  // 🔹 Fetch profile & check if reminder popup is needed
+  const [user, setUser] = useState({});
+  const [balance, setBalance] = useState(0);
+  // :small_blue_diamond: Fetch profile & check if reminder popup is needed
   useEffect(() => {
     if (!token) return;
-
     fetch(``, {
       method: "POST",
       headers: {
@@ -67,24 +86,38 @@ const Dashboard = () => {
       })
       .catch((err) => console.error("Error fetching profile:", err));
   }, [token]);
-
-  // 🔹 Example: Fetch dashboard card data
+  // :small_blue_diamond: Example: Fetch dashboard card data
   useEffect(() => {
-    fetch(`${apiEndpoints.getProfile}`) // Replace with actual API
+    // Call PHP dashboard API
+    fetch(`${apiEndpoints.dashboard}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "apple@gmail.com" }), // replace with logged-in user's email
+    })
       .then((res) => res.json())
       .then((data) => {
-        setCardData({
-          marketing: data.marketing || 0,
-          userInitiated: data.userInitiated || 0,
-          authentication: data.authentication || 0,
-          businessInitiated: data.businessInitiated || 0,
-          utility: data.utility || 0,
-        });
+        if (data.status === "success") {
+          // :white_check_mark: Update all the states from backend response
+          setCardData({
+            marketing: data.cards.marketing,
+            authentication: data.cards.authentication,
+            utility: data.cards.utility,
+            userInitiated: data.cards.userInitiated,
+            businessInitiated: data.cards.businessInitiated,
+          });
+          setUsage(data.usage);
+          setBalance(data.balance); // :white_check_mark: stores wallet balance
+          setUser(data.user);
+          setClientOverview(
+            data.clientOverview || { sent: 0, delivered: 0, read: 0 }
+          );
+        } else {
+          console.error("Dashboard fetch failed:", data.message);
+        }
       })
-      .catch((err) => console.error("Error fetching card data:", err));
+      .catch((err) => console.error("Dashboard fetch error:", err));
   }, []);
-
-  // 🔹 Example usage setup
+  // :small_blue_diamond: Example usage setup
   useEffect(() => {
     setTimeout(() => {
       setCurrentPlan({
@@ -92,16 +125,13 @@ const Dashboard = () => {
         features: "No features available.",
         upgradeText: "Upgrade Now",
       });
-
       setUsage({
         used: 1, // Change dynamically based on API
         total: 1000,
       });
     }, 1000);
   }, []);
-
   const usagePercentage = (usage.used / usage.total) * 100;
-
   const cardsData = useMemo(
     () => ({
       Overview: [
@@ -133,7 +163,6 @@ const Dashboard = () => {
           backgroundColor: "#C8E6C9",
           path: "/dashboard",
         },
-
         {
           icon: <MdAssignment size={50} color="#FBBF24" />,
           title: "Balancemessage",
@@ -145,20 +174,34 @@ const Dashboard = () => {
     }),
     [cardData]
   );
-
   return (
     <Box sx={{ padding: "6px", marginTop: "10px" }}>
       {/* Account Overview */}
       <Typography
         variant="h5"
-        sx={{ fontWeight: "medium", marginBottom: "20px", fontFamily: "Montserrat, sans-serif" }}
+        sx={{
+          fontWeight: "medium",
+          marginBottom: "20px",
+          fontFamily: "Montserrat, sans-serif",
+        }}
       >
         Account Overview
       </Typography>
       <div style={{ justifyContent: "center" }}>
-        <Grid container spacing={3} justifyContent={"center"} >
+        <Grid container spacing={3} justifyContent={"center"}>
           {/* INR Balance Card */}
-          <Grid item sx={{ width: { xs: "100%", sm: "100%", md: "50%", lg: "33.3%", xl: "33.3%" } }}>
+          <Grid
+            item
+            sx={{
+              width: {
+                xs: "100%",
+                sm: "100%",
+                md: "50%",
+                lg: "33.3%",
+                xl: "33.3%",
+              },
+            }}
+          >
             <Card
               sx={{
                 padding: "20px",
@@ -169,18 +212,45 @@ const Dashboard = () => {
               }}
             >
               <CardContent>
-                <Typography variant="h6" sx={{ fontWeight: "medium", color: "#333", fontFamily: "Montserrat, sans-serif" }}>
-                  Hello Elcodamics!
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: "medium",
+                    color: "#333",
+                    fontFamily: "Montserrat, sans-serif",
+                  }}
+                >
+                  Hello {user?.companyName || "User"}!
                 </Typography>
-                <Typography variant="h4" sx={{ fontWeight: "medium", marginTop: "10px", fontFamily: "Montserrat, sans-serif" }}>
-                  INR 5.4
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: "medium",
+                    marginTop: "10px",
+                    fontFamily: "Montserrat, sans-serif",
+                  }}
+                >
+                  INR{" "}
+                  {balance.toLocaleString("en-IN", {
+                    minimumFractionDigits: 2,
+                  })}
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
-
           {/* Upgrade Plan Card */}
-          <Grid item sx={{ width: { xs: "100%", sm: "100%", md: "50%", lg: "33.3%", xl: "33.3%" } }}>
+          <Grid
+            item
+            sx={{
+              width: {
+                xs: "100%",
+                sm: "100%",
+                md: "50%",
+                lg: "33.3%",
+                xl: "33.3%",
+              },
+            }}
+          >
             <Card
               sx={{
                 padding: "7px",
@@ -191,10 +261,23 @@ const Dashboard = () => {
               }}
             >
               <CardContent>
-                <Typography variant="h6" sx={{ fontWeight: "medium", color: "#333", fontFamily: "Montserrat, sans-serif" }}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: "medium",
+                    color: "#333",
+                    fontFamily: "Montserrat, sans-serif",
+                  }}
+                >
                   {currentPlan.planName}
                 </Typography>
-                <Typography sx={{ marginBottom: "10px", color: "#666", fontFamily: "Montserrat, sans-serif" }}>
+                <Typography
+                  sx={{
+                    marginBottom: "10px",
+                    color: "#666",
+                    fontFamily: "Montserrat, sans-serif",
+                  }}
+                >
                   {currentPlan.features}
                 </Typography>
                 <button
@@ -216,9 +299,19 @@ const Dashboard = () => {
               </CardContent>
             </Card>
           </Grid>
-
           {/* Usage Card */}
-          <Grid item sx={{ width: { xs: "100%", sm: "100%", md: "50%", lg: "33.3%", xl: "33.3%" } }}>
+          <Grid
+            item
+            sx={{
+              width: {
+                xs: "100%",
+                sm: "100%",
+                md: "50%",
+                lg: "33.3%",
+                xl: "33.3%",
+              },
+            }}
+          >
             <Card
               sx={{
                 padding: "19px",
@@ -231,39 +324,61 @@ const Dashboard = () => {
               onClick={() => navigate("/usage")}
             >
               <CardContent>
-                <Typography variant="h6" sx={{ fontWeight: "medium", color: "#333", fontFamily: "Montserrat, sans-serif" }}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: "medium",
+                    color: "#333",
+                    fontFamily: "Montserrat, sans-serif",
+                  }}
+                >
                   Usage
                 </Typography>
                 <LinearProgress
                   variant="determinate"
                   value={usagePercentage}
-                  sx={{ height: "10px", borderRadius: "5px", marginTop: "10px", position: "relative" }}
+                  sx={{
+                    height: "10px",
+                    borderRadius: "5px",
+                    marginTop: "10px",
+                    position: "relative",
+                  }}
                 />
                 <Typography
-                  sx={{ marginTop: "10px", color: "#666", textAlign: "center", fontFamily: "Montserrat, sans-serif" }}
+                  sx={{
+                    marginTop: "10px",
+                    color: "#666",
+                    textAlign: "center",
+                    fontFamily: "Montserrat, sans-serif",
+                  }}
                 >
-                  {usage.used} out of {usage.total} ({usagePercentage.toFixed(1)}%)
+                  {usage.used} out of {usage.total} (
+                  {usagePercentage.toFixed(1)}%)
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
         </Grid>
       </div>
-
       {/* Dashboard Overview */}
       <Typography
         variant="h5"
-        sx={{ fontWeight: "medium", marginTop: "30px", marginBottom: "20px", fontFamily: "Montserrat, sans-serif" }}
+        sx={{
+          fontWeight: "medium",
+          marginTop: "30px",
+          marginBottom: "20px",
+          fontFamily: "Montserrat, sans-serif",
+        }}
       >
         Dashboard Overview
       </Typography>
       <CardComponent cards={cardsData.Overview} isScrollable={false} />
-      <ClientOverview />
-
+      <ClientOverview clientOverview={clientOverview} />
       {/* Reminder Popup */}
-      {showReminder && <ReminderPopup token={token} onClose={() => setShowReminder(false)} />}
+      {showReminder && (
+        <ReminderPopup token={token} onClose={() => setShowReminder(false)} />
+      )}
     </Box>
   );
 };
-
 export default Dashboard;
