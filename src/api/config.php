@@ -1,10 +1,15 @@
 <?php
 header("Content-Type: application/json");
 
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "whatsapp";
+// $servername = "localhost";
+// $username = "root";
+// $password = "";
+// $dbname = "whatsapp";
+
+$servername = "srv945.hstgr.io";
+$username = "u831820240_elcwhatsapp";
+$password = "Elc@150901";
+$dbname = "u831820240_elcwhatsapp";
 
 $jwt_secret = "qwerty1234qwerty";
 $jwt_algorithm = 'HS256';
