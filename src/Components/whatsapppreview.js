@@ -263,7 +263,7 @@ const WhatsAppPreview = ({ templateData }) => {
           {(mediaFile || mediaUrl) && renderMediaPreview()}
 
           {/* Body */}
-          {/* <Typography 
+          <Typography 
             variant={isMobile ? "caption" : "body2"} 
             mb={1}
             sx={{
@@ -271,8 +271,8 @@ const WhatsAppPreview = ({ templateData }) => {
               whiteSpace: 'pre-wrap'
             }}
           >
-            {body || "Hey {{name}}, your appointment is on {{date}}."}
-          </Typography> */}
+            {body}
+          </Typography>
 
           {/* Footer */}
           {footer && (
