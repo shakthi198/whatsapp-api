@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Search, FileText, Image, Video, LayoutGrid, X } from "lucide-react";
 import { FiLayout } from "react-icons/fi";
-import apiEndpoints from "../apiconfig";
+import apiEndpoints from "../../apiconfig";
 
 const MessagePopup = ({ onClose, onSelectTemplate }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -16,8 +16,9 @@ const MessagePopup = ({ onClose, onSelectTemplate }) => {
     const fetchTemplates = async () => {
       try {
         setLoading(true);
-        debugger
-        const response = await fetch(apiEndpoints.fetchTemplate, {
+        setError("");
+
+        const response = await fetch(apiEndpoints.managetemplate, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -25,20 +26,49 @@ const MessagePopup = ({ onClose, onSelectTemplate }) => {
         });
 
         if (!response.ok) {
-          throw new Error("Failed to fetch templates");
+          throw new Error(`Failed to fetch templates (${response.status})`);
         }
 
-        debugger
         const data = await response.json();
-        
-        if (data.status === "success") {
-          setTemplates(data.data);
+
+        if (data.status === "success" && Array.isArray(data.data)) {
+          // ✅ Normalize Meta template structure for frontend
+          const formatted = data.data.map((t) => {
+            // Find the BODY component
+            const bodyComponent = t.components?.find(
+              (comp) => comp.type === "BODY"
+            );
+            const bodyText = bodyComponent?.text || "No body content";
+
+            // Detect header type (image/video/text/document)
+            const header = t.components?.find((c) => c.type === "HEADER");
+            let type = "text";
+            if (header) {
+              if (header.format === "IMAGE") type = "image";
+              else if (header.format === "VIDEO") type = "video";
+              else if (header.format === "DOCUMENT") type = "file";
+              else type = "text";
+            }
+
+            return {
+              id: t.id,
+              name: t.name,
+              categoryName: t.category || "Unknown",
+              languageName: t.language || "Unknown",
+              meta_status: t.status || "PENDING",
+              template_json: JSON.stringify({ components: t.components }),
+              templateBody: bodyText,
+              templateType: type,
+            };
+          });
+
+          setTemplates(formatted);
         } else {
-          throw new Error("Failed to load templates");
+          throw new Error("No templates found or invalid response");
         }
       } catch (err) {
-        setError(err.message);
         console.error("Error fetching templates:", err);
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -46,6 +76,7 @@ const MessagePopup = ({ onClose, onSelectTemplate }) => {
 
     fetchTemplates();
   }, []);
+
 
   // Extract unique categories and languages for filters
   const categories = ["all", ...new Set(templates.map(t => t.categoryName))];
@@ -58,39 +89,29 @@ const MessagePopup = ({ onClose, onSelectTemplate }) => {
       .includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "all" || template.categoryName === selectedCategory;
     const matchesLanguage = selectedLanguage === "all" || template.languageName === selectedLanguage;
-    
+
     return matchesSearch && matchesCategory && matchesLanguage;
   });
 
-  // Function to extract template body text from template_json
   const getTemplateBody = (templateJson) => {
     try {
       const parsed = JSON.parse(templateJson);
-      const bodyComponent = parsed.components?.find(comp => comp.type === "BODY");
-      return bodyComponent?.text || "No content available";
+      const bodyComponent = parsed.components?.find((comp) => comp.type === "BODY");
+      return bodyComponent?.text || "No body content";
     } catch (err) {
-      console.error("Error parsing template JSON:", err);
-      return "Error loading template content";
+      return "Error loading body";
     }
   };
 
-  // Determine template type based on components (you might need to adjust this logic)
   const getTemplateType = (templateJson) => {
     try {
       const parsed = JSON.parse(templateJson);
-      const components = parsed.components || [];
-      
-      if (components.some(comp => comp.type === "HEADER" && comp.format === "IMAGE")) {
-        return "image";
-      } else if (components.some(comp => comp.type === "HEADER" && comp.format === "VIDEO")) {
-        return "video";
-      } else if (components.some(comp => comp.type === "CAROUSEL")) {
-        return "carousel";
-      } else if (components.some(comp => comp.type === "DOCUMENT")) {
-        return "file";
-      }
+      const header = parsed.components?.find((comp) => comp.type === "HEADER");
+      if (header?.format === "IMAGE") return "image";
+      if (header?.format === "VIDEO") return "video";
+      if (header?.format === "DOCUMENT") return "file";
       return "text";
-    } catch (err) {
+    } catch {
       return "text";
     }
   };
@@ -131,6 +152,25 @@ const MessagePopup = ({ onClose, onSelectTemplate }) => {
     setSelectedLanguage("all");
   };
 
+  // ✅ Function to return chip colors based on Meta status
+  const getStatusColor = (status) => {
+    switch (status?.toUpperCase()) {
+      case "APPROVED":
+        return "bg-green-100 text-green-800 border border-green-300";
+      case "REJECTED":
+        return "bg-red-100 text-red-800 border border-red-300";
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-800 border border-yellow-300";
+      case "IN_REVIEW":
+        return "bg-blue-100 text-blue-800 border border-blue-300";
+      case "PAUSED":
+        return "bg-gray-100 text-gray-700 border border-gray-300";
+      default:
+        return "bg-gray-100 text-gray-700 border border-gray-300";
+    }
+  };
+
+
   return (
     <div
       className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center p-2 sm:p-4 md:p-6"
@@ -138,7 +178,7 @@ const MessagePopup = ({ onClose, onSelectTemplate }) => {
     >
       {/* Popup Container */}
       <div className="bg-white w-full max-w-[95vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl rounded-lg shadow-lg border border-gray-300 flex flex-col max-h-[90vh]">
-        
+
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between rounded-t-lg gap-3 border-b border-gray-400 p-3 sticky top-0 bg-white z-10">
           {/* Filter Buttons - Categories */}
@@ -219,7 +259,7 @@ const MessagePopup = ({ onClose, onSelectTemplate }) => {
               {filteredTemplates.map((template) => {
                 const templateType = getTemplateType(template.template_json);
                 const templateBody = getTemplateBody(template.template_json);
-                
+
                 return (
                   <div
                     key={template.id}
@@ -229,17 +269,19 @@ const MessagePopup = ({ onClose, onSelectTemplate }) => {
                     <div className="bg-gray-100 h-28 sm:h-32 flex flex-col items-center justify-center rounded-md p-2">
                       {renderIcon(templateType)}
                       <div className="mt-2 flex flex-wrap gap-1 justify-center">
-                        <span className={`px-2 py-1 text-xs rounded-full ${
-                          template.meta_status === "SUBMITTED" 
-                            ? "bg-green-100 text-green-800" 
-                            : "bg-yellow-100 text-yellow-800"
-                        }`}>
+                        {/* Status Chip */}
+                        <span
+                          className={`px-2 py-1 text-xs rounded-full font-medium ${getStatusColor(template.meta_status)}`}
+                        >
                           {template.meta_status}
                         </span>
-                        <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
-                          {templateType}
+
+                        {/* Type Chip */}
+                        <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 border border-blue-300 font-medium">
+                          {template.templateType || "text"}
                         </span>
                       </div>
+
                     </div>
                     <p className="text-gray-800 mt-2 font-semibold text-sm sm:text-base truncate">
                       {template.name || "No Name"}
@@ -286,7 +328,7 @@ const MessagePopup = ({ onClose, onSelectTemplate }) => {
             >
               Cancel
             </button>
-            <button 
+            <button
               className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition text-sm"
               onClick={onClose}
             >

@@ -10,7 +10,7 @@ import {
   faSync,
 } from "@fortawesome/free-solid-svg-icons";
 import { HiChevronRight, HiChevronLeft } from "react-icons/hi";
-import MessagePopup from "./MessagePopup";
+import MessagePopup from "./ComposeMessage/MessagePopup";
 import apiEndpoints from "../apiconfig";
 
 const ManageTemplates = () => {
@@ -32,39 +32,45 @@ const ManageTemplates = () => {
   const fetchTemplates = async (syncWithMeta = false) => {
     setIsLoading(true);
     try {
-      const url = syncWithMeta 
+      const url = syncWithMeta
         ? `${apiEndpoints.managetemplate}?sync=true`
         : apiEndpoints.managetemplate;
-      
+
       const response = await fetch(url);
       const data = await response.json();
 
-      if (data.status === "success") {
-        const formattedTemplates = data.data.map((template) => ({
-          id: template.id,
-          guid: template.guid,
-          templateName: template.template_name,
-          category: template.category,
-          status: template.isActive ? "Active" : "Inactive",
-          type: template.template_type === "1" ? "Transactional" : "Promotional",
-          createdOn: template.createdOn,
-          templateBody: template.body,
-          templateFooter: template.template_footer,
-          meta_template_id: template.meta_template_id,
-          meta_status: template.meta_status || 'PENDING',
-          attributes: (() => {
-            try {
-              if (typeof template.templateHeaders === "string") {
-                return JSON.parse(template.templateHeaders);
-              }
-              return template.templateHeaders || [];
-            } catch {
-              return [];
-            }
-          })(),
-          isFile: template.isFile,
-          isVariable: template.isVariable,
-        }));
+      if (data.status === "success" && Array.isArray(data.data)) {
+        const formattedTemplates = data.data.map((template) => {
+          // Extract components (BODY, FOOTER, etc.)
+          const bodyComponent = template.components?.find(
+            (c) => c.type === "BODY"
+          );
+          const footerComponent = template.components?.find(
+            (c) => c.type === "FOOTER"
+          );
+
+          return {
+            id: template.id,
+            guid: template.id,
+            templateName: template.name || "Untitled",
+            category: template.category || "N/A",
+            meta_status: template.status || "PENDING",
+            language: template.language || "en",
+            createdOn: new Date().toISOString(), // Meta doesn't give created date
+            templateBody: bodyComponent?.text || "",
+            templateFooter: footerComponent?.text || "",
+            type:
+              template.category?.toUpperCase() === "MARKETING"
+                ? "Promotional"
+                : "Transactional",
+            attributes:
+              bodyComponent?.example?.body_text?.[0]?.map((value, i) => ({
+                name: `{{${i + 1}}}`,
+                value,
+              })) || [],
+          };
+        });
+
         setTemplates(formattedTemplates);
       } else {
         setError(data.message || "Error fetching templates");
@@ -77,6 +83,7 @@ const ManageTemplates = () => {
       setSyncing(false);
     }
   };
+
 
   useEffect(() => {
     // Auto-sync with Meta on component mount
@@ -110,15 +117,20 @@ const ManageTemplates = () => {
     fetchTemplates(true);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this template?")) {
+  const handleDelete = async (template) => {
+    if (window.confirm(`Are you sure you want to delete "${template.templateName}"?`)) {
       try {
+        const payload = {
+          templateId: template.id,
+          templateName: template.templateName
+        };
+
         const response = await fetch(apiEndpoints.managetemplate, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: id }),
+          body: JSON.stringify(payload),
         });
 
         const data = await response.json();
@@ -128,8 +140,10 @@ const ManageTemplates = () => {
         }
 
         if (data.status === "success") {
-          setTemplates((prev) => prev.filter((template) => template.id !== id));
-          alert("Template deleted successfully!");
+          setTemplates((prev) =>
+            prev.filter((t) => t.id !== template.id)
+          );
+          alert("Template deleted successfully from Meta!");
         } else {
           throw new Error(data.message || "Unknown error occurred");
         }
@@ -140,12 +154,9 @@ const ManageTemplates = () => {
     }
   };
 
+
   const handleCopy = (template) => {
     navigate("/create-template", { state: { template } });
-  };
-
-  const handlePreview = (template) => {
-    setModal({ type: "preview", data: template });
   };
 
   const handleCreateTemplate = () => {
@@ -258,232 +269,228 @@ const ManageTemplates = () => {
   return (
     <div className="width-full h-full" style={{ fontFamily: "Montserrat" }}>
       {/* Header */}
-        <div className="flex flex-col lg:flex-row items-start lg:items-center mb-4 gap-2">
-          <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 whitespace-wrap">
-            Manage Template
-          </h2>
-          <div className="flex items-center flex-nowrap text-yellow-600 text-sm md:text-md gap-1">
-            <div className="flex items-center text-sm md:text-lg text-gray-600 flex-wrap gap-1">
-              <span className="hidden md:inline">|</span>
-            </div>
-            <span className="whitespace-nowrap">Home</span>
-            <HiChevronRight className="mx-1 text-black text-sm md:text-md" />
-            <span className="whitespace-nowrap">Manage Template</span>
+      <div className="flex flex-col lg:flex-row items-start lg:items-center mb-4 gap-2">
+        <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 whitespace-wrap">
+          Manage Template
+        </h2>
+        <div className="flex items-center flex-nowrap text-yellow-600 text-sm md:text-md gap-1">
+          <div className="flex items-center text-sm md:text-lg text-gray-600 flex-wrap gap-1">
+            <span className="hidden md:inline">|</span>
           </div>
+          <span className="whitespace-nowrap">Home</span>
+          <HiChevronRight className="mx-1 text-black text-sm md:text-md" />
+          <span className="whitespace-nowrap">Manage Template</span>
         </div>
+      </div>
 
-        {/* Table and Filters */}
-        <div className="bg-white p-3 shadow rounded-lg border border-gray-300">
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center pb-4 gap-3">
-            <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
-              <input
-                type="text"
-                placeholder="Search Template"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="border border-gray-300 px-3 py-2 rounded-md text-sm md:text-base w-full sm:w-auto"
-              />
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="border text-gray-500 border-gray-300 px-3 py-2 rounded-md text-sm md:text-base w-full sm:w-auto"
-              >
-                <option value="">Select Category</option>
-                {categories.map((category, index) => (
-                  <option key={index} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                className="border text-gray-500 border-gray-300 px-3 py-2 rounded-md text-sm md:text-base w-full sm:w-auto"
-              >
-                <option value="">Select Type</option>
-                {types.map((type, index) => (
-                  <option key={index} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-              <button
-                onClick={handleCreateTemplate}
-                className="text-white px-4 py-2 rounded-md bg-yellow-600 text-sm md:text-base w-full sm:w-auto"
-              >
-                + Create New Template
-              </button>
-            </div>
-            <button
-              onClick={handleSyncWithMeta}
-              disabled={syncing}
-              className="flex items-center gap-2 text-white px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-sm md:text-base w-full lg:w-auto justify-center"
+      {/* Table and Filters */}
+      <div className="bg-white p-3 shadow rounded-lg border border-gray-300">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center pb-4 gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
+            <input
+              type="text"
+              placeholder="Search Template"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="border border-gray-300 px-3 py-2 rounded-md text-sm md:text-base w-full sm:w-auto"
+            />
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="border text-gray-500 border-gray-300 px-3 py-2 rounded-md text-sm md:text-base w-full sm:w-auto"
             >
-              <FontAwesomeIcon 
-                icon={faSync} 
-                className={syncing ? "animate-spin" : ""} 
-              />
-              {syncing ? "Syncing..." : "Sync Meta Status"}
+              <option value="">Select Category</option>
+              {categories.map((category, index) => (
+                <option key={index} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+            <select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value)}
+              className="border text-gray-500 border-gray-300 px-3 py-2 rounded-md text-sm md:text-base w-full sm:w-auto"
+            >
+              <option value="">Select Type</option>
+              {types.map((type, index) => (
+                <option key={index} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={handleCreateTemplate}
+              className="text-white px-4 py-2 rounded-md bg-yellow-600 text-sm md:text-base w-full sm:w-auto"
+            >
+              + Create New Template
             </button>
           </div>
+          <button
+            onClick={handleSyncWithMeta}
+            disabled={syncing}
+            className="flex items-center gap-2 text-white px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-sm md:text-base w-full lg:w-auto justify-center"
+          >
+            <FontAwesomeIcon
+              icon={faSync}
+              className={syncing ? "animate-spin" : ""}
+            />
+            {syncing ? "Syncing..." : "Sync Meta Status"}
+          </button>
+        </div>
 
-          <div className="w-full overflow-x-auto mt-4">
-            <table className="w-full border-collapse border border-gray-300 text-sm md:text-base">
-              <thead>
-                <tr className="bg-gray-200 text-left">
-                  <th className="p-2 md:p-3 text-gray-600 font-medium whitespace-nowrap">
-                    S.No.
-                  </th>
-                  <th className="p-2 md:p-3 text-gray-600 font-medium whitespace-nowrap">
-                    Template Name
-                  </th>
-                  <th className="p-2 md:p-3 text-gray-600 font-medium whitespace-nowrap">
-                    Category
-                  </th>
-                  <th className="p-2 md:p-3 text-gray-600 font-medium whitespace-nowrap">
-                    Meta Status
-                  </th>
-                  <th className="p-2 md:p-3 text-gray-600 font-medium whitespace-nowrap">
-                    Type
-                  </th>
-                  <th className="p-2 md:p-3 text-gray-600 font-medium whitespace-nowrap">
-                    Created On
-                  </th>
-                  <th className="p-2 md:p-3 text-gray-600 font-medium whitespace-nowrap">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentTemplates.length > 0 ? (
-                  currentTemplates.map((template, index) => (
-                    <tr
-                      key={template.id}
-                      className="border border-gray-300 hover:bg-gray-50 text-xs md:text-sm"
-                    >
-                      <td className="p-2 md:p-3">{indexOfFirstTemplate + index + 1}</td>
-                      <td className="p-2 md:p-3 font-medium">{template.templateName}</td>
-                      <td className="p-2 md:p-3">{template.category}</td>
-                      <td className="p-2 md:p-3">
-                        <span
-                          className={`px-2 py-1 rounded text-xs ${
-                            template.meta_status === 'APPROVED'
-                              ? 'bg-green-500 text-white'
-                              : template.meta_status === 'REJECTED'
-                              ? 'bg-red-500 text-white'
-                              : template.meta_status === 'IN_REVIEW'
+        <div className="w-full overflow-x-auto mt-4">
+          <table className="w-full border-collapse border border-gray-300 text-sm md:text-base">
+            <thead>
+              <tr className="bg-gray-200 text-left">
+                <th className="p-2 md:p-3 text-gray-600 font-medium whitespace-nowrap">
+                  S.No.
+                </th>
+                <th className="p-2 md:p-3 text-gray-600 font-medium whitespace-nowrap">
+                  Template Name
+                </th>
+                <th className="p-2 md:p-3 text-gray-600 font-medium whitespace-nowrap">
+                  Category
+                </th>
+                <th className="p-2 md:p-3 text-gray-600 font-medium whitespace-nowrap">
+                  Meta Status
+                </th>
+                <th className="p-2 md:p-3 text-gray-600 font-medium whitespace-nowrap">
+                  Type
+                </th>
+                <th className="p-2 md:p-3 text-gray-600 font-medium whitespace-nowrap">
+                  Created On
+                </th>
+                <th className="p-2 md:p-3 text-gray-600 font-medium whitespace-nowrap">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentTemplates.length > 0 ? (
+                currentTemplates.map((template, index) => (
+                  <tr
+                    key={template.id}
+                    className="border border-gray-300 hover:bg-gray-50 text-xs md:text-sm"
+                  >
+                    <td className="p-2 md:p-3">{indexOfFirstTemplate + index + 1}</td>
+                    <td className="p-2 md:p-3 font-medium">{template.templateName}</td>
+                    <td className="p-2 md:p-3">{template.category}</td>
+                    <td className="p-2 md:p-3">
+                      <span
+                        className={`px-2 py-1 rounded text-xs ${template.meta_status === 'APPROVED'
+                          ? 'bg-green-500 text-white'
+                          : template.meta_status === 'REJECTED'
+                            ? 'bg-red-500 text-white'
+                            : template.meta_status === 'IN_REVIEW'
                               ? 'bg-yellow-500 text-white'
                               : template.meta_status === 'PENDING'
-                              ? 'bg-gray-500 text-white'
-                              : 'bg-blue-500 text-white'
+                                ? 'bg-gray-500 text-white'
+                                : 'bg-blue-500 text-white'
                           }`}
+                      >
+                        {template.meta_status || 'PENDING'}
+                      </span>
+                    </td>
+                    <td className="p-2 md:p-3">{template.type}</td>
+                    <td className="p-2 md:p-3 whitespace-nowrap">
+                      {new Date(template.createdOn).toLocaleString()}
+                    </td>
+                    <td className="p-2 md:p-3">
+                      <div className="hidden lg:flex space-x-1">
+                        <button
+                          className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
+                          onClick={() => navigate("/create-template", { state: { view: true, id: template.id, name: template.templateName } })}
+                          title="View Template"
                         >
-                          {template.meta_status || 'PENDING'}
-                        </span>
-                      </td>
-                      <td className="p-2 md:p-3">{template.type}</td>
-                      <td className="p-2 md:p-3 whitespace-nowrap">
-                        {new Date(template.createdOn).toLocaleString()}
-                      </td>
-                      <td className="p-2 md:p-3">
-                        <div className="hidden lg:flex space-x-1">
-                          <button
-                            className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
-                            onClick={() => handlePreview(template)}
-                            title="Preview"
-                          >
-                            <FontAwesomeIcon
-                              icon={faEye}
-                              className="text-yellow-600 text-sm"
-                            />
-                          </button>
-                          <button
-                            className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
-                            onClick={() => handleCopy(template)}
-                            title="Copy"
-                          >
-                            <FontAwesomeIcon
-                              icon={faCopy}
-                              className="text-yellow-600 text-sm"
-                            />
-                          </button>
-                          <button
-                            className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
-                            onClick={() => handleDelete(template.id)}
-                            title="Delete"
-                          >
-                            <FontAwesomeIcon
-                              icon={faTrash}
-                              className="text-yellow-600 text-sm"
-                            />
-                          </button>
-                          <button
-                            className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
-                            onClick={() => handleShowCurl(template)}
-                            title="Show cURL"
-                          >
-                            <FontAwesomeIcon
-                              icon={faAngleLeft}
-                              className="text-yellow-600 text-sm"
-                            />
-                            <FontAwesomeIcon
-                              icon={faAngleRight}
-                              className="text-yellow-600 text-sm ml-1"
-                            />
-                          </button>
-                        </div>
+                          <FontAwesomeIcon icon={faEye} className="text-yellow-600 text-sm" />
+                        </button>
+                        <button
+                          className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
+                          onClick={() => handleCopy(template)}
+                          title="Copy"
+                        >
+                          <FontAwesomeIcon
+                            icon={faCopy}
+                            className="text-yellow-600 text-sm"
+                          />
+                        </button>
+                        <button
+                          className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
+                          onClick={() => handleDelete(template)}
+                          title="Delete"
+                        >
+                          <FontAwesomeIcon
+                            icon={faTrash}
+                            className="text-yellow-600 text-sm"
+                          />
+                        </button>
+                        <button
+                          className="border border-yellow-600 p-1 hover:bg-yellow-100 rounded"
+                          onClick={() => handleShowCurl(template)}
+                          title="Show cURL"
+                        >
+                          <FontAwesomeIcon
+                            icon={faAngleLeft}
+                            className="text-yellow-600 text-sm"
+                          />
+                          <FontAwesomeIcon
+                            icon={faAngleRight}
+                            className="text-yellow-600 text-sm ml-1"
+                          />
+                        </button>
+                      </div>
 
-                        <div className="lg:hidden">
-                          <button
-                            className="p-1 border border-gray-300 rounded hover:bg-gray-100 text-lg"
-                            onClick={() =>
-                              setModal({ type: "actions", data: template })
-                            }
-                          >
-                            &#x22EE;
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="7" className="p-4 text-center text-gray-500">
-                      No templates found
+                      <div className="lg:hidden">
+                        <button
+                          className="p-1 border border-gray-300 rounded hover:bg-gray-100 text-lg"
+                          onClick={() =>
+                            setModal({ type: "actions", data: template })
+                          }
+                        >
+                          &#x22EE;
+                        </button>
+                      </div>
                     </td>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="7" className="p-4 text-center text-gray-500">
+                    No templates found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
 
-          {/* Pagination */}
-          <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-3">
-            <div className="text-xs md:text-sm text-gray-500">
-              Showing {indexOfFirstTemplate + 1} to{" "}
-              {Math.min(indexOfLastTemplate, filteredTemplates.length)} of{" "}
-              {filteredTemplates.length} entries
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handlePrevPage}
-                disabled={currentPage === 1}
-                className="p-1 md:p-2 rounded-md text-gray-600 hover:bg-gray-300 disabled:opacity-50"
-              >
-                <HiChevronLeft className="text-xl md:text-2xl" />
-              </button>
-              <button className="border border-yellow-600 px-3 md:px-4 py-1 md:py-2 rounded-md text-black font-medium text-sm md:text-base">
-                {currentPage}
-              </button>
-              <button
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages || totalPages === 0}
-                className="p-1 md:p-2 rounded-md text-gray-600 hover:bg-gray-300 disabled:opacity-50"
-              >
-                <HiChevronRight className="text-xl md:text-2xl" />
-              </button>
-            </div>
+        {/* Pagination */}
+        <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-3">
+          <div className="text-xs md:text-sm text-gray-500">
+            Showing {indexOfFirstTemplate + 1} to{" "}
+            {Math.min(indexOfLastTemplate, filteredTemplates.length)} of{" "}
+            {filteredTemplates.length} entries
           </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+              className="p-1 md:p-2 rounded-md text-gray-600 hover:bg-gray-300 disabled:opacity-50"
+            >
+              <HiChevronLeft className="text-xl md:text-2xl" />
+            </button>
+            <button className="border border-yellow-600 px-3 md:px-4 py-1 md:py-2 rounded-md text-black font-medium text-sm md:text-base">
+              {currentPage}
+            </button>
+            <button
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages || totalPages === 0}
+              className="p-1 md:p-2 rounded-md text-gray-600 hover:bg-gray-300 disabled:opacity-50"
+            >
+              <HiChevronRight className="text-xl md:text-2xl" />
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Actions Modal */}
@@ -494,11 +501,20 @@ const ManageTemplates = () => {
               className="mb-2 w-full text-left hover:bg-gray-100 p-2 rounded text-sm md:text-base"
               onClick={() => {
                 closeModal();
-                setTimeout(() => handlePreview(modal.data), 50);
+                setTimeout(() => {
+                  navigate("/create-template", {
+                    state: {
+                      view: true,
+                      id: modal.data.id,
+                      name: modal.data.templateName,
+                    },
+                  });
+                }, 50);
               }}
             >
-              Preview
+              View Template
             </button>
+
 
             <button
               className="mb-2 w-full text-left hover:bg-gray-100 p-2 rounded text-sm md:text-base"
@@ -512,7 +528,7 @@ const ManageTemplates = () => {
             <button
               className="mb-2 w-full text-left hover:bg-gray-100 p-2 rounded text-sm md:text-base"
               onClick={() => {
-                handleDelete(modal.data.id);
+                handleDelete(modal.data);
                 closeModal();
               }}
             >

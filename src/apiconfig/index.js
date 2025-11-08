@@ -18,6 +18,7 @@ const apiEndpoints = {
     apiurl : `${API_BASE_URL}/api_settings.php`,
     fetchmessage : `${API_BASE_URL}/message_crud.php`,
     metaTemplates: `${API_BASE_URL}/meta_templates.php`,
+    sendmessage: `${API_BASE_URL}/send_message.php`,
 
   };
 

@@ -28,6 +28,10 @@ const CreateTemplate = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
+  const viewMode = location.state?.view || false;
+  const isReadOnly = viewMode;
+  const templateId = location.state?.id || null;
+  const templateName = location.state?.name || "";
 
   const [templateBody, setTemplateBody] = useState("");
   const [templateFooter, setTemplateFooter] = useState("");
@@ -78,6 +82,7 @@ const CreateTemplate = () => {
 
   const [categories, setCategories] = useState([]);
   const [languages, setLanguages] = useState([]);
+  const [fetchedTemplate, setFetchedTemplate] = useState(null);
 
   // Category-specific restrictions
   const CATEGORY_RULES = {
@@ -112,6 +117,134 @@ const CreateTemplate = () => {
     { name: "name", value: "user name" },
     { name: "date", value: "meet date" },
   ];
+
+
+  useEffect(() => {
+    const fetchTemplateDetails = async () => {
+      try {
+        console.log("📡 Fetching template details for:", templateId);
+        const res = await fetch(`${apiEndpoints.managetemplate}?templateId=${templateId}`);
+        const data = await res.json();
+
+        if (data.status === "success" && data.data) {
+          const t = data.data;
+
+          // Extract header, body, footer, and buttons from Meta components
+          const headerComp = t.components?.find((c) => c.type === "HEADER");
+          const bodyComp = t.components?.find((c) => c.type === "BODY");
+          const footerComp = t.components?.find((c) => c.type === "FOOTER");
+          const buttonsComp = t.components?.find((c) => c.type === "BUTTONS");
+
+          // Try to match the language returned by API with your dropdown list
+          const langCode = (t.language || "").toLowerCase();
+          const langName = (t.language_name || "").toLowerCase();
+
+          // Find matching language in your fetched list
+          let matchedLang = null;
+          if (languages && languages.length > 0) {
+            matchedLang = languages.find(
+              (l) =>
+                l.code.toLowerCase() === langCode ||
+                l.name.toLowerCase() === langName
+            );
+          }
+
+          // Set form data with correct mapping
+          setFormData((prev) => ({
+            ...prev,
+            templateName: t.name || "",
+            templateCategory: t.category || "UTILITY",
+            languageGuid: matchedLang?.guid || "",
+            languageName: matchedLang?.name || t.language_name || t.language || "English",
+            type: headerComp?.format ? "MEDIA" : "TEXT",
+            headerType: (headerComp?.format || "text").toLowerCase(),
+            headerText: headerComp?.text || "",
+          }));
+
+
+
+          setTemplateBody(bodyComp?.text || "");
+          setTemplateFooter(footerComp?.text || "");
+
+          // Handle variables (examples)
+          if (bodyComp?.example?.body_text?.[0]) {
+            const samples = bodyComp.example.body_text[0];
+            setPlaceholderValues(samples);
+            setVariableMeta(
+              samples.map((s, i) => ({
+                placeholder: `{{${i + 1}}}`,
+                sample: s,
+                type: "text",
+              }))
+            );
+          }
+
+          // Handle buttons (if any)
+          if (buttonsComp?.buttons?.length) {
+            setTemplateButtons(
+              buttonsComp.buttons.map((b) => ({
+                type: b.type,
+                text: b.text,
+                url: b.url || "",
+                phone: b.phone_number || "",
+              }))
+            );
+          }
+
+          setFetchedTemplate({
+            headerType: headerComp?.format?.toLowerCase() || "text",
+            headerText: headerComp?.text || "",
+            body: bodyComp?.text || "",
+            footer: footerComp?.text || "",
+            quickReplies: [],
+            templateButtons:
+              buttonsComp?.buttons?.map((b) => ({
+                type: b.type,
+                text: b.text,
+                url: b.url || "",
+                phone: b.phone_number || "",
+              })) || [],
+            mediaType:
+              headerComp?.format?.toLowerCase() === "image" ||
+                headerComp?.format?.toLowerCase() === "video"
+                ? headerComp.format.toLowerCase()
+                : "",
+            mediaFile: null,
+            mediaUrl: "",
+          });
+
+
+          toast.success(`Template "${t.name}" loaded successfully!`);
+        } else {
+          toast.error(data.message || "Failed to load template details");
+        }
+      } catch (err) {
+        console.error("❌ Fetch template details error:", err);
+        toast.error("Error fetching template details");
+      }
+    };
+
+    if (viewMode && templateId) {
+      fetchTemplateDetails();
+    }
+  }, [viewMode, templateId]);
+
+  useEffect(() => {
+    if (viewMode && languages.length && formData.languageName && !formData.languageGuid) {
+      const matchedLang = languages.find(
+        (l) =>
+          l.name.toLowerCase() === formData.languageName.toLowerCase() ||
+          l.code.toLowerCase() === formData.languageName.toLowerCase()
+      );
+      if (matchedLang) {
+        setFormData((prev) => ({
+          ...prev,
+          languageGuid: matchedLang.guid,
+        }));
+      }
+    }
+  }, [languages, formData.languageName, viewMode]);
+
 
   // Fetch Categories
   useEffect(() => {
@@ -319,43 +452,43 @@ const CreateTemplate = () => {
     ]);
   };
 
-const handleBodyChange = (text) => {
-  const nonNumericRegex = /\{\{\s*([^\d\}][^}]*)\s*\}\}/g;
-  let metaAdded = [];
-  let newText = text.replace(nonNumericRegex, (_, inner) => {
-    const placeholderNumber = placeholderValues.length + metaAdded.length + 1;
-    const placeholder = `{{${placeholderNumber}}}`;
-    metaAdded.push({
-      placeholder,
-      sample: inner.trim(),
-      name: "",
-      type: "text",
+  const handleBodyChange = (text) => {
+    const nonNumericRegex = /\{\{\s*([^\d\}][^}]*)\s*\}\}/g;
+    let metaAdded = [];
+    let newText = text.replace(nonNumericRegex, (_, inner) => {
+      const placeholderNumber = placeholderValues.length + metaAdded.length + 1;
+      const placeholder = `{{${placeholderNumber}}}`;
+      metaAdded.push({
+        placeholder,
+        sample: inner.trim(),
+        name: "",
+        type: "text",
+      });
+      return placeholder;
     });
-    return placeholder;
-  });
 
-  // ✅ Live validation: variable cannot be at start or end
-  const startsWithVariable = /^\s*\{\{\d+\}\}/.test(newText);
-  const endsWithVariable = /\{\{\d+\}\}\s*$/.test(newText);
-  if (startsWithVariable || endsWithVariable) {
-    toast.error(
-      startsWithVariable
-        ? "Variable cannot be at the start of the message body."
-        : "Variable cannot be at the end of the message body."
-    );
-  }
+    // ✅ Live validation: variable cannot be at start or end
+    const startsWithVariable = /^\s*\{\{\d+\}\}/.test(newText);
+    const endsWithVariable = /\{\{\d+\}\}\s*$/.test(newText);
+    if (startsWithVariable || endsWithVariable) {
+      toast.error(
+        startsWithVariable
+          ? "Variable cannot be at the start of the message body."
+          : "Variable cannot be at the end of the message body."
+      );
+    }
 
-  setTemplateBody(newText);
+    setTemplateBody(newText);
 
-  if (metaAdded.length) {
-    setPlaceholderValues((prev) => [
-      ...prev,
-      ...metaAdded.map((m) => m.sample),
-    ]);
-    setVariableMeta((prev = []) => [...prev, ...metaAdded]);
-    toast.info("Converted named placeholders to numeric placeholders.");
-  }
-};
+    if (metaAdded.length) {
+      setPlaceholderValues((prev) => [
+        ...prev,
+        ...metaAdded.map((m) => m.sample),
+      ]);
+      setVariableMeta((prev = []) => [...prev, ...metaAdded]);
+      toast.info("Converted named placeholders to numeric placeholders.");
+    }
+  };
 
 
   // 🧹 Keep variable samples & names in sync with placeholders
@@ -872,17 +1005,17 @@ const handleBodyChange = (text) => {
         variableSamples: JSON.stringify(
           variableMeta.length
             ? variableMeta.map((m, i) => ({
-                placeholder: m.placeholder || `{{${i + 1}}}`,
-                name: m.name || "",
-                sample: m.sample || placeholderValues[i] || "",
-                type: m.type || "text",
-              }))
+              placeholder: m.placeholder || `{{${i + 1}}}`,
+              name: m.name || "",
+              sample: m.sample || placeholderValues[i] || "",
+              type: m.type || "text",
+            }))
             : placeholderValues.map((v, i) => ({
-                placeholder: `{{${i + 1}}}`,
-                name: "",
-                sample: v,
-                type: "text",
-              }))
+              placeholder: `{{${i + 1}}}`,
+              name: "",
+              sample: v,
+              type: "text",
+            }))
         ),
         media_id: mediaId,
         components: components, // keep WhatsApp JSON
@@ -916,19 +1049,34 @@ const handleBodyChange = (text) => {
   };
 
   // Preview data
-  const previewData = {
-    headerType: formData.headerType,
-    headerText: formData.headerText,
-    body: getPreviewBody(),
-    footer: templateFooter,
-    quickReplies: quickReplies,
-    templateButtons: templateButtons,
-    mediaFile: mediaFile,
-    mediaType: mediaType,
-    mediaUrl: mediaFile ? URL.createObjectURL(mediaFile) : null,
-    fileName: mediaFile ? mediaFile.name : "",
-    templateType: formData.type,
-  };
+  const previewData = viewMode && fetchedTemplate
+    ? {
+      headerType: fetchedTemplate.headerType,
+      headerText: fetchedTemplate.headerText,
+      body: fetchedTemplate.body,
+      footer: fetchedTemplate.footer,
+      quickReplies: fetchedTemplate.quickReplies,
+      templateButtons: fetchedTemplate.templateButtons,
+      mediaFile: fetchedTemplate.mediaFile,
+      mediaType: fetchedTemplate.mediaType,
+      mediaUrl: fetchedTemplate.mediaUrl,
+      fileName: fetchedTemplate.fileName || "",
+      templateType: formData.type,
+    }
+    : {
+      headerType: formData.headerType,
+      headerText: formData.headerText,
+      body: getPreviewBody(),
+      footer: templateFooter,
+      quickReplies: quickReplies,
+      templateButtons: templateButtons,
+      mediaFile: mediaFile,
+      mediaType: mediaType,
+      mediaUrl: mediaFile ? URL.createObjectURL(mediaFile) : null,
+      fileName: mediaFile ? mediaFile.name : "",
+      templateType: formData.type,
+    };
+
 
   // Helper booleans for UI visibility
   const currentRules =
@@ -974,6 +1122,7 @@ const handleBodyChange = (text) => {
                     placeholder="e.g., otp_verification"
                     value={formData.templateName}
                     onChange={handleChange}
+                    disabled={isReadOnly}
                   />
                 </div>
 
@@ -1005,6 +1154,7 @@ const handleBodyChange = (text) => {
                     name="languageGuid"
                     value={formData.languageGuid}
                     onChange={handleChange}
+                    disabled={isReadOnly}
                   >
                     <option value="">Select language</option>
                     {languages.map((lang) => (
@@ -1024,6 +1174,7 @@ const handleBodyChange = (text) => {
                     name="type"
                     value={formData.type}
                     onChange={handleChange}
+                    disabled={isReadOnly}
                   >
                     <option value="TEXT">Text</option>
                     <option value="MEDIA" disabled={!currentRules.allowMedia}>
@@ -1041,6 +1192,7 @@ const handleBodyChange = (text) => {
                     name="templateCategory"
                     value={formData.templateCategory}
                     onChange={handleChange}
+                    disabled={isReadOnly}
                   >
                     <option value="UTILITY">Utility</option>
                     <option value="AUTHENTICATION">Authentication</option>
@@ -1083,7 +1235,7 @@ const handleBodyChange = (text) => {
                           onChange={handleMediaUpload}
                           accept="image/*,video/*,.pdf,.doc,.docx,.txt,audio/*"
                           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          disabled={isUploadingMedia}
+                          disabled={isUploadingMedia || isReadOnly}
                         />
                       </div>
                     ) : (
@@ -1110,7 +1262,7 @@ const handleBodyChange = (text) => {
                             type="button"
                             onClick={removeMediaFile}
                             className="p-1 md:p-2 hover:bg-gray-100 rounded-full text-gray-500 hover:text-red-500"
-                            disabled={isUploadingMedia}
+                            disabled={isUploadingMedia || isReadOnly}
                           >
                             <FaTimes className="text-lg" />
                           </button>
@@ -1137,6 +1289,7 @@ const handleBodyChange = (text) => {
                         name="headerType"
                         value={formData.headerType}
                         onChange={handleChange}
+                        disabled={isReadOnly}
                       >
                         <option value="text">Text</option>
                         <option value="image">Image</option>
@@ -1155,6 +1308,7 @@ const handleBodyChange = (text) => {
                         placeholder="Header Text"
                         value={formData.headerText}
                         onChange={handleChange}
+                        disabled={isReadOnly}
                       />
                     </div>
                   </div>
@@ -1172,11 +1326,16 @@ const handleBodyChange = (text) => {
                 </p>
 
                 <button
-                  className="border border-yellow-500 text-yellow-500 px-3 md:px-4 py-2 rounded mb-3 hover:bg-yellow-50 text-sm md:text-base"
-                  onClick={() => setShowPopup(true)}
+                  className={`border border-yellow-500 text-yellow-500 px-3 md:px-4 py-2 rounded mb-3 text-sm md:text-base ${isReadOnly
+                    ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-400 border-gray-300"
+                    : "hover:bg-yellow-50"
+                    }`}
+                  onClick={() => !isReadOnly && setShowPopup(true)}
+                  disabled={isReadOnly}
                 >
                   Add Variable
                 </button>
+
 
                 <div className="border border-gray-300 rounded-md p-3 md:p-4">
                   <textarea
@@ -1185,6 +1344,7 @@ const handleBodyChange = (text) => {
                     className="w-full h-32 md:h-40 border-none outline-none resize-none text-sm md:text-base"
                     value={templateBody}
                     onChange={(e) => handleBodyChange(e.target.value)}
+                    disabled={isReadOnly}
                   />
                 </div>
                 <p className="text-right text-xs md:text-sm text-gray-500 mt-1">
@@ -1194,110 +1354,111 @@ const handleBodyChange = (text) => {
               {/* Variable Samples Section */}
               {(placeholderValues.length > 0 ||
                 (variableMeta && variableMeta.length > 0)) && (
-                <div className="mt-4 border-t pt-3">
-                  <h3 className="font-semibold text-gray-800 text-sm md:text-base mb-2">
-                    Variable Samples
-                  </h3>
-                  <p className="text-xs text-gray-600 mb-2">
-                    Enter sample content and type for each variable. These
-                    samples are required by Meta for review.
-                  </p>
+                  <div className="mt-4 border-t pt-3">
+                    <h3 className="font-semibold text-gray-800 text-sm md:text-base mb-2">
+                      Variable Samples
+                    </h3>
+                    <p className="text-xs text-gray-600 mb-2">
+                      Enter sample content and type for each variable. These
+                      samples are required by Meta for review.
+                    </p>
 
-                  {Array.from({
-                    length: Math.max(
-                      placeholderValues.length,
-                      variableMeta.length || 0
-                    ),
-                  }).map((_, i) => {
-                    const sample =
-                      placeholderValues[i] ?? variableMeta[i]?.sample ?? "";
-                    const meta = variableMeta[i] ?? {};
-                    return (
-                      <div key={i} className="flex items-center gap-2 mb-2">
-                        <div className="w-20 text-xs md:text-sm font-mono text-gray-700">
-                          {`{{${i + 1}}}`}
-                        </div>
-                        <input
-                          type="text"
-                          className={`border rounded p-2 flex-1 text-sm md:text-base ${
-                            sampleErrors[i]
+                    {Array.from({
+                      length: Math.max(
+                        placeholderValues.length,
+                        variableMeta.length || 0
+                      ),
+                    }).map((_, i) => {
+                      const sample =
+                        placeholderValues[i] ?? variableMeta[i]?.sample ?? "";
+                      const meta = variableMeta[i] ?? {};
+                      return (
+                        <div key={i} className="flex items-center gap-2 mb-2">
+                          <div className="w-20 text-xs md:text-sm font-mono text-gray-700">
+                            {`{{${i + 1}}}`}
+                          </div>
+                          <input
+                            type="text"
+                            className={`border rounded p-2 flex-1 text-sm md:text-base ${sampleErrors[i]
                               ? "border-red-500"
                               : "border-gray-300"
-                          }`}
-                          placeholder={`Enter sample for {{${i + 1}}}`}
-                          value={sample}
-                          onChange={(e) => {
-                            const v = e.target.value;
-                            const currentType = variableMeta[i]?.type || "name";
-                            let errorMsg = "";
+                              }`}
+                            placeholder={`Enter sample for {{${i + 1}}}`}
+                            value={sample}
+                            disabled={isReadOnly}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              const currentType = variableMeta[i]?.type || "name";
+                              let errorMsg = "";
 
-                            // ✅ Type-based validation
-                            if (currentType === "number") {
-                              if (v && !/^\d+$/.test(v.trim())) {
-                                errorMsg =
-                                  "Sample value must be numeric for type 'number'.";
+                              // ✅ Type-based validation
+                              if (currentType === "number") {
+                                if (v && !/^\d+$/.test(v.trim())) {
+                                  errorMsg =
+                                    "Sample value must be numeric for type 'number'.";
+                                }
+                              } else if (currentType === "name") {
+                                if (v && /\d/.test(v.trim())) {
+                                  errorMsg =
+                                    "Sample value must not contain numbers for type 'name'.";
+                                }
                               }
-                            } else if (currentType === "name") {
-                              if (v && /\d/.test(v.trim())) {
-                                errorMsg =
-                                  "Sample value must not contain numbers for type 'name'.";
-                              }
-                            }
 
-                            if (errorMsg) {
-                              toast.error(errorMsg);
-                            }
-
-                            setPlaceholderValues((prev) => {
-                              const next = [...prev];
-                              next[i] = v;
-                              return next;
-                            });
-
-                            setVariableMeta((prev = []) => {
-                              const next = [...prev];
-                              next[i] = { ...(next[i] || {}), sample: v };
-                              return next;
-                            });
-
-                            setSampleErrors((prev) => {
-                              const next = { ...prev };
                               if (errorMsg) {
-                                next[i] = errorMsg;
-                              } else {
-                                delete next[i];
+                                toast.error(errorMsg);
                               }
-                              return next;
-                            });
-                          }}
-                        />
-                        {sampleErrors[i] && (
-                          <div className="text-xs text-red-600 mt-1">
-                            {sampleErrors[i]}
-                          </div>
-                        )}
 
-                        <select
-                          className="border border-gray-300 rounded p-2 text-sm"
-                          value={meta.type || "name"}
-                          onChange={(e) => {
-                            const typ = e.target.value;
-                            setVariableMeta((prev = []) => {
-                              const next = [...prev];
-                              next[i] = { ...(next[i] || {}), type: typ };
-                              return next;
-                            });
-                          }}
-                        >
-                          <option value="name">Name</option>
-                          <option value="number">Number</option>
-                          <option value="text">Text</option>
-                        </select>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+                              setPlaceholderValues((prev) => {
+                                const next = [...prev];
+                                next[i] = v;
+                                return next;
+                              });
+
+                              setVariableMeta((prev = []) => {
+                                const next = [...prev];
+                                next[i] = { ...(next[i] || {}), sample: v };
+                                return next;
+                              });
+
+                              setSampleErrors((prev) => {
+                                const next = { ...prev };
+                                if (errorMsg) {
+                                  next[i] = errorMsg;
+                                } else {
+                                  delete next[i];
+                                }
+                                return next;
+                              });
+                            }}
+                          />
+                          {sampleErrors[i] && (
+                            <div className="text-xs text-red-600 mt-1">
+                              {sampleErrors[i]}
+                            </div>
+                          )}
+
+                          <select
+                            className="border border-gray-300 rounded p-2 text-sm"
+                            value={meta.type || "name"}
+                            disabled={isReadOnly}
+                            onChange={(e) => {
+                              const typ = e.target.value;
+                              setVariableMeta((prev = []) => {
+                                const next = [...prev];
+                                next[i] = { ...(next[i] || {}), type: typ };
+                                return next;
+                              });
+                            }}
+                          >
+                            <option value="name">Name</option>
+                            <option value="number">Number</option>
+                            <option value="text">Text</option>
+                          </select>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
 
               {/* Template Buttons Section (only if allowed) */}
               {showButtons && (
@@ -1313,6 +1474,7 @@ const handleBodyChange = (text) => {
                     <select
                       className="border border-gray-300 p-2 rounded text-sm md:text-base col-span-1 md:col-span-1"
                       value={newButton.type}
+                      disabled={isReadOnly}
                       onChange={(e) =>
                         setNewButton({ ...newButton, type: e.target.value })
                       }
@@ -1327,6 +1489,7 @@ const handleBodyChange = (text) => {
                       className="border border-gray-300 p-2 rounded text-sm md:text-base col-span-1 md:col-span-1"
                       placeholder="Button text"
                       value={newButton.text}
+                      disabled={isReadOnly}
                       onChange={(e) =>
                         setNewButton({ ...newButton, text: e.target.value })
                       }
@@ -1339,6 +1502,7 @@ const handleBodyChange = (text) => {
                         className="border border-gray-300 p-2 rounded text-sm md:text-base col-span-1 md:col-span-1"
                         placeholder="URL"
                         value={newButton.url}
+                        disabled={isReadOnly}
                         onChange={(e) =>
                           setNewButton({ ...newButton, url: e.target.value })
                         }
@@ -1351,6 +1515,7 @@ const handleBodyChange = (text) => {
                         className="border border-gray-300 p-2 rounded text-sm md:text-base col-span-1 md:col-span-1"
                         placeholder="Phone number"
                         value={newButton.phone}
+                        disabled={isReadOnly}
                         onChange={(e) =>
                           setNewButton({ ...newButton, phone: e.target.value })
                         }
@@ -1363,7 +1528,7 @@ const handleBodyChange = (text) => {
                       disabled={
                         !newButton.text ||
                         (newButton.type === "URL" && !newButton.url) ||
-                        (newButton.type === "PHONE_NUMBER" && !newButton.phone)
+                        (newButton.type === "PHONE_NUMBER" && !newButton.phone || isReadOnly)
                       }
                     >
                       Add Button
@@ -1424,12 +1589,13 @@ const handleBodyChange = (text) => {
                         value={newQuickReply}
                         onChange={(e) => setNewQuickReply(e.target.value)}
                         maxLength={20}
+                        disabled={isReadOnly}
                       />
                       <button
                         className="bg-yellow-500 text-white px-3 md:px-4 py-2 rounded hover:bg-yellow-600 disabled:bg-gray-300 text-sm md:text-base sm:w-auto w-full"
                         onClick={handleAddQuickReply}
                         disabled={
-                          !newQuickReply.trim() || quickReplies.length >= 3
+                          !newQuickReply.trim() || quickReplies.length >= 3 || isReadOnly
                         }
                       >
                         Add
@@ -1472,27 +1638,24 @@ const handleBodyChange = (text) => {
                     value={templateFooter}
                     onChange={(e) => setTemplateFooter(e.target.value)}
                     maxLength={60}
+                    disabled={isReadOnly}
                   />
                 </div>
               )}
 
               {/* Buttons */}
               <div className="flex flex-col sm:flex-row justify-end gap-3 sm:space-x-4">
-                <button
-                  className="border border-gray-300 px-4 py-2 rounded text-gray-700 hover:bg-gray-50 text-sm md:text-base order-2 sm:order-1"
-                  disabled
-                >
-                  Save as draft
-                </button>
-                <button
-                  className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 disabled:bg-gray-400 text-sm md:text-base order-1 sm:order-2"
-                  onClick={handleSubmit}
-                  disabled={
-                    isSubmitting || (formData.type === "MEDIA" && !mediaId)
-                  }
-                >
-                  {isSubmitting ? "Submitting..." : "Submit Template"}
-                </button>
+                {!isReadOnly && (
+                  <button
+                    className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 disabled:bg-gray-400 text-sm md:text-base order-1 sm:order-2"
+                    onClick={handleSubmit}
+                    disabled={
+                      isSubmitting || (formData.type === "MEDIA" && !mediaId)
+                    }
+                  >
+                    {isSubmitting ? "Submitting..." : "Submit Template"}
+                  </button>
+                )}
               </div>
             </div>
           </Box>
@@ -1527,6 +1690,7 @@ const handleBodyChange = (text) => {
                 className="w-full sm:w-64 border p-2 rounded text-sm md:text-base"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                disabled={isReadOnly}
               />
               <button
                 className="bg-[#D2B887] text-white py-2 px-3 md:px-4 rounded flex text-sm md:text-base w-full sm:w-auto justify-center mt-2 sm:mt-0 sm:ml-4"
@@ -1617,6 +1781,7 @@ const handleBodyChange = (text) => {
                 placeholder="Enter Attribute Name"
                 className="w-full border p-2 rounded mt-1 text-sm md:text-base"
                 value={newAttribute.name}
+                disabled={isReadOnly}
                 onChange={(e) =>
                   setNewAttribute({ ...newAttribute, name: e.target.value })
                 }
@@ -1629,6 +1794,7 @@ const handleBodyChange = (text) => {
                 placeholder="Enter Attribute Value"
                 className="w-full border p-2 rounded mt-1 text-sm md:text-base"
                 value={newAttribute.value}
+                disabled={isReadOnly}
                 onChange={(e) =>
                   setNewAttribute({ ...newAttribute, value: e.target.value })
                 }
