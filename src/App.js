@@ -5,9 +5,9 @@ import Header from "./Components/Header";
 import Dashboard from "./Pages/Dashboard";
 
 import Login from "./Components/Login";
-import SingleMsg from "./Components/Compose Message/SingleMsg";
-import Group from "./Components/Compose Message/Group";
-import CSV from "./Components/Compose Message/CSV";
+import SingleMsg from "./Components/ComposeMessage/SingleMsg";
+import Group from "./Components/ComposeMessage/Group";
+import CSV from "./Components/ComposeMessage/CSV";
 import ManageTemplates from "./Components/ManageTemplates";
 import UseMetaTemplates from "./Components/UseMetaTemplates";
 import CreateTemplate from "./Components/CreateTemplate";

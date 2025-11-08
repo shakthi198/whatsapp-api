@@ -24,8 +24,28 @@ class WhatsAppBusinessAPI {
         $this->whatsappConfig = $this->loadAPISettings();
     }
 
+    // ✅ Helper: Convert language code to human-readable name
+public function decodeLanguageName($code) {
+    $languages = [
+        'en' => 'English',
+        'hi' => 'Hindi',
+        'ta' => 'Tamil',
+        'te' => 'Telugu',
+        'ml' => 'Malayalam',
+        'kn' => 'Kannada',
+        'bn' => 'Bengali',
+        'gu' => 'Gujarati',
+        'mr' => 'Marathi',
+        'pa' => 'Punjabi'
+    ];
+
+    return $languages[strtolower($code)] ?? strtoupper($code);
+}
+
+
+
     // ✅ Fetch WhatsApp API credentials dynamically from api_settings table
-    private function loadAPISettings() {
+    public function loadAPISettings() {
         $sql = "SELECT base_url, access_token, number_id, waba_id 
                 FROM api_settings 
                 ORDER BY id DESC 
@@ -540,96 +560,102 @@ if ($conn->connect_error) {
 
 $whatsappAPI = new WhatsAppBusinessAPI($conn);
 
-// ================= GET =================
+// ================= GET (Fetch all or single template) =================
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    
-    // Handle sync request
-    if (isset($_GET['sync']) && $_GET['sync'] === 'true') {
-        $syncResult = $whatsappAPI->syncAllTemplatesStatus();
-        // You can choose to return sync result or continue with template fetch
-    }
-    
-    $sql = "SELECT 
-                t.id, t.guid, t.name as template_name, 
-                c.categoryName as category,
-                t.categoryName, t.languageGuid, t.typeId as template_type,
-                t.isFile, t.templateHeaders, t.erpcategoryName,
-                t.isVariable, t.body, t.bodyStyle,
-                t.actionId, t.actionGuid, t.templateFooter,
-                t.fileGuids, t.createdOn, t.modifiedOn,
-                t.isActive, t.isDelete, t.meta_template_id, t.meta_status,
-                t.template_json
-            FROM templates t
-            LEFT JOIN category c ON t.categoryName = c.guid
-            WHERE t.isDelete = 0
-            ORDER BY t.createdOn DESC";
-    $result = $conn->query($sql);
 
-    if (!$result) {
+    $apiSettings = $whatsappAPI->loadAPISettings();
+
+    if (empty($apiSettings['base_url']) || empty($apiSettings['access_token']) || empty($apiSettings['waba_id'])) {
         http_response_code(500);
-        echo json_encode(["status" => "error", "message" => "Query failed: " . $conn->error]);
+        echo json_encode(["status" => "error", "message" => "Missing WhatsApp API credentials."]);
         exit();
     }
 
-    $templates = [];
-    while ($row = $result->fetch_assoc()) {
-        $templateJson = null;
-        if (!empty($row['template_json'])) {
-            $templateJson = json_decode($row['template_json'], true);
-        } else {
-            $templateJson = [
-                'name' => $row['template_name'],
-                'category' => $row['template_type'] == 1 ? 'TRANSACTIONAL' : 'MARKETING',
-                'language' => 'en',
-                'components' => []
-            ];
-            
-            if (!empty($row['body'])) {
-                $templateJson['components'][] = [
-                    'type' => 'BODY',
-                    'text' => $row['body']
-                ];
-            }
-            
-            if (!empty($row['templateFooter'])) {
-                $templateJson['components'][] = [
-                    'type' => 'FOOTER',
-                    'text' => $row['templateFooter']
-                ];
-            }
-        }
-        
-        $templates[] = [
-            'id' => (int)$row['id'],
-            'guid' => $row['guid'],
-            'template_name' => $row['template_name'],
-            'category' => $row['category'],
-            'templateCategory' => $row['categoryName'],
-            'languageGuid' => $row['languageGuid'],
-            'template_type' => (int)$row['template_type'],
-            'isFile' => (bool)$row['isFile'],
-            'templateHeaders' => json_decode($row['templateHeaders'], true) ?? [],
-            'erpcategoryName' => $row['erpcategoryName'],
-            'isVariable' => (bool)$row['isVariable'],
-            'body' => $row['body'],
-            'bodyStyle' => $row['bodyStyle'],
-            'actionId' => $row['actionId'],
-            'actionGuid' => $row['actionGuid'],
-            'template_footer' => $row['templateFooter'],
-            'fileGuids' => json_decode($row['fileGuids'], true) ?? [],
-            'createdOn' => $row['createdOn'],
-            'modifiedOn' => $row['modifiedOn'],
-            'isActive' => (bool)$row['isActive'],
-            'isDelete' => (bool)$row['isDelete'],
-            'meta_template_id' => $row['meta_template_id'],
-            'meta_status' => $row['meta_status'] ?? 'PENDING',
-            'template_json' => $templateJson
-        ];
+    $version = 'v22.0'; // Meta Graph API version
+    $templateId = isset($_GET['templateId']) ? trim($_GET['templateId']) : null;
+
+    // ✅ Build API URL
+    if ($templateId) {
+        // Fetch single template by ID
+        $url = "{$apiSettings['base_url']}/{$templateId}";
+    } else {
+        // Fetch all templates for WABA
+        $url = "{$apiSettings['base_url']}/{$apiSettings['waba_id']}/message_templates";
     }
 
-    echo json_encode(["status" => "success", "data" => $templates]);
+    // ✅ Initialize cURL
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => [
+            'Authorization: ' . $apiSettings['access_token']
+        ],
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_TIMEOUT => 30
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
+    curl_close($ch);
+
+    // ✅ Handle errors
+    if ($httpCode !== 200) {
+        http_response_code($httpCode);
+        echo json_encode([
+            "status" => "error",
+            "message" => "Failed to fetch template(s) from Meta",
+            "http_code" => $httpCode,
+            "curl_error" => $curlError,
+            "meta_url" => $url,
+            "response" => json_decode($response, true)
+        ]);
+        exit();
+    }
+
+    $metaResponse = json_decode($response, true);
+
+    // ✅ SINGLE TEMPLATE FETCH
+    if ($templateId) {
+        // Extract language and decode it
+        $languageCode = $metaResponse['language'] ?? 'en';
+        $languageName = $whatsappAPI->decodeLanguageName($languageCode);
+
+        // Add readable language name
+        $metaResponse['language_name'] = $languageName;
+
+        // Return formatted JSON
+        echo json_encode([
+            "status" => "success",
+            "data" => $metaResponse,
+            "meta_url" => $url
+        ]);
+        exit();
+    }
+
+    // ✅ MULTIPLE TEMPLATES FETCH
+    $templates = $metaResponse['data'] ?? [];
+
+    // Add decoded language names
+    foreach ($templates as &$t) {
+        if (isset($t['language'])) {
+            $t['language_name'] = $whatsappAPI->decodeLanguageName($t['language']);
+        }
+    }
+
+    echo json_encode([
+        "status" => "success",
+        "count" => count($templates),
+        "data" => $templates,
+        "paging" => $metaResponse['paging'] ?? null,
+        "meta_url" => $url
+    ]);
     exit();
 }
+
+
+
 
 // ================= POST - MEDIA UPLOAD ONLY =================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['media_file'])) {
@@ -802,49 +828,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_FILES['media_file'])) {
 }
 
 
-// ================= DELETE =================
+
+// ================= DELETE (Delete from Meta) =================
 if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
     $data = json_decode(file_get_contents('php://input'), true);
-    if (!isset($data['id'])) {
+
+    if (empty($data['templateId']) || empty($data['templateName'])) {
         http_response_code(400);
-        echo json_encode(["status" => "error", "message" => "Template ID is required"]);
+        echo json_encode([
+            "status" => "error",
+            "message" => "Both 'templateId' (HSM ID) and 'templateName' are required."
+        ]);
         exit();
     }
 
-    $id = (int)$data['id'];
-
-    $checkSql = "SELECT id, meta_template_id FROM templates WHERE id = ? AND isDelete = 0";
-    $checkStmt = $conn->prepare($checkSql);
-    $checkStmt->bind_param("i", $id);
-    $checkStmt->execute();
-    $result = $checkStmt->get_result();
-    $template = $result->fetch_assoc();
-    $checkStmt->close();
-
-    if (!$template) {
-        http_response_code(404);
-        echo json_encode(["status" => "error", "message" => "Template not found"]);
+    // Get credentials
+    $apiSettings = $whatsappAPI->loadAPISettings();
+    if (empty($apiSettings['base_url']) || empty($apiSettings['access_token']) || empty($apiSettings['waba_id'])) {
+        http_response_code(500);
+        echo json_encode(["status" => "error", "message" => "Missing WhatsApp API credentials."]);
         exit();
     }
 
-    $deleteSql = "UPDATE templates SET isDelete = 1, modifiedOn = NOW() WHERE id = ?";
-    $deleteStmt = $conn->prepare($deleteSql);
-    $deleteStmt->bind_param("i", $id);
+    // Build DELETE URL
+    $hsmId = urlencode($data['templateId']);
+    $name = urlencode($data['templateName']);
+    $url = "{$apiSettings['base_url']}/{$apiSettings['waba_id']}/message_templates?hsm_id={$hsmId}&name={$name}";
 
-    if ($deleteStmt->execute()) {
+    // Initialize cURL
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $url,
+        CURLOPT_CUSTOMREQUEST => "DELETE",
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => [
+            "Authorization: {$apiSettings['access_token']}",
+            "Content-Type: application/json"
+        ],
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_TIMEOUT => 30
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
+    curl_close($ch);
+
+    $responseData = json_decode($response, true);
+
+    // ✅ Handle successful deletion
+    if ($httpCode === 200 && isset($responseData['success']) && $responseData['success'] === true) {
         echo json_encode([
             "status" => "success",
-            "message" => "Template deleted successfully",
-            "deleted_id" => $id
+            "message" => "Template deleted successfully from Meta",
+            "meta_response" => $responseData
         ]);
     } else {
-        http_response_code(500);
-        echo json_encode(["status" => "error", "message" => "Failed to delete template: " . $deleteStmt->error]);
+        // ❌ Handle error response
+        http_response_code($httpCode);
+        echo json_encode([
+            "status" => "error",
+            "message" => "Failed to delete template from Meta",
+            "http_code" => $httpCode,
+            "curl_error" => $curlError,
+            "meta_response" => $responseData,
+            "url" => $url
+        ]);
     }
 
-    $deleteStmt->close();
     exit();
 }
+
 
 $conn->close();
 ?>

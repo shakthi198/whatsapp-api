@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronDown, Upload, X } from "lucide-react";
-import MessagePopup from "../MessagePopup";
+import MessagePopup from "./MessagePopup";
 import { HiChevronRight, HiChevronLeft } from "react-icons/hi";
 export default function SingleMsg() {
   const [campaignName, setCampaignName] = useState("CAMP-" + Math.floor(Math.random() * 100000));

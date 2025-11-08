@@ -19,7 +19,9 @@ const apiEndpoints = {
     fetchmessage : `${API_BASE_URL}/message_crud.php`,
     metaTemplates: `${API_BASE_URL}/meta_templates.php`,
     Reports: `${API_BASE_URL}/reports.php`,
-    dashboard: `${API_BASE_URL}/dashboard.php`,
+    dashboard: `${API_BASE_URL}/dashboard.php`,    
+    sendmessage: `${API_BASE_URL}/send_message.php`,
+
   };
 
 export default apiEndpoints;
